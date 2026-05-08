@@ -553,7 +553,7 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
 }
 
 function ContractCard({ c, onEdit, onDelete, onToggle, onView }) {
-  const pct = Math.round(((c.(deposit50Paid ? 0.5 : 0))+(c.(final50Paid ? 0.5 : 0)))*100);
+  const pct = Math.round(((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)) * 100);
   const f50d = c.final50Date ? daysDiff(c.final50Date) : null;
   return (
     <div className="cc">
@@ -610,7 +610,7 @@ function Dashboard({ contracts, clients, goTo }) {
   // Only videoAmount for financial calculations
   const collected = contracts.reduce((s,c)=>{
     const va = Number(c.videoAmount||0);
-    return s + va*((c.(deposit50Paid ? 0.5 : 0))+(c.(final50Paid ? 0.5 : 0)));
+    return s + va*(((c.deposit50Paid ? 0.5 : 0))+((c.final50Paid ? 0.5 : 0)));
   },0);
 
   const recent = [...contracts].sort((a,b)=>Number(b.id)-Number(a.id)).slice(0,3);
@@ -795,8 +795,8 @@ function IncomeScreen({ contracts }) {
 
   const thisM = contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===now.getMonth()&&new Date(c.startDate).getFullYear()===now.getFullYear()).reduce((s,c)=>s+videoOnly(c),0);
   const yearT = contracts.filter(c=>c.startDate&&new Date(c.startDate).getFullYear()===now.getFullYear()).reduce((s,c)=>s+videoOnly(c),0);
-  const allCollected = contracts.reduce((s,c)=>s+videoOnly(c)*((c.(deposit50Paid ? 0.5 : 0))+(c.(final50Paid ? 0.5 : 0))),0);
-  const pend = contracts.filter(c=>c.status!=="cancelled").reduce((s,c)=>s+videoOnly(c)*((!c.(deposit50Paid ? 0.5 : 0))+(!c.(final50Paid ? 0.5 : 0))),0);
+  const allCollected = contracts.reduce((s,c)=>s+videoOnly(c)*(((c.deposit50Paid ? 0.5 : 0))+((c.final50Paid ? 0.5 : 0))),0);
+  const pend = contracts.filter(c=>c.status!=="cancelled").reduce((s,c)=>s+videoOnly(c)*(((!c.deposit50Paid ? 0.5 : 0))+((!c.final50Paid ? 0.5 : 0))),0);
 
   // Sorted contracts newest first
   const sorted = [...contracts].sort((a,b)=>Number(b.id)-Number(a.id));
@@ -832,7 +832,7 @@ function IncomeScreen({ contracts }) {
           </div>
           <div style={{textAlign:"left"}}>
             <div style={{fontSize:13,fontWeight:800,color:"var(--ng)"}}>{fmt(videoOnly(c),c.currency)}</div>
-            <div style={{fontSize:9,color:"var(--muted)",textAlign:"center"}}>{Math.round(((c.(deposit50Paid ? 0.5 : 0))+(c.(final50Paid ? 0.5 : 0)))*100)}% مدفوع</div>
+            <div style={{fontSize:9,color:"var(--muted)",textAlign:"center"}}>{Math.round((((c.deposit50Paid ? 0.5 : 0))+((c.final50Paid ? 0.5 : 0)))*100)}% مدفوع</div>
           </div>
         </div>
       ))}
