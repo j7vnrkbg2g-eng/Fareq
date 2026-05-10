@@ -8,24 +8,22 @@ const addMonths = (dateStr, months) => { const d = new Date(dateStr); d.setMonth
 const NOW = new Date();
 
 const SL = { active:"جارٍ", pending:"معلق", completed:"مكتمل", cancelled:"ملغي" };
-const SC = { active:"#ff6b5b", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4444" };
+const SC = { active:"#00ff88", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4444" };
 
-// The exact red from the photo: #FF4B3A area, background #000F07 greenish-dark
-// User's color: accent #FF5244 (salmon-red), bg very dark #050a07
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#060806;--surface:#0d100d;--surface2:#141814;--surface3:#1a1f1a;
-  --ac:#FF5244;--ac2:#e8463a;--ac-glow:rgba(255,82,68,0.22);
-  --ac-faint:rgba(255,82,68,0.07);--ac-border:rgba(255,82,68,0.32);
-  --text:#f0eeee;--muted:#4a4f4a;--muted2:#1e231e;--font:'Tajawal',sans-serif;
-  --danger:#ff4444;--warn:#ffd600;
+  --bg:#050505;--surface:#0a0a0a;--surface2:#111;--surface3:#161616;
+  --ac:#00ff88;--ac2:#00e57a;--ac-glow:rgba(0,255,136,0.22);
+  --ac-faint:rgba(0,255,136,0.07);--ac-border:rgba(0,255,136,0.3);
+  --text:#f0f0f0;--muted:#555;--muted2:#222;--font:'Tajawal',sans-serif;
+  --danger:#ff4d4d;--warn:#ffd600;
 }
 [data-theme="light"]{
-  --bg:#f7f4f4;--surface:#fff;--surface2:#f0eaea;--surface3:#e8e0e0;
-  --ac:#e03d30;--ac2:#c73328;--ac-glow:rgba(224,61,48,0.15);
-  --ac-faint:rgba(224,61,48,0.07);--ac-border:rgba(224,61,48,0.3);
+  --bg:#f4f4f4;--surface:#fff;--surface2:#eee;--surface3:#e0e0e0;
+  --ac:#009955;--ac2:#007a44;--ac-glow:rgba(0,153,85,0.18);
+  --ac-faint:rgba(0,153,85,0.07);--ac-border:rgba(0,153,85,0.3);
   --text:#111;--muted:#888;--muted2:#ddd;
 }
 html,body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rtl;height:100%;transition:background .3s,color .3s;}
@@ -41,8 +39,8 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .tb-btn:hover{color:var(--ac);border-color:var(--ac-border);background:var(--ac-faint);}
 
 /* Nav */
-.bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(6,8,6,.96);backdrop-filter:blur(24px);border-top:1px solid var(--ac-border);display:flex;justify-content:space-around;align-items:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));box-shadow:0 -6px 30px rgba(255,82,68,0.08);}
-[data-theme="light"] .bnav{background:rgba(247,244,244,.96);}
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,5,5,.96);backdrop-filter:blur(24px);border-top:1px solid var(--ac-border);display:flex;justify-content:space-around;align-items:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));box-shadow:0 -6px 30px rgba(0,255,136,0.08);}
+[data-theme="light"] .bnav{background:rgba(244,244,244,.96);}
 .bni{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 14px;border-radius:12px;transition:all .2s;flex:1;}
 .bni:hover{background:var(--ac-faint);}
 .bni.on{background:var(--ac-faint);}
@@ -56,7 +54,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .card:hover{border-color:var(--ac-border);box-shadow:0 0 20px var(--ac-faint);}
 .card-gl{border-color:var(--ac-border)!important;box-shadow:0 0 28px var(--ac-glow)!important;}
 
-/* Stats - label big accent, number smaller white */
+/* Stats */
 .stat{background:var(--surface);border:1px solid var(--muted2);border-radius:13px;padding:14px 16px;transition:all .2s;position:relative;overflow:hidden;}
 .stat:hover{border-color:var(--ac-border);transform:translateY(-1px);box-shadow:0 4px 16px var(--ac-faint);}
 .slbl{font-size:12px;color:var(--ac);font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px var(--ac-glow);}
@@ -75,7 +73,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .btn:active{transform:scale(.97);}
 .bng{background:transparent;color:var(--ac);border:1.5px solid var(--ac-border);box-shadow:0 0 12px var(--ac-faint);}
 .bng:hover{background:var(--ac-faint);}
-.bngf{background:var(--ac);color:#fff;border:1.5px solid var(--ac);box-shadow:0 0 18px var(--ac-glow);font-weight:900;}
+.bngf{background:var(--ac);color:#050505;border:1.5px solid var(--ac);box-shadow:0 0 18px var(--ac-glow);font-weight:900;}
 .bngf:hover{background:var(--ac2);}
 .bgh{background:var(--surface2);color:var(--muted);border:1px solid var(--muted2);font-size:12px;}
 .bgh:hover{color:var(--text);}
@@ -84,7 +82,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .ico-btn{width:30px;height:30px;border-radius:8px;background:var(--surface2);border:1px solid var(--muted2);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
 .ico-btn:hover{color:var(--ac);border-color:var(--ac-border);background:var(--ac-faint);}
 .ico-btn.red{color:var(--danger);}
-.ico-btn.red:hover{color:var(--danger);border-color:#ff444444;background:#ff444411;}
+.ico-btn.red:hover{color:var(--danger);border-color:#ff4d4d44;background:#ff4d4d11;}
 .ico-btn.wa:hover{color:#25D366;border-color:#25D36644;background:#25D36611;}
 
 /* Contract card - compact */
@@ -103,19 +101,19 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 /* Payment - horizontal squares */
 .psec{background:var(--bg);border-radius:7px;padding:7px 9px;border:1px solid var(--muted2);margin-top:5px;}
 .pbar{height:2px;background:var(--muted2);border-radius:4px;margin:4px 0 6px;overflow:hidden;}
-.pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#ff8a7a);transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 6px var(--ac-glow);}
+.pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 6px var(--ac-glow);}
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
 .pitem{background:var(--surface);border-radius:7px;padding:6px 8px;border:1px solid var(--muted2);display:flex;justify-content:space-between;align-items:center;gap:4px;}
 .ptog{padding:3px 7px;border-radius:5px;border:1px solid;font-size:9px;font-weight:800;cursor:pointer;font-family:var(--font);transition:all .2s;white-space:nowrap;}
-.ptog.ok{background:rgba(255,82,68,.1);color:var(--ac);border-color:var(--ac-border);}
+.ptog.ok{background:rgba(0,255,136,.08);color:var(--ac);border-color:rgba(0,255,136,.3);}
 .ptog.no{background:var(--surface2);color:var(--muted);border-color:var(--muted2);}
 
 /* Video progress */
 .vpsec{background:var(--bg);border-radius:7px;padding:7px 9px;border:1px solid var(--muted2);margin-top:5px;}
 .vpbar{height:2px;background:var(--muted2);border-radius:4px;margin:4px 0 6px;overflow:hidden;}
-.vpfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#ff8a7a);transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 6px var(--ac-glow);}
+.vpfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 6px var(--ac-glow);}
 .vp-btn{padding:4px 14px;border-radius:6px;border:1px solid var(--ac-border);background:var(--ac-faint);color:var(--ac);font-size:10px;font-weight:800;cursor:pointer;font-family:var(--font);transition:all .2s;}
-.vp-btn:hover{background:var(--ac);color:#fff;}
+.vp-btn:hover{background:var(--ac);color:#050505;}
 
 /* Modal */
 .mov{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(8px);}
@@ -153,7 +151,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .tab.on{background:var(--ac-faint);color:var(--ac);border-color:var(--ac-border);}
 
 .alr{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:10px;margin-bottom:7px;font-size:11px;font-weight:700;border:1px solid;border-right-width:3px;animation:fu .3s;}
-.au{background:rgba(255,68,68,.05);border-color:#ff444433;border-right-color:#ff4444;color:#ff4444;}
+.au{background:rgba(255,77,77,.05);border-color:#ff4d4d33;border-right-color:#ff4d4d;color:#ff4d4d;}
 .aw{background:rgba(255,214,0,.05);border-color:#ffd60033;border-right-color:#ffd600;color:#ffd600;}
 
 .clic{background:var(--surface);border:1px solid var(--muted2);border-radius:13px;padding:13px 15px;margin-bottom:9px;display:flex;align-items:center;gap:13px;transition:all .2s;cursor:pointer;}
@@ -178,7 +176,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 
 /* Confirm */
 .conf-ov{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);}
-.conf-box{background:var(--surface);border:1px solid #ff444433;border-radius:16px;padding:22px;max-width:320px;width:100%;text-align:center;box-shadow:0 0 36px #ff444418;}
+.conf-box{background:var(--surface);border:1px solid #ff4d4d33;border-radius:16px;padding:22px;max-width:320px;width:100%;text-align:center;box-shadow:0 0 36px #ff4d4d18;}
 
 /* File upload */
 .file-zone{border:2px dashed var(--muted2);border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;}
@@ -288,7 +286,7 @@ function ConfirmDialog({ msg, onConfirm, onCancel }) {
         <div style={{ fontWeight: 800, fontSize: 14, margin: "12px 0 6px", color: "var(--text)" }}>{msg}</div>
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
           <button className="btn bgh" style={{ flex: 1 }} onClick={onCancel}>إلغاء</button>
-          <button className="btn" style={{ flex: 1, background: "#ff444420", color: "var(--danger)", border: "1px solid #ff444440" }} onClick={onConfirm}>تأكيد</button>
+          <button className="btn" style={{ flex: 1, background: "#ff4d4d22", color: "var(--danger)", border: "1px solid #ff4d4d44" }} onClick={onConfirm}>تأكيد</button>
         </div>
       </div>
     </div>
@@ -477,7 +475,7 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
           <span style={{ color: "var(--ac)", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 7 }}><Icon name="doc" size={13} />تفاصيل العقد</span>
           <div style={{ display: "flex", gap: 7 }}>
             {c.fileUrl && <a href={c.fileUrl} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}><button className="btn bng" style={{ fontSize: 11, padding: "5px 11px", display: "flex", alignItems: "center", gap: 5 }}><Icon name="file" size={11} />نسخة العقد</button></a>}
-            <button className="btn bngf" style={{ fontSize: 11, padding: "6px 13px", display: "flex", alignItems: "center", gap: 5 }} onClick={exportPDF}><Icon name="doc" size={11} color="#fff" />تصدير PDF</button>
+            <button className="btn bngf" style={{ fontSize: 11, padding: "6px 13px", display: "flex", alignItems: "center", gap: 5 }} onClick={exportPDF}><Icon name="doc" size={11} color="#050505" />تصدير PDF</button>
             <button className="mclose" onClick={onClose}>×</button>
           </div>
         </div>
@@ -562,7 +560,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
   const vc = Number(c.videoCount || 0), vd = Number(c.videoDone || 0);
   const vpct = vc > 0 ? Math.round((vd / vc) * 100) : 0;
   const ibtn = { width: 30, height: 30, borderRadius: 8, background: "var(--surface2)", border: "1px solid var(--muted2)", color: "var(--muted)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all .2s", flexShrink: 0 };
-  const rbtn = { ...ibtn, color: "var(--danger)", borderColor: "#ff444430" };
+  const rbtn = { ...ibtn, color: "var(--danger)", borderColor: "#ff4d4d30" };
 
   return (
     <div className="cc">
@@ -583,10 +581,10 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
             <button style={ibtn} onClick={() => onView(c)} data-tip="عرض PDF" onMouseEnter={e => { e.currentTarget.style.color = "var(--ac)"; e.currentTarget.style.borderColor = "var(--ac-border)"; e.currentTarget.style.background = "var(--ac-faint)"; }} onMouseLeave={e => { e.currentTarget.style.color = "var(--muted)"; e.currentTarget.style.borderColor = "var(--muted2)"; e.currentTarget.style.background = "var(--surface2)"; }}><Icon name="doc" size={12} color="currentColor" /></button>
             <WABtn phone={c.clientPhone} sm />
           </div>
-          {/* Row 2: cancel, delete — both red */}
+          {/* Row 2: cancel, delete */}
           <div style={{ display: "flex", gap: 4 }}>
-            <button style={rbtn} onClick={() => onCancel(c.id)} data-tip="إلغاء" onMouseEnter={e => { e.currentTarget.style.background = "#ff444415"; e.currentTarget.style.borderColor = "#ff444455"; }} onMouseLeave={e => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.borderColor = "#ff444430"; }}><Icon name="cancel" size={12} color="var(--danger)" /></button>
-            <button style={{ ...rbtn, flex: 1 }} onClick={() => onDelete(c.id)} data-tip="حذف" onMouseEnter={e => { e.currentTarget.style.background = "#ff444415"; e.currentTarget.style.borderColor = "#ff444455"; }} onMouseLeave={e => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.borderColor = "#ff444430"; }}><Icon name="trash" size={12} color="var(--danger)" /></button>
+            <button style={rbtn} onClick={() => onCancel(c.id)} data-tip="إلغاء" onMouseEnter={e => { e.currentTarget.style.background = "#ff4d4d15"; e.currentTarget.style.borderColor = "#ff4d4d55"; }} onMouseLeave={e => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.borderColor = "#ff4d4d30"; }}><Icon name="cancel" size={12} color="var(--danger)" /></button>
+            <button style={{ ...rbtn, flex: 1 }} onClick={() => onDelete(c.id)} data-tip="حذف" onMouseEnter={e => { e.currentTarget.style.background = "#ff4d4d15"; e.currentTarget.style.borderColor = "#ff4d4d55"; }} onMouseLeave={e => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.borderColor = "#ff4d4d30"; }}><Icon name="trash" size={12} color="var(--danger)" /></button>
           </div>
         </div>
       </div>
@@ -598,7 +596,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
           <div className="amt-val">{fmt(c.totalAmount, c.currency)}</div>
         </div>
 
-        {/* Payment - side by side squares */}
+        {/* Payment */}
         <div className="psec">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>الدفع</span>
@@ -619,17 +617,17 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
           </div>
         </div>
 
-        {/* Video progress - only +2 button */}
+        {/* Video progress */}
         {vc > 0 && (
           <div className="vpsec">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>الفيديوهات</span>
-              <span style={{ fontSize: 9, fontWeight: 800, color: vpct === 100 ? "var(--ac)" : "var(--ac)" }}>{vd}/{vc}</span>
+              <span style={{ fontSize: 9, fontWeight: 800, color: "var(--ac)" }}>{vd}/{vc}</span>
             </div>
             <div className="vpbar"><div className="vpfill" style={{ width: `${vpct}%` }} /></div>
             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
               <button className="vp-btn" onClick={() => onVideoUpdate(c.id, Math.min(vc, vd + 2))}>+2 فيديو</button>
-              <button className="vp-btn" style={{ background: "#ff444410", borderColor: "#ff444440", color: "var(--danger)" }} onClick={() => onVideoUpdate(c.id, 0)}>صفر</button>
+              <button className="vp-btn" style={{ background: "#ff4d4d10", borderColor: "#ff4d4d40", color: "var(--danger)" }} onClick={() => onVideoUpdate(c.id, 0)}>صفر</button>
             </div>
           </div>
         )}
@@ -689,10 +687,10 @@ function ContractsScreen({ contracts, clients, onAdd, onEdit, onDelete, onToggle
     <div className="screen" style={{ paddingTop: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div><div className="pt">العقود</div><div className="ps">{contracts.length} عقد</div></div>
-        <button className="btn bngf" onClick={onAdd} style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px", fontSize: 12 }}><Icon name="contract_plus" size={13} color="#fff" />جديد</button>
+        <button className="btn bngf" onClick={onAdd} style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px", fontSize: 12 }}><Icon name="contract_plus" size={13} color="#050505" />جديد</button>
       </div>
       <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)" /></span><input className="sb" value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight: 34 }} /></div>
-      <div className="tabs">{tabs.map(t => <button key={t.key} className={`tab${filter === t.key ? " on" : ""}`} onClick={() => setFilter(t.key)}>{t.label}{t.count > 0 && <span style={{ marginRight: 4, background: filter === t.key ? "var(--ac)" : "var(--muted2)", color: filter === t.key ? "#fff" : "var(--muted)", borderRadius: 20, padding: "0 5px", fontSize: 9, fontWeight: 900 }}>{t.count}</span>}</button>)}</div>
+      <div className="tabs">{tabs.map(t => <button key={t.key} className={`tab${filter === t.key ? " on" : ""}`} onClick={() => setFilter(t.key)}>{t.label}{t.count > 0 && <span style={{ marginRight: 4, background: filter === t.key ? "var(--ac)" : "var(--muted2)", color: filter === t.key ? "#050505" : "var(--muted)", borderRadius: 20, padding: "0 5px", fontSize: 9, fontWeight: 900 }}>{t.count}</span>}</button>)}</div>
       {filtered.length === 0
         ? <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="contracts" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 700, color: "var(--muted)", marginBottom: 12, fontSize: 13 }}>{contracts.length === 0 ? "لا توجد عقود" : "لا توجد نتائج"}</div>{contracts.length === 0 && <button className="btn bng" onClick={onAdd}>+ إضافة</button>}</div>
         : filtered.map(c => <ContractCard key={c.id} c={c} onEdit={onEdit} onDelete={onDelete} onToggle={onToggle} onView={onView} onVideoUpdate={onVideoUpdate} onCancel={onCancel} />)}
@@ -725,7 +723,7 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
           {[["📞", cl.phone], ["📍", cl.address], ["📝", cl.notes]].filter(([, v]) => v).map(([i, v]) => <div key={i} style={{ display: "flex", gap: 9, padding: "7px 0", borderTop: "1px solid var(--muted2)", fontSize: 12 }}><span>{i}</span><span style={{ color: "var(--muted)", flex: 1 }}>{v}</span></div>)}
           <div style={{ display: "flex", gap: 7, marginTop: 12 }}>
             <button className="btn bng" style={{ flex: 1, display: "flex", alignItems: "center", gap: 5, justifyContent: "center", fontSize: 12 }} onClick={() => onEdit(cl)}><Icon name="edit" size={12} />تعديل</button>
-            <button className="btn bgh" style={{ color: "var(--danger)", borderColor: "#ff444433", display: "flex", alignItems: "center", gap: 5, fontSize: 12 }} onClick={() => { if (confirm("حذف العميل؟")) { onDelete(cl.id); setSel(null); } }}><Icon name="trash" size={12} color="var(--danger)" />حذف</button>
+            <button className="btn bgh" style={{ color: "var(--danger)", borderColor: "#ff4d4d33", display: "flex", alignItems: "center", gap: 5, fontSize: 12 }} onClick={() => { if (confirm("حذف العميل؟")) { onDelete(cl.id); setSel(null); } }}><Icon name="trash" size={12} color="var(--danger)" />حذف</button>
           </div>
         </div>
         <div className="sh">عقوده ({clc.length})</div>
@@ -738,7 +736,7 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
     <div className="screen" style={{ paddingTop: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div><div className="pt">العملاء</div><div className="ps">{clients.length} عميل</div></div>
-        <button className="btn bngf" onClick={onAdd} style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px", fontSize: 12 }}><Icon name="user_plus" size={13} color="#fff" />عميل</button>
+        <button className="btn bngf" onClick={onAdd} style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px", fontSize: 12 }}><Icon name="user_plus" size={13} color="#050505" />عميل</button>
       </div>
       <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)" /></span><input className="sb" value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight: 34 }} /></div>
       {filtered.length === 0
@@ -866,7 +864,6 @@ export default function App() {
     { key: "income", label: "الدخل", icon: "income" },
   ];
 
-  // Top bar title
   const titles = { dashboard: "فارق للإنتاج", clients: "العملاء", contracts: "العقود", income: "الدخل" };
 
   if (loading) return (
