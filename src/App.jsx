@@ -35,8 +35,8 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 /* Top bar */
 .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 0;gap:10px;}
 .topbar-actions{display:flex;gap:8px;align-items:center;}
-.tb-btn{width:36px;height:36px;border-radius:10px;background:var(--surface2);border:1px solid var(--muted2);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;}
-.tb-btn:hover{color:var(--ac);border-color:var(--ac-border);background:var(--ac-faint);}
+.tb-btn{width:36px;height:36px;border-radius:10px;background:var(--ac-faint);border:1px solid var(--ac-border);color:var(--ac);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;box-shadow:0 0 10px var(--ac-faint);}
+.tb-btn:hover{background:rgba(0,255,136,0.15);box-shadow:0 0 16px var(--ac-glow);}
 
 /* Nav */
 .bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,5,5,.96);backdrop-filter:blur(24px);border-top:1px solid var(--ac-border);display:flex;justify-content:space-around;align-items:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));box-shadow:0 -6px 30px rgba(0,255,136,0.08);}
@@ -559,8 +559,8 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
   const f50d = c.final50Date ? daysDiff(c.final50Date) : null;
   const vc = Number(c.videoCount || 0), vd = Number(c.videoDone || 0);
   const vpct = vc > 0 ? Math.round((vd / vc) * 100) : 0;
-  const ibtn = { width: 30, height: 30, borderRadius: 8, background: "var(--surface2)", border: "1px solid var(--muted2)", color: "var(--muted)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all .2s", flexShrink: 0 };
-  const rbtn = { ...ibtn, color: "var(--danger)", borderColor: "#ff4d4d30" };
+  const ibtn = { width: 30, height: 30, borderRadius: 8, background: "var(--ac-faint)", border: "1px solid var(--ac-border)", color: "var(--ac)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all .2s", flexShrink: 0, boxShadow: "0 0 8px var(--ac-faint)" };
+  const rbtn = { width: 30, height: 30, borderRadius: 8, background: "var(--surface2)", border: "1px solid #ff4d4d30", color: "var(--danger)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all .2s", flexShrink: 0 };
 
   return (
     <div className="cc">
@@ -577,8 +577,8 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
         <div style={{ display: "flex", flexDirection: "column", gap: 4, flexShrink: 0 }}>
           {/* Row 1: edit, pdf, wa */}
           <div style={{ display: "flex", gap: 4 }}>
-            <button style={ibtn} onClick={() => onEdit(c)} data-tip="تعديل" onMouseEnter={e => { e.currentTarget.style.color = "var(--ac)"; e.currentTarget.style.borderColor = "var(--ac-border)"; e.currentTarget.style.background = "var(--ac-faint)"; }} onMouseLeave={e => { e.currentTarget.style.color = "var(--muted)"; e.currentTarget.style.borderColor = "var(--muted2)"; e.currentTarget.style.background = "var(--surface2)"; }}><Icon name="edit" size={12} color="currentColor" /></button>
-            <button style={ibtn} onClick={() => onView(c)} data-tip="عرض PDF" onMouseEnter={e => { e.currentTarget.style.color = "var(--ac)"; e.currentTarget.style.borderColor = "var(--ac-border)"; e.currentTarget.style.background = "var(--ac-faint)"; }} onMouseLeave={e => { e.currentTarget.style.color = "var(--muted)"; e.currentTarget.style.borderColor = "var(--muted2)"; e.currentTarget.style.background = "var(--surface2)"; }}><Icon name="doc" size={12} color="currentColor" /></button>
+            <button style={ibtn} onClick={() => onEdit(c)} data-tip="تعديل" onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,255,136,0.15)"; e.currentTarget.style.boxShadow = "0 0 14px var(--ac-glow)"; }} onMouseLeave={e => { e.currentTarget.style.background = "var(--ac-faint)"; e.currentTarget.style.boxShadow = "0 0 8px var(--ac-faint)"; }}><Icon name="edit" size={12} color="var(--ac)" /></button>
+            <button style={ibtn} onClick={() => onView(c)} data-tip="عرض PDF" onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,255,136,0.15)"; e.currentTarget.style.boxShadow = "0 0 14px var(--ac-glow)"; }} onMouseLeave={e => { e.currentTarget.style.background = "var(--ac-faint)"; e.currentTarget.style.boxShadow = "0 0 8px var(--ac-faint)"; }}><Icon name="doc" size={12} color="var(--ac)" /></button>
             <WABtn phone={c.clientPhone} sm />
           </div>
           {/* Row 2: cancel, delete */}
@@ -887,8 +887,8 @@ export default function App() {
             <div style={{ fontSize: 15, fontWeight: 900, color: "var(--ac)" }}>{titles[tab]}</div>
           </div>
           <div className="topbar-actions">
-            <button className="tb-btn" onClick={() => setShowSearch(true)} data-tip="بحث"><Icon name="search" size={16} color="var(--muted)" /></button>
-            <button className="tb-btn" onClick={() => setTheme(t => t === "dark" ? "light" : "dark")} data-tip={theme === "dark" ? "وضع فاتح" : "وضع داكن"}><Icon name={theme === "dark" ? "sun" : "moon"} size={16} color="var(--muted)" /></button>
+            <button className="tb-btn" onClick={() => setShowSearch(true)} data-tip="بحث"><Icon name="search" size={16} color="var(--ac)" /></button>
+            <button className="tb-btn" onClick={() => setTheme(t => t === "dark" ? "light" : "dark")} data-tip={theme === "dark" ? "وضع فاتح" : "وضع داكن"}><Icon name={theme === "dark" ? "sun" : "moon"} size={16} color="var(--ac)" /></button>
           </div>
         </div>
 
