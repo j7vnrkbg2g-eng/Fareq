@@ -19,22 +19,21 @@ const CSS = `
   --ac-faint:rgba(0,255,136,0.07);--ac-border:rgba(0,255,136,0.3);
   --text:#f0f0f0;--muted:#555;--muted2:#222;--font:'Tajawal',sans-serif;
   --danger:#ff4d4d;--warn:#ffd600;
-
-  /* Neumorphic shadows for dark theme */
   --neu-out: 4px 4px 10px rgba(0,0,0,0.7), -2px -2px 8px rgba(255,255,255,0.03);
   --neu-in:  inset 2px 2px 6px rgba(0,0,0,0.6), inset -1px -1px 4px rgba(255,255,255,0.03);
   --neu-glow-out: 4px 4px 10px rgba(0,0,0,0.7), -2px -2px 8px rgba(255,255,255,0.03), 0 0 14px var(--ac-glow);
+  --card-border: rgba(255,255,255,0.045);
+  --card-gap: 10px;
 }
 [data-theme="light"]{
   --bg:#f0f0f3;--surface:#f0f0f3;--surface2:#e8e8eb;--surface3:#e0e0e3;
   --ac:#009955;--ac2:#007a44;--ac-glow:rgba(0,153,85,0.18);
   --ac-faint:rgba(0,153,85,0.07);--ac-border:rgba(0,153,85,0.3);
   --text:#111;--muted:#888;--muted2:#d8d8db;
-
-  /* Neumorphic shadows for light theme */
   --neu-out: 5px 5px 14px rgba(180,180,190,0.7), -4px -4px 10px rgba(255,255,255,0.95);
   --neu-in:  inset 3px 3px 8px rgba(180,180,190,0.5), inset -2px -2px 6px rgba(255,255,255,0.9);
   --neu-glow-out: 5px 5px 14px rgba(180,180,190,0.7), -4px -4px 10px rgba(255,255,255,0.95), 0 0 12px var(--ac-glow);
+  --card-border: rgba(0,0,0,0.06);
 }
 html,body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rtl;height:100%;transition:background .3s,color .3s;}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--ac-border);border-radius:4px;}
@@ -59,23 +58,46 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .nbox{width:36px;height:36px;border-radius:10px;border:none;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--neu-out);}
 .nbox.sm{width:28px;height:28px;border-radius:8px;}
 
-/* ── NEUMORPHIC CARDS ── */
-.card{background:var(--bg);border:none;border-radius:16px;padding:14px;transition:all .25s;position:relative;overflow:hidden;box-shadow:var(--neu-out);}
-.card:hover{box-shadow:var(--neu-glow-out);}
-.card-gl{box-shadow:var(--neu-glow-out)!important;}
+/* ── NEUMORPHIC CARDS — now separated with border ── */
+.card{
+  background:var(--bg);
+  border:1px solid var(--card-border);
+  border-radius:16px;
+  padding:14px;
+  transition:all .25s;
+  position:relative;
+  overflow:hidden;
+  box-shadow:var(--neu-out);
+  margin-bottom:var(--card-gap);
+}
+.card:hover{box-shadow:var(--neu-glow-out);border-color:var(--ac-border);}
+.card-gl{box-shadow:var(--neu-glow-out)!important;border-color:var(--ac-border)!important;}
 
 /* ── NEUMORPHIC STATS ── */
-.stat{background:var(--bg);border:none;border-radius:16px;padding:16px 18px;transition:all .25s;position:relative;overflow:hidden;box-shadow:var(--neu-out);}
-.stat:hover{transform:translateY(-2px);box-shadow:var(--neu-glow-out);}
-.slbl{font-size:11px;color:var(--ac);font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px var(--ac-glow);}
+.stat{
+  background:var(--bg);
+  border:1px solid var(--card-border);
+  border-radius:16px;
+  padding:16px 18px;
+  transition:all .25s;
+  position:relative;
+  overflow:hidden;
+  box-shadow:var(--neu-out);
+}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--neu-glow-out);border-color:var(--ac-border);}
+.slbl{font-size:11px;color:var(--ac);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px var(--ac-glow);}
 .sval{font-size:20px;font-weight:800;color:var(--text);}
-.sval.sm{font-size:14px;color:var(--text);}
+.sval.sm{font-size:14px;font-weight:600;color:var(--text);}
+
+/* Dashboard card text — softer */
+.dash-card-name{font-size:13px;font-weight:500;color:var(--text);}
+.dash-card-sub{font-size:10px;color:var(--muted);margin-top:1px;font-weight:400;}
 
 .sh{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:18px 0 8px;}
 .pt{font-size:20px;font-weight:900;color:var(--text);margin-bottom:3px;}
 .ps{font-size:12px;color:var(--muted);}
 
-.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:800;border:1px solid;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;border:1px solid;}
 .badge::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0;}
 
 /* ── NEUMORPHIC BUTTONS ── */
@@ -84,8 +106,22 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .btn:active{transform:scale(.97);box-shadow:var(--neu-in);}
 .bng{background:var(--bg);color:var(--ac);border:none;box-shadow:var(--neu-out);}
 .bng:hover{box-shadow:var(--neu-glow-out);}
-.bngf{background:var(--ac);color:#050505;border:none;box-shadow:0 4px 14px var(--ac-glow);font-weight:900;}
-.bngf:hover{background:var(--ac2);box-shadow:0 6px 20px var(--ac-glow);}
+
+/* ── Softer action buttons (Add Contract / Add Client) ── */
+.bngf{
+  background:var(--bg);
+  color:var(--ac);
+  border:1px solid var(--ac-border);
+  box-shadow:var(--neu-out);
+  font-weight:700;
+}
+.bngf:hover{
+  box-shadow:var(--neu-glow-out);
+  background:var(--ac-faint);
+  border-color:var(--ac);
+}
+.bngf:active{box-shadow:var(--neu-in);}
+
 .bgh{background:var(--bg);color:var(--muted);border:none;font-size:12px;box-shadow:var(--neu-out);}
 .bgh:hover{color:var(--text);box-shadow:var(--neu-glow-out);}
 
@@ -96,41 +132,49 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .ico-btn.red:hover{color:var(--danger);box-shadow:4px 4px 10px rgba(0,0,0,0.7),-2px -2px 8px rgba(255,255,255,0.03),0 0 12px rgba(255,77,77,0.25);}
 .ico-btn.wa:hover{color:#25D366;box-shadow:4px 4px 10px rgba(0,0,0,0.7),-2px -2px 8px rgba(255,255,255,0.03),0 0 12px rgba(37,211,102,0.2);}
 
-/* ── NEUMORPHIC CONTRACT CARD ── */
-.cc{background:var(--bg);border:none;border-radius:16px;overflow:hidden;margin-bottom:10px;transition:all .25s;box-shadow:var(--neu-out);}
-.cc:hover{box-shadow:var(--neu-glow-out);transform:translateY(-1px);}
-.cc-h{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.cc-b{padding:6px 14px 12px;}
-.cc-n{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cc-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+/* ── CONTRACT CARD — compact & separated ── */
+.cc{
+  background:var(--bg);
+  border:1px solid var(--card-border);
+  border-radius:14px;
+  overflow:hidden;
+  margin-bottom:var(--card-gap);
+  transition:all .25s;
+  box-shadow:var(--neu-out);
+}
+.cc:hover{box-shadow:var(--neu-glow-out);border-color:var(--ac-border);transform:translateY(-1px);}
+.cc-h{padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.cc-b{padding:4px 12px 10px;}
+.cc-n{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cc-sub{font-size:9px;color:var(--muted);margin-top:1px;font-weight:400;}
 
-/* Amount box - inset neumorphic */
-.amt-box{background:var(--bg);border:none;border-radius:10px;padding:8px 12px;margin-bottom:8px;box-shadow:var(--neu-in);}
-.amt-lbl{font-size:8px;color:var(--muted);font-weight:700;margin-bottom:2px;}
-.amt-val{font-size:13px;font-weight:800;color:var(--ac);text-shadow:0 0 6px var(--ac-glow);}
+/* Amount box - inset neumorphic — compact */
+.amt-box{background:var(--bg);border:none;border-radius:8px;padding:5px 10px;margin-bottom:6px;box-shadow:var(--neu-in);display:flex;justify-content:space-between;align-items:center;}
+.amt-lbl{font-size:8px;color:var(--muted);font-weight:600;}
+.amt-val{font-size:12px;font-weight:700;color:var(--ac);text-shadow:0 0 6px var(--ac-glow);}
 
-/* Payment section - inset */
-.psec{background:var(--bg);border-radius:10px;padding:8px 10px;border:none;margin-top:6px;box-shadow:var(--neu-in);}
-.pbar{height:3px;background:var(--muted2);border-radius:4px;margin:5px 0 8px;overflow:hidden;}
+/* Payment section - compact */
+.psec{background:var(--bg);border-radius:8px;padding:6px 9px;border:none;margin-top:4px;box-shadow:var(--neu-in);}
+.pbar{height:2px;background:var(--muted2);border-radius:4px;margin:4px 0 6px;overflow:hidden;}
 .pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 6px var(--ac-glow);}
-.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.pitem{background:var(--bg);border-radius:8px;padding:7px 9px;border:none;display:flex;justify-content:space-between;align-items:center;gap:4px;box-shadow:var(--neu-out);}
-.ptog{padding:3px 8px;border-radius:6px;border:none;font-size:9px;font-weight:800;cursor:pointer;font-family:var(--font);transition:all .2s;white-space:nowrap;box-shadow:var(--neu-out);}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.pitem{background:var(--bg);border-radius:7px;padding:5px 8px;border:none;display:flex;justify-content:space-between;align-items:center;gap:4px;box-shadow:var(--neu-out);}
+.ptog{padding:2px 7px;border-radius:5px;border:none;font-size:8px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s;white-space:nowrap;box-shadow:var(--neu-out);}
 .ptog.ok{background:var(--bg);color:var(--ac);}
 .ptog.ok:active,.ptog.no:active{box-shadow:var(--neu-in);}
 .ptog.no{background:var(--bg);color:var(--muted);}
 
-/* Video progress - inset */
-.vpsec{background:var(--bg);border-radius:10px;padding:8px 10px;border:none;margin-top:6px;box-shadow:var(--neu-in);}
-.vpbar{height:3px;background:var(--muted2);border-radius:4px;margin:5px 0 8px;overflow:hidden;}
+/* Video progress - compact */
+.vpsec{background:var(--bg);border-radius:8px;padding:6px 9px;border:none;margin-top:4px;box-shadow:var(--neu-in);}
+.vpbar{height:2px;background:var(--muted2);border-radius:4px;margin:4px 0 6px;overflow:hidden;}
 .vpfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 6px var(--ac-glow);}
-.vp-btn{padding:5px 14px;border-radius:7px;border:none;background:var(--bg);color:var(--ac);font-size:10px;font-weight:800;cursor:pointer;font-family:var(--font);transition:all .2s;box-shadow:var(--neu-out);}
+.vp-btn{padding:4px 11px;border-radius:6px;border:none;background:var(--bg);color:var(--ac);font-size:9px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s;box-shadow:var(--neu-out);}
 .vp-btn:hover{box-shadow:var(--neu-glow-out);}
 .vp-btn:active{box-shadow:var(--neu-in);}
 
 /* Modal */
 .mov{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(8px);}
-.mod{background:var(--bg);border:none;border-radius:22px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;padding:24px;box-shadow:var(--neu-out),0 0 50px var(--ac-glow);animation:fu .25s cubic-bezier(.4,0,.2,1);}
+.mod{background:var(--bg);border:1px solid var(--card-border);border-radius:22px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;padding:24px;box-shadow:var(--neu-out),0 0 50px var(--ac-glow);animation:fu .25s cubic-bezier(.4,0,.2,1);}
 .mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
 .mtitle{font-size:16px;font-weight:900;color:var(--ac);}
 .mclose{width:28px;height:28px;border-radius:7px;background:var(--bg);border:none;color:var(--muted);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;box-shadow:var(--neu-out);}
@@ -140,7 +184,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
 .ffl{grid-column:1/-1;}
 .fg{display:flex;flex-direction:column;gap:4px;}
-.flbl{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.4px;}
+.flbl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.4px;}
 .finp,.fsel,.fta{background:var(--bg);border:none;border-radius:10px;padding:9px 13px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:box-shadow .2s;width:100%;box-shadow:var(--neu-in);}
 .finp:focus,.fsel:focus,.fta:focus{box-shadow:var(--neu-in),0 0 0 2px var(--ac-border);}
 .finp[readonly]{color:var(--muted);cursor:default;}
@@ -153,23 +197,47 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .dur-btn{flex:1;padding:8px 5px;border-radius:8px;border:none;background:var(--bg);color:var(--muted);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;transition:all .2s;text-align:center;box-shadow:var(--neu-out);}
 .dur-btn.on{background:var(--bg);color:var(--ac);box-shadow:var(--neu-in),0 0 10px var(--ac-faint);}
 
-.sb{background:var(--bg);border:none;border-radius:12px;padding:10px 13px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;width:100%;transition:box-shadow .2s;box-shadow:var(--neu-in);}
+.sb{background:var(--bg);border:1px solid var(--card-border);border-radius:12px;padding:10px 13px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;width:100%;transition:box-shadow .2s;box-shadow:var(--neu-in);}
 .sb:focus{box-shadow:var(--neu-in),0 0 0 2px var(--ac-border);}
 .sb::placeholder{color:var(--muted);}
 .sb-wrap{position:relative;margin-bottom:10px;}
 .sb-ico{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;}
 
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-.tab{padding:6px 12px;border-radius:9px;border:none;background:var(--bg);color:var(--muted);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;transition:all .2s;box-shadow:var(--neu-out);}
-.tab.on{background:var(--bg);color:var(--ac);box-shadow:var(--neu-in),0 0 10px var(--ac-faint);}
+.tab{padding:6px 12px;border-radius:9px;border:1px solid transparent;background:var(--bg);color:var(--muted);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:600;transition:all .2s;box-shadow:var(--neu-out);}
+.tab.on{background:var(--bg);color:var(--ac);box-shadow:var(--neu-in),0 0 10px var(--ac-faint);border-color:var(--ac-border);}
 
-.alr{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:12px;margin-bottom:7px;font-size:11px;font-weight:700;border:1px solid;border-right-width:3px;animation:fu .3s;}
+.alr{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:12px;margin-bottom:7px;font-size:11px;font-weight:600;border:1px solid;border-right-width:3px;animation:fu .3s;}
 .au{background:rgba(255,77,77,.05);border-color:#ff4d4d33;border-right-color:#ff4d4d;color:#ff4d4d;}
 .aw{background:rgba(255,214,0,.05);border-color:#ffd60033;border-right-color:#ffd600;color:#ffd600;}
 
-.clic{background:var(--bg);border:none;border-radius:14px;padding:13px 15px;margin-bottom:9px;display:flex;align-items:center;gap:13px;transition:all .25s;cursor:pointer;box-shadow:var(--neu-out);}
-.clic:hover{box-shadow:var(--neu-glow-out);transform:translateX(-2px);}
-.cav{width:42px;height:42px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--ac);background:var(--bg);flex-shrink:0;box-shadow:var(--neu-out);}
+/* ── CLIENT LIST ITEM — separated ── */
+.clic{
+  background:var(--bg);
+  border:1px solid var(--card-border);
+  border-radius:14px;
+  padding:11px 13px;
+  margin-bottom:var(--card-gap);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  transition:all .25s;
+  cursor:pointer;
+  box-shadow:var(--neu-out);
+}
+.clic:hover{box-shadow:var(--neu-glow-out);border-color:var(--ac-border);transform:translateX(-2px);}
+
+/* Client avatar — icon based */
+.cav{
+  width:40px;height:40px;border-radius:50%;border:1px solid var(--card-border);
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);flex-shrink:0;box-shadow:var(--neu-out);
+}
+
+/* Client name — softer weight */
+.clic-name{font-weight:500;font-size:13px;color:var(--text);}
+.clic-sub{font-size:10px;color:var(--muted);margin-top:2px;font-weight:400;}
+
 .lmark{width:36px;height:36px;border-radius:10px;border:none;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--ac);box-shadow:var(--neu-out);}
 .empty{text-align:center;padding:50px 16px;color:var(--muted);}
 
@@ -183,17 +251,13 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 
 /* Global search */
 .gsearch-wrap{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.93);backdrop-filter:blur(12px);display:flex;flex-direction:column;padding:20px 14px;}
-.gsearch-inp{background:var(--bg);border:none;border-radius:14px;padding:14px 16px;color:var(--text);font-size:15px;font-family:var(--font);outline:none;width:100%;box-shadow:var(--neu-in),0 0 20px var(--ac-glow);}
-.gresult{background:var(--bg);border:none;border-radius:12px;padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:11px;box-shadow:var(--neu-out);}
-.gresult:hover{box-shadow:var(--neu-glow-out);}
+.gsearch-inp{background:var(--bg);border:1px solid var(--ac-border);border-radius:14px;padding:14px 16px;color:var(--text);font-size:15px;font-family:var(--font);outline:none;width:100%;box-shadow:var(--neu-in),0 0 20px var(--ac-glow);}
+.gresult{background:var(--bg);border:1px solid var(--card-border);border-radius:12px;padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:11px;box-shadow:var(--neu-out);}
+.gresult:hover{box-shadow:var(--neu-glow-out);border-color:var(--ac-border);}
 
 /* Confirm */
 .conf-ov{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);}
-.conf-box{background:var(--bg);border:none;border-radius:20px;padding:24px;max-width:320px;width:100%;text-align:center;box-shadow:var(--neu-out),0 0 36px rgba(255,77,77,0.12);}
-
-/* File upload */
-.file-zone{border:2px dashed var(--muted2);border-radius:12px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;box-shadow:var(--neu-in);}
-.file-zone:hover,.file-zone.drag{border-color:var(--ac-border);box-shadow:var(--neu-in),0 0 10px var(--ac-faint);}
+.conf-box{background:var(--bg);border:1px solid var(--card-border);border-radius:20px;padding:24px;max-width:320px;width:100%;text-align:center;box-shadow:var(--neu-out),0 0 36px rgba(255,77,77,0.12);}
 
 [data-tip]{position:relative;}
 [data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:var(--bg);color:var(--ac);border:none;padding:4px 8px;border-radius:7px;font-size:9px;white-space:nowrap;z-index:50;pointer-events:none;box-shadow:var(--neu-out);}
@@ -225,8 +289,8 @@ const Icon = ({ name, size = 20, color = "var(--ac)" }) => {
     whatsapp: <><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></>,
     cancel: <><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></>,
     history: <><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></>,
-    upload: <><polyline points="16,16 12,12 8,16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></>,
     file: <><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13,2 13,9 20,9"/></>,
+    person: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></>,
   };
   return <svg style={s} viewBox="0 0 24 24">{p[name] || null}</svg>;
 };
@@ -296,7 +360,7 @@ function ConfirmDialog({ msg, onConfirm, onCancel }) {
     <div className="conf-ov">
       <div className="conf-box">
         <Icon name="alert" size={34} color="var(--danger)" />
-        <div style={{ fontWeight: 800, fontSize: 14, margin: "12px 0 6px", color: "var(--text)" }}>{msg}</div>
+        <div style={{ fontWeight: 700, fontSize: 14, margin: "12px 0 6px", color: "var(--text)" }}>{msg}</div>
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
           <button className="btn bgh" style={{ flex: 1 }} onClick={onCancel}>إلغاء</button>
           <button className="btn" style={{ flex: 1, background: "#ff4d4d22", color: "var(--danger)", boxShadow: "var(--neu-out)" }} onClick={onConfirm}>تأكيد</button>
@@ -325,11 +389,11 @@ function GlobalSearch({ contracts, clients, onClose, onViewContract, goToClient 
       {q && results.length === 0 && <div style={{ color: "var(--muted)", textAlign: "center", padding: 28, fontSize: 13 }}>لا توجد نتائج</div>}
       {results.map((r, i) => (
         <div key={i} className="gresult" onClick={() => { r.type === "contract" ? onViewContract(r.obj) : goToClient(r.obj.id); onClose(); }}>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "var(--neu-out)" }}>
-            <Icon name={r.type === "contract" ? "contracts" : "clients"} size={13} />
+          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "var(--neu-out)", border: "1px solid var(--card-border)" }}>
+            <Icon name={r.type === "contract" ? "contracts" : "person"} size={13} />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 13 }}>{r.label}</div>
+            <div style={{ fontWeight: 500, fontSize: 13 }}>{r.label}</div>
             <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 1 }}>{r.type === "contract" ? "عقد" : "عميل"} · {r.sub}</div>
           </div>
         </div>
@@ -385,15 +449,13 @@ function ClientModal({ client, onClose, onSave }) {
   );
 }
 
-// ─── Contract Modal ───────────────────────────────────────────────
+// ─── Contract Modal (file upload removed) ─────────────────────────
 const EC = { clientId: "", clientName: "", clientAddress: "", clientPhone: "", videoCount: "", videoDone: 0, totalAmount: "", videoAmount: "", presenterAmount: "", currency: "LYD", startDate: "", endDate: "", deposit50Date: "", deposit50Paid: false, final50Date: "", final50Paid: false, status: "pending", notes: "", statusHistory: [], fileUrl: "", fileName: "" };
 
 function ContractModal({ contract, clients, onClose, onSave }) {
   const [f, setF] = useState(contract ? { ...contract } : { ...EC });
   const [drop, setDrop] = useState(false);
   const [dur, setDur] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef();
   const s = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   useEffect(() => { const v = Number(f.videoAmount || 0), p = Number(f.presenterAmount || 0); if (v || p) s("totalAmount", String(v + p)); }, [f.videoAmount, f.presenterAmount]);
@@ -404,31 +466,23 @@ function ContractModal({ contract, clients, onClose, onSave }) {
   const handleStart = v => { s("startDate", v); if (dur && v) s("endDate", addMonths(v, dur)); };
   const pick = c => { setF(p => ({ ...p, clientId: c.id, clientName: c.name, clientPhone: c.phone || "", clientAddress: c.address || "" })); setDrop(false); };
 
-  const handleFile = async file => {
-    if (!file) return;
-    setUploading(true);
-    const ext = file.name.split(".").pop();
-    const path = `contracts/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("contracts").upload(path, file, { upsert: true });
-    if (!error) { const { data: url } = supabase.storage.from("contracts").getPublicUrl(path); s("fileUrl", url.publicUrl); s("fileName", file.name); }
-    setUploading(false);
-  };
-
   return (
     <div className="mov" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="mod">
         <div className="mhd"><div className="mtitle" style={{ display: "flex", alignItems: "center", gap: 7 }}><Icon name={contract ? "edit" : "contract_plus"} size={15} />{contract ? "تعديل" : "عقد جديد"}</div><button className="mclose" onClick={onClose}>×</button></div>
         <div style={{ marginBottom: 12, position: "relative" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}><span className="flbl">العميل</span>{f.clientName && <span style={{ fontSize: 10, color: "var(--ac)", fontWeight: 800 }}>✓ {f.clientName}</span>}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}><span className="flbl">العميل</span>{f.clientName && <span style={{ fontSize: 10, color: "var(--ac)", fontWeight: 700 }}>✓ {f.clientName}</span>}</div>
           <button className="btn bng" style={{ width: "100%", justifyContent: "space-between" }} onClick={() => setDrop(p => !p)}><span>{f.clientName || "اختر عميلاً..."}</span><Icon name="clients" size={12} /></button>
           {drop && (
-            <div style={{ position: "absolute", top: "100%", insetInline: 0, zIndex: 50, background: "var(--bg)", border: "none", borderRadius: 14, padding: 7, marginTop: 6, maxHeight: 170, overflowY: "auto", boxShadow: "var(--neu-out)" }}>
+            <div style={{ position: "absolute", top: "100%", insetInline: 0, zIndex: 50, background: "var(--bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 7, marginTop: 6, maxHeight: 170, overflowY: "auto", boxShadow: "var(--neu-out)" }}>
               {clients.length === 0 && <div style={{ padding: 10, color: "var(--muted)", fontSize: 12, textAlign: "center" }}>لا يوجد عملاء</div>}
               {clients.map(c => (
                 <div key={c.id} onClick={() => pick(c)} style={{ padding: "8px 11px", borderRadius: 8, cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 9 }}
                   onMouseEnter={e => e.currentTarget.style.background = "var(--ac-faint)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                  <div style={{ width: 26, height: 26, borderRadius: "50%", background: "var(--bg)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: "var(--ac)", boxShadow: "var(--neu-out)" }}>{c.name[0]}</div>
-                  <div><div style={{ fontWeight: 700, fontSize: 13 }}>{c.name}</div>{c.phone && <div style={{ fontSize: 10, color: "var(--muted)" }}>{c.phone}</div>}</div>
+                  <div style={{ width: 26, height: 26, borderRadius: "50%", background: "var(--bg)", border: "1px solid var(--card-border)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "var(--neu-out)" }}>
+                    <Icon name="person" size={12} color="var(--ac)" />
+                  </div>
+                  <div><div style={{ fontWeight: 500, fontSize: 13 }}>{c.name}</div>{c.phone && <div style={{ fontSize: 10, color: "var(--muted)" }}>{c.phone}</div>}</div>
                 </div>
               ))}
             </div>
@@ -449,13 +503,6 @@ function ContractModal({ contract, clients, onClose, onSave }) {
           <div className="fck"><input type="checkbox" id="d2" checked={f.final50Paid} onChange={e => s("final50Paid", e.target.checked)} /><label htmlFor="d2">تم استلام الدفعة الثانية</label></div>
           <div className="fg ffl"><label className="flbl">الحالة</label><select className="fsel" value={f.status} onChange={e => s("status", e.target.value)}><option value="pending">معلق</option><option value="active">جارٍ</option><option value="completed">مكتمل</option><option value="cancelled">ملغي</option></select></div>
           <div className="fg ffl"><label className="flbl">ملاحظات</label><textarea className="fta" value={f.notes} onChange={e => s("notes", e.target.value)} /></div>
-          <div className="fg ffl">
-            <label className="flbl">رفع نسخة العقد الموقّعة</label>
-            <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: "none" }} onChange={e => handleFile(e.target.files[0])} />
-            <div className={`file-zone${uploading ? " drag" : ""}`} onClick={() => fileRef.current?.click()}>
-              {uploading ? <div style={{ color: "var(--ac)", fontSize: 12 }}>جارٍ الرفع...</div> : f.fileName ? <div style={{ display: "flex", alignItems: "center", gap: 7, justifyContent: "center" }}><Icon name="file" size={13} /><span style={{ fontSize: 11, color: "var(--ac)" }}>{f.fileName}</span></div> : <div style={{ color: "var(--muted)", fontSize: 11 }}><div style={{ marginBottom: 4, display: "flex", justifyContent: "center" }}><Icon name="upload" size={16} color="var(--muted)" /></div>اضغط لرفع الملف</div>}
-            </div>
-          </div>
         </div>
         <div className="mft"><button className="btn bgh" onClick={onClose}>إلغاء</button><button className="btn bngf" onClick={() => { if (!f.clientName) { alert("اختر عميلاً"); return; } onSave({ ...f, id: f.id || null }); }}>حفظ العقد</button></div>
       </div>
@@ -483,47 +530,47 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
 
   return (
     <div className="mov" style={{ alignItems: "flex-start", overflowY: "auto" }}>
-      <div style={{ background: "var(--bg)", border: "none", borderRadius: 20, width: "100%", maxWidth: 740, margin: "12px 0", overflow: "hidden", boxShadow: "var(--neu-out),0 0 50px var(--ac-glow)" }}>
+      <div style={{ background: "var(--bg)", border: "1px solid var(--card-border)", borderRadius: 20, width: "100%", maxWidth: 740, margin: "12px 0", overflow: "hidden", boxShadow: "var(--neu-out),0 0 50px var(--ac-glow)" }}>
         <div style={{ background: "var(--bg)", padding: "11px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--muted2)" }}>
-          <span style={{ color: "var(--ac)", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 7 }}><Icon name="doc" size={13} />تفاصيل العقد</span>
+          <span style={{ color: "var(--ac)", fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 7 }}><Icon name="doc" size={13} />تفاصيل العقد</span>
           <div style={{ display: "flex", gap: 7 }}>
             {c.fileUrl && <a href={c.fileUrl} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}><button className="btn bng" style={{ fontSize: 11, padding: "5px 11px", display: "flex", alignItems: "center", gap: 5 }}><Icon name="file" size={11} />نسخة العقد</button></a>}
-            <button className="btn bngf" style={{ fontSize: 11, padding: "6px 13px", display: "flex", alignItems: "center", gap: 5 }} onClick={exportPDF}><Icon name="doc" size={11} color="#050505" />تصدير PDF</button>
+            <button className="btn bngf" style={{ fontSize: 11, padding: "6px 13px", display: "flex", alignItems: "center", gap: 5 }} onClick={exportPDF}><Icon name="doc" size={11} color="var(--ac)" />تصدير PDF</button>
             <button className="mclose" onClick={onClose}>×</button>
           </div>
         </div>
         <div style={{ padding: "14px 18px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <div><div style={{ fontSize: 17, fontWeight: 900 }}>{c.clientName}</div><div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{c.videoCount ? `${c.videoCount} فيديو` : ""}</div></div>
+            <div><div style={{ fontSize: 16, fontWeight: 600 }}>{c.clientName}</div><div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2, fontWeight: 400 }}>{c.videoCount ? `${c.videoCount} فيديو` : ""}</div></div>
             <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
           </div>
           <div style={{ background: "var(--bg)", border: "none", borderRadius: 10, padding: "8px 12px", marginBottom: 10, boxShadow: "var(--neu-in)" }}>
-            <div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700, marginBottom: 3 }}>الإجمالي</div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ac)" }}>{fmt(c.totalAmount, c.currency)}</div>
+            <div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 600, marginBottom: 3 }}>الإجمالي</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ac)" }}>{fmt(c.totalAmount, c.currency)}</div>
           </div>
           <div className="psec">
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>الدفع</span><span style={{ fontSize: 10, fontWeight: 800, color: pct === 100 ? "var(--ac)" : "var(--warn)" }}>{pct}%</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 600 }}>الدفع</span><span style={{ fontSize: 10, fontWeight: 700, color: pct === 100 ? "var(--ac)" : "var(--warn)" }}>{pct}%</span></div>
             <div className="pbar"><div className="pfill" style={{ width: `${pct}%` }} /></div>
             <div className="pgrid">
               {[{ l: "الأولى 50%", paid: c.deposit50Paid, date: c.deposit50Date }, { l: "الثانية 50%", paid: c.final50Paid, date: c.final50Date }].map(p => (
                 <div key={p.l} className="pitem">
-                  <div><div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>{p.l}</div><div style={{ fontSize: 11, fontWeight: 700 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>{p.date && <div style={{ fontSize: 9, color: "var(--muted)" }}>{fmtDate(p.date)}</div>}</div>
-                  <div style={{ fontSize: 10, color: p.paid ? "var(--ac)" : "var(--muted)", fontWeight: 800 }}>{p.paid ? "✓" : "—"}</div>
+                  <div><div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 600 }}>{p.l}</div><div style={{ fontSize: 11, fontWeight: 600 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>{p.date && <div style={{ fontSize: 9, color: "var(--muted)" }}>{fmtDate(p.date)}</div>}</div>
+                  <div style={{ fontSize: 10, color: p.paid ? "var(--ac)" : "var(--muted)", fontWeight: 700 }}>{p.paid ? "✓" : "—"}</div>
                 </div>
               ))}
             </div>
           </div>
           {vc > 0 && <div className="vpsec" style={{ marginTop: 8 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>الفيديوهات</span><span style={{ fontSize: 10, fontWeight: 800, color: "var(--ac)" }}>{vd}/{vc}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 600 }}>الفيديوهات</span><span style={{ fontSize: 10, fontWeight: 700, color: "var(--ac)" }}>{vd}/{vc}</span></div>
             <div className="vpbar"><div className="vpfill" style={{ width: `${vc > 0 ? (vd / vc) * 100 : 0}%` }} /></div>
           </div>}
           {c.statusHistory && c.statusHistory.length > 0 && (
             <div style={{ marginTop: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: "var(--muted)", marginBottom: 7, display: "flex", alignItems: "center", gap: 5 }}><Icon name="history" size={10} color="var(--muted)" />سجل الحالات</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "var(--muted)", marginBottom: 7, display: "flex", alignItems: "center", gap: 5 }}><Icon name="history" size={10} color="var(--muted)" />سجل الحالات</div>
               {c.statusHistory.map((h, i) => (
                 <div key={i} className="hist-line">
                   <div className="hist-dot" style={{ background: SC[h.status] || "var(--muted)" }} />
-                  <div><div style={{ fontSize: 11, fontWeight: 700, color: SC[h.status] || "var(--muted)" }}>{SL[h.status] || h.status}</div><div style={{ fontSize: 9, color: "var(--muted)" }}>{new Date(h.date).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric" })}</div></div>
+                  <div><div style={{ fontSize: 11, fontWeight: 600, color: SC[h.status] || "var(--muted)" }}>{SL[h.status] || h.status}</div><div style={{ fontSize: 9, color: "var(--muted)" }}>{new Date(h.date).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric" })}</div></div>
                 </div>
               ))}
             </div>
@@ -566,7 +613,7 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
   );
 }
 
-// ─── Contract Card ────────────────────────────────────────────────
+// ─── Contract Card — compact ──────────────────────────────────────
 function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, onCancel }) {
   const pct = Math.round(((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)) * 100);
   const f50d = c.final50Date ? daysDiff(c.final50Date) : null;
@@ -574,37 +621,35 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
   const vpct = vc > 0 ? Math.round((vd / vc) * 100) : 0;
 
   const ibtn = {
-    width: 30, height: 30, borderRadius: 8, background: "var(--bg)", border: "none",
+    width: 28, height: 28, borderRadius: 7, background: "var(--bg)", border: "none",
     color: "var(--ac)", display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer", transition: "all .2s", flexShrink: 0,
-    boxShadow: "var(--neu-out)"
+    cursor: "pointer", transition: "all .2s", flexShrink: 0, boxShadow: "var(--neu-out)"
   };
   const rbtn = {
-    width: 30, height: 30, borderRadius: 8, background: "var(--bg)", border: "none",
+    width: 28, height: 28, borderRadius: 7, background: "var(--bg)", border: "none",
     color: "var(--danger)", display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer", transition: "all .2s", flexShrink: 0,
-    boxShadow: "var(--neu-out)"
+    cursor: "pointer", transition: "all .2s", flexShrink: 0, boxShadow: "var(--neu-out)"
   };
 
   return (
     <div className="cc">
       <div className="cc-h">
         <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => onView(c)}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div className="cc-n">{c.clientName || "عميل"}</div>
             <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44", flexShrink: 0 }}>{SL[c.status]}</span>
           </div>
-          <div className="cc-sub">{vc > 0 ? `${vd}/${vc} فيديو` : ""}{vc > 0 && c.startDate ? " — " : ""}{fmtDate(c.startDate)}</div>
+          <div className="cc-sub">{vc > 0 ? `${vd}/${vc} فيديو` : ""}{vc > 0 && c.startDate ? " · " : ""}{fmtDate(c.startDate)}</div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, flexShrink: 0 }}>
-          <div style={{ display: "flex", gap: 4 }}>
-            <button style={ibtn} onClick={() => onEdit(c)} data-tip="تعديل"><Icon name="edit" size={12} color="var(--ac)" /></button>
-            <button style={ibtn} onClick={() => onView(c)} data-tip="عرض PDF"><Icon name="doc" size={12} color="var(--ac)" /></button>
+        <div style={{ display: "flex", flexDirection: "column", gap: 3, flexShrink: 0 }}>
+          <div style={{ display: "flex", gap: 3 }}>
+            <button style={ibtn} onClick={() => onEdit(c)} data-tip="تعديل"><Icon name="edit" size={11} color="var(--ac)" /></button>
+            <button style={ibtn} onClick={() => onView(c)} data-tip="عرض"><Icon name="doc" size={11} color="var(--ac)" /></button>
             <WABtn phone={c.clientPhone} sm />
           </div>
-          <div style={{ display: "flex", gap: 4 }}>
-            <button style={rbtn} onClick={() => onCancel(c.id)} data-tip="إلغاء"><Icon name="cancel" size={12} color="var(--danger)" /></button>
-            <button style={{ ...rbtn, flex: 1 }} onClick={() => onDelete(c.id)} data-tip="حذف"><Icon name="trash" size={12} color="var(--danger)" /></button>
+          <div style={{ display: "flex", gap: 3 }}>
+            <button style={rbtn} onClick={() => onCancel(c.id)} data-tip="إلغاء"><Icon name="cancel" size={11} color="var(--danger)" /></button>
+            <button style={{ ...rbtn, flex: 1 }} onClick={() => onDelete(c.id)} data-tip="حذف"><Icon name="trash" size={11} color="var(--danger)" /></button>
           </div>
         </div>
       </div>
@@ -617,17 +662,20 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
 
         <div className="psec">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>الدفع</span>
-            <span style={{ fontSize: 9, fontWeight: 800, color: pct === 100 ? "var(--ac)" : "var(--warn)" }}>{pct}%</span>
+            <span style={{ fontSize: 8, color: "var(--muted)", fontWeight: 600 }}>الدفع</span>
+            <span style={{ fontSize: 8, fontWeight: 700, color: pct === 100 ? "var(--ac)" : "var(--warn)" }}>{pct}%</span>
           </div>
           <div className="pbar"><div className="pfill" style={{ width: `${pct}%` }} /></div>
           <div className="pgrid">
-            {[{ label: "الأولى 50%", paid: c.deposit50Paid, date: c.deposit50Date, field: "deposit50Paid", diff: null }, { label: "الثانية 50%", paid: c.final50Paid, date: c.final50Date, field: "final50Paid", diff: f50d }].map(p => (
+            {[
+              { label: "الأولى 50%", paid: c.deposit50Paid, date: c.deposit50Date, field: "deposit50Paid", diff: null },
+              { label: "الثانية 50%", paid: c.final50Paid, date: c.final50Date, field: "final50Paid", diff: f50d }
+            ].map(p => (
               <div key={p.field} className="pitem">
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 8, color: "var(--muted)", fontWeight: 700 }}>{p.label}</div>
-                  <div style={{ fontSize: 10, fontWeight: 700 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>
-                  {p.date && <div style={{ fontSize: 8, color: !p.paid && p.diff !== null && p.diff <= 7 && p.diff >= 0 ? "var(--warn)" : "var(--muted)" }}>{fmtDate(p.date)}</div>}
+                  <div style={{ fontSize: 7, color: "var(--muted)", fontWeight: 600 }}>{p.label}</div>
+                  <div style={{ fontSize: 9, fontWeight: 600 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>
+                  {p.date && <div style={{ fontSize: 7, color: !p.paid && p.diff !== null && p.diff <= 7 && p.diff >= 0 ? "var(--warn)" : "var(--muted)" }}>{fmtDate(p.date)}</div>}
                 </div>
                 <button className={`ptog ${p.paid ? "ok" : "no"}`} onClick={() => onToggle(c.id, p.field)}>{p.paid ? "✓" : "تحديد"}</button>
               </div>
@@ -638,18 +686,18 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
         {vc > 0 && (
           <div className="vpsec">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>الفيديوهات</span>
-              <span style={{ fontSize: 9, fontWeight: 800, color: "var(--ac)" }}>{vd}/{vc}</span>
+              <span style={{ fontSize: 8, color: "var(--muted)", fontWeight: 600 }}>الفيديوهات</span>
+              <span style={{ fontSize: 8, fontWeight: 700, color: "var(--ac)" }}>{vd}/{vc}</span>
             </div>
             <div className="vpbar"><div className="vpfill" style={{ width: `${vpct}%` }} /></div>
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
               <button className="vp-btn" onClick={() => onVideoUpdate(c.id, Math.min(vc, vd + 2))}>+2 فيديو</button>
               <button className="vp-btn" style={{ color: "var(--danger)" }} onClick={() => onVideoUpdate(c.id, 0)}>صفر</button>
             </div>
           </div>
         )}
       </div>
-      {c.notes && <div style={{ fontSize: 10, color: "var(--muted)", padding: "4px 12px 9px", borderTop: "1px solid var(--muted2)", display: "flex", gap: 4 }}><Icon name="doc" size={10} />{c.notes}</div>}
+      {c.notes && <div style={{ fontSize: 9, color: "var(--muted)", padding: "3px 12px 8px", borderTop: "1px solid var(--muted2)", display: "flex", gap: 4, fontWeight: 400 }}><Icon name="doc" size={9} />{ c.notes}</div>}
     </div>
   );
 }
@@ -666,7 +714,12 @@ function Dashboard({ contracts, clients, goTo, onViewContract }) {
           <div className="slbl"><Icon name="income" size={13} />إجمالي المحصّل</div>
           <div className="sval sm">{fmt(collected)}</div>
         </div>
-        {[{ l: "العقود", v: contracts.length, icon: "contracts" }, { l: "نشطة", v: contracts.filter(c => c.status === "active").length, icon: "check" }, { l: "معلقة", v: contracts.filter(c => c.status === "pending").length, icon: "clock" }, { l: "العملاء", v: clients.length, icon: "clients" }].map(s => (
+        {[
+          { l: "العقود", v: contracts.length, icon: "contracts" },
+          { l: "نشطة", v: contracts.filter(c => c.status === "active").length, icon: "check" },
+          { l: "معلقة", v: contracts.filter(c => c.status === "pending").length, icon: "clock" },
+          { l: "العملاء", v: clients.length, icon: "clients" }
+        ].map(s => (
           <div key={s.l} className="stat">
             <div className="slbl"><Icon name={s.icon} size={13} />{s.l}</div>
             <div className="sval">{s.v}</div>
@@ -674,16 +727,22 @@ function Dashboard({ contracts, clients, goTo, onViewContract }) {
         ))}
       </div>
       {recent.length > 0 && <>
-        <div className="sh" style={{ display: "flex", justifyContent: "space-between" }}><span>آخر العقود</span><span style={{ cursor: "pointer", color: "var(--ac)", fontSize: 10, fontWeight: 700 }} onClick={() => goTo("contracts")}>عرض الكل ←</span></div>
+        <div className="sh" style={{ display: "flex", justifyContent: "space-between" }}>
+          <span>آخر العقود</span>
+          <span style={{ cursor: "pointer", color: "var(--ac)", fontSize: 10, fontWeight: 600 }} onClick={() => goTo("contracts")}>عرض الكل ←</span>
+        </div>
         {recent.map(c => (
-          <div key={c.id} className="card" style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => onViewContract(c)}>
+          <div key={c.id} className="card" style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => onViewContract(c)}>
             <NBox name="contracts" sm />
-            <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 700, fontSize: 13 }}>{c.clientName}</div><div style={{ fontSize: 10, color: "var(--muted)" }}>{c.videoCount ? `${c.videoCount} فيديو — ` : ""}{fmt(c.videoAmount || c.totalAmount, c.currency)}</div></div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="dash-card-name">{c.clientName}</div>
+              <div className="dash-card-sub">{c.videoCount ? `${c.videoCount} فيديو · ` : ""}{fmt(c.videoAmount || c.totalAmount, c.currency)}</div>
+            </div>
             <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
           </div>
         ))}
       </>}
-      {contracts.length === 0 && <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="contracts" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 700, color: "var(--muted)", fontSize: 13 }}>ابدأ بإضافة أول عقد</div></div>}
+      {contracts.length === 0 && <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="contracts" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 500, color: "var(--muted)", fontSize: 13 }}>ابدأ بإضافة أول عقد</div></div>}
     </div>
   );
 }
@@ -699,17 +758,22 @@ function ContractsScreen({ contracts, clients, onAdd, onEdit, onDelete, onToggle
     { key: "completed", label: "مكتمل", count: contracts.filter(c => c.status === "completed").length },
     { key: "cancelled", label: "ملغي", count: contracts.filter(c => c.status === "cancelled").length }
   ];
-  const filtered = [...contracts].sort((a, b) => Number(b.id) - Number(a.id)).filter(c => { if (filter === "all") return c.status !== "completed" && c.status !== "cancelled"; return c.status === filter; }).filter(c => !search || c.clientName?.includes(search));
+  const filtered = [...contracts].sort((a, b) => Number(b.id) - Number(a.id))
+    .filter(c => { if (filter === "all") return c.status !== "completed" && c.status !== "cancelled"; return c.status === filter; })
+    .filter(c => !search || c.clientName?.includes(search));
+
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div><div className="pt">العقود</div><div className="ps">{contracts.length} عقد</div></div>
-        <button className="btn bngf" onClick={onAdd} style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px", fontSize: 12 }}><Icon name="contract_plus" size={13} color="#050505" />جديد</button>
+        <button className="btn bngf" onClick={onAdd} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 13px", fontSize: 12 }}>
+          <Icon name="contract_plus" size={13} color="var(--ac)" />جديد
+        </button>
       </div>
       <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)" /></span><input className="sb" value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight: 34 }} /></div>
-      <div className="tabs">{tabs.map(t => <button key={t.key} className={`tab${filter === t.key ? " on" : ""}`} onClick={() => setFilter(t.key)}>{t.label}{t.count > 0 && <span style={{ marginRight: 4, background: filter === t.key ? "var(--ac)" : "var(--muted2)", color: filter === t.key ? "#050505" : "var(--muted)", borderRadius: 20, padding: "0 5px", fontSize: 9, fontWeight: 900 }}>{t.count}</span>}</button>)}</div>
+      <div className="tabs">{tabs.map(t => <button key={t.key} className={`tab${filter === t.key ? " on" : ""}`} onClick={() => setFilter(t.key)}>{t.label}{t.count > 0 && <span style={{ marginRight: 4, background: filter === t.key ? "var(--ac)" : "var(--muted2)", color: filter === t.key ? "#050505" : "var(--muted)", borderRadius: 20, padding: "0 5px", fontSize: 9, fontWeight: 800 }}>{t.count}</span>}</button>)}</div>
       {filtered.length === 0
-        ? <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="contracts" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 700, color: "var(--muted)", marginBottom: 12, fontSize: 13 }}>{contracts.length === 0 ? "لا توجد عقود" : "لا توجد نتائج"}</div>{contracts.length === 0 && <button className="btn bng" onClick={onAdd}>+ إضافة</button>}</div>
+        ? <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="contracts" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 500, color: "var(--muted)", marginBottom: 12, fontSize: 13 }}>{contracts.length === 0 ? "لا توجد عقود" : "لا توجد نتائج"}</div>{contracts.length === 0 && <button className="btn bng" onClick={onAdd}>+ إضافة</button>}</div>
         : filtered.map(c => <ContractCard key={c.id} c={c} onEdit={onEdit} onDelete={onDelete} onToggle={onToggle} onView={onView} onVideoUpdate={onVideoUpdate} onCancel={onCancel} />)}
     </div>
   );
@@ -721,6 +785,7 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
   const [sel, setSel] = useState(initialSel || null);
   useEffect(() => { if (initialSel) setSel(initialSel); }, [initialSel]);
   const filtered = clients.filter(c => !search || c.name.includes(search) || c.phone?.includes(search));
+
   if (sel) {
     const cl = clients.find(c => c.id === sel);
     if (!cl) { setSel(null); return null; }
@@ -733,11 +798,11 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
         </div>
         <div className="card card-gl" style={{ marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-            <div className="cav">{cl.name[0]}</div>
-            <div style={{ flex: 1 }}><div style={{ fontSize: 15, fontWeight: 900 }}>{cl.name}</div></div>
+            <div className="cav" style={{ width: 44, height: 44 }}><Icon name="person" size={20} color="var(--ac)" /></div>
+            <div style={{ flex: 1 }}><div style={{ fontSize: 15, fontWeight: 600 }}>{cl.name}</div></div>
             <WABtn phone={cl.phone} />
           </div>
-          {[["📞", cl.phone], ["📍", cl.address], ["📝", cl.notes]].filter(([, v]) => v).map(([i, v]) => <div key={i} style={{ display: "flex", gap: 9, padding: "7px 0", borderTop: "1px solid var(--muted2)", fontSize: 12 }}><span>{i}</span><span style={{ color: "var(--muted)", flex: 1 }}>{v}</span></div>)}
+          {[["📞", cl.phone], ["📍", cl.address], ["📝", cl.notes]].filter(([, v]) => v).map(([i, v]) => <div key={i} style={{ display: "flex", gap: 9, padding: "7px 0", borderTop: "1px solid var(--muted2)", fontSize: 12 }}><span>{i}</span><span style={{ color: "var(--muted)", flex: 1, fontWeight: 400 }}>{v}</span></div>)}
           <div style={{ display: "flex", gap: 7, marginTop: 12 }}>
             <button className="btn bng" style={{ flex: 1, display: "flex", alignItems: "center", gap: 5, justifyContent: "center", fontSize: 12 }} onClick={() => onEdit(cl)}><Icon name="edit" size={12} />تعديل</button>
             <button className="btn bgh" style={{ color: "var(--danger)", display: "flex", alignItems: "center", gap: 5, fontSize: 12 }} onClick={() => { if (confirm("حذف العميل؟")) { onDelete(cl.id); setSel(null); } }}><Icon name="trash" size={12} color="var(--danger)" />حذف</button>
@@ -745,20 +810,41 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
         </div>
         <div className="sh">عقوده ({clc.length})</div>
         {clc.length === 0 && <div style={{ color: "var(--muted)", fontSize: 12, textAlign: "center", padding: "16px 0" }}>لا توجد عقود</div>}
-        {clc.map(c => <div key={c.id} className="card" style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 10 }}><NBox name="contracts" sm /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 12 }}>{c.videoCount ? `${c.videoCount} فيديو` : "عقد"}</div><div style={{ fontSize: 11, color: "var(--ac)", fontWeight: 700 }}>{fmt(c.videoAmount || c.totalAmount, c.currency)}</div></div><span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span></div>)}
+        {clc.map(c => (
+          <div key={c.id} className="card" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <NBox name="contracts" sm />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 500, fontSize: 12 }}>{c.videoCount ? `${c.videoCount} فيديو` : "عقد"}</div>
+              <div style={{ fontSize: 11, color: "var(--ac)", fontWeight: 600 }}>{fmt(c.videoAmount || c.totalAmount, c.currency)}</div>
+            </div>
+            <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
+          </div>
+        ))}
       </div>
     );
   }
+
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div><div className="pt">العملاء</div><div className="ps">{clients.length} عميل</div></div>
-        <button className="btn bngf" onClick={onAdd} style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px", fontSize: 12 }}><Icon name="user_plus" size={13} color="#050505" />عميل</button>
+        <button className="btn bngf" onClick={onAdd} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 13px", fontSize: 12 }}>
+          <Icon name="user_plus" size={13} color="var(--ac)" />عميل
+        </button>
       </div>
       <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)" /></span><input className="sb" value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight: 34 }} /></div>
       {filtered.length === 0
-        ? <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="clients" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 700, color: "var(--muted)", marginBottom: 12, fontSize: 13 }}>{clients.length === 0 ? "أضف أول عميل" : "لا نتائج"}</div>{clients.length === 0 && <button className="btn bng" onClick={onAdd}>+ إضافة</button>}</div>
-        : filtered.map(cl => <div key={cl.id} className="clic" onClick={() => setSel(cl.id)}><div className="cav">{cl.name[0]}</div><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 800, fontSize: 14 }}>{cl.name}</div><div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>{[cl.phone, `${contracts.filter(c => c.clientId === cl.id).length} عقد`].filter(Boolean).join(" · ")}</div></div><WABtn phone={cl.phone} sm /></div>)}
+        ? <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="clients" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 500, color: "var(--muted)", marginBottom: 12, fontSize: 13 }}>{clients.length === 0 ? "أضف أول عميل" : "لا نتائج"}</div>{clients.length === 0 && <button className="btn bng" onClick={onAdd}>+ إضافة</button>}</div>
+        : filtered.map(cl => (
+          <div key={cl.id} className="clic" onClick={() => setSel(cl.id)}>
+            <div className="cav"><Icon name="person" size={17} color="var(--ac)" /></div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="clic-name">{cl.name}</div>
+              <div className="clic-sub">{[cl.phone, `${contracts.filter(c => c.clientId === cl.id).length} عقد`].filter(Boolean).join(" · ")}</div>
+            </div>
+            <WABtn phone={cl.phone} sm />
+          </div>
+        ))}
     </div>
   );
 }
@@ -832,8 +918,7 @@ export default function App() {
   const delContract = id => setConfirm({ msg: "هل تريد حذف هذا العقد نهائياً؟", onConfirm: async () => { await supabase.from("contracts").delete().eq("id", id); setContracts(p => p.filter(c => c.id !== id)); setConfirm(null); } });
 
   const cancelContract = async id => {
-    const c = contracts.find(x => x.id === id);
-    if (!c) return;
+    const c = contracts.find(x => x.id === id); if (!c) return;
     const hist = addHist(c, "cancelled");
     const updated = { ...c, status: "cancelled", statusHistory: hist };
     const { data } = await supabase.from("contracts").update(toDB(updated)).eq("id", id).select().single();
@@ -888,7 +973,7 @@ export default function App() {
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100dvh", background: "var(--bg)", flexDirection: "column", gap: 12 }}>
         <div className="lmark">F</div>
-        <div style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700 }}>جارٍ التحميل...</div>
+        <div style={{ color: "var(--muted)", fontSize: 11, fontWeight: 600 }}>جارٍ التحميل...</div>
       </div>
     </>
   );
@@ -900,7 +985,7 @@ export default function App() {
         <div className="topbar">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div className="lmark" style={{ width: 32, height: 32, fontSize: 14 }}>F</div>
-            <div style={{ fontSize: 15, fontWeight: 900, color: "var(--ac)" }}>{titles[tab]}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ac)" }}>{titles[tab]}</div>
           </div>
           <div className="topbar-actions">
             <button className="tb-btn" onClick={() => setShowSearch(true)} data-tip="بحث"><Icon name="search" size={16} color="var(--ac)" /></button>
