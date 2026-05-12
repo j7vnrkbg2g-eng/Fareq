@@ -19,12 +19,22 @@ const CSS = `
   --ac-faint:rgba(0,255,136,0.07);--ac-border:rgba(0,255,136,0.3);
   --text:#f0f0f0;--muted:#555;--muted2:#222;--font:'Tajawal',sans-serif;
   --danger:#ff4d4d;--warn:#ffd600;
+
+  /* Neumorphic shadows for dark theme */
+  --neu-out: 4px 4px 10px rgba(0,0,0,0.7), -2px -2px 8px rgba(255,255,255,0.03);
+  --neu-in:  inset 2px 2px 6px rgba(0,0,0,0.6), inset -1px -1px 4px rgba(255,255,255,0.03);
+  --neu-glow-out: 4px 4px 10px rgba(0,0,0,0.7), -2px -2px 8px rgba(255,255,255,0.03), 0 0 14px var(--ac-glow);
 }
 [data-theme="light"]{
-  --bg:#f4f4f4;--surface:#fff;--surface2:#eee;--surface3:#e0e0e0;
+  --bg:#f0f0f3;--surface:#f0f0f3;--surface2:#e8e8eb;--surface3:#e0e0e3;
   --ac:#009955;--ac2:#007a44;--ac-glow:rgba(0,153,85,0.18);
   --ac-faint:rgba(0,153,85,0.07);--ac-border:rgba(0,153,85,0.3);
-  --text:#111;--muted:#888;--muted2:#ddd;
+  --text:#111;--muted:#888;--muted2:#d8d8db;
+
+  /* Neumorphic shadows for light theme */
+  --neu-out: 5px 5px 14px rgba(180,180,190,0.7), -4px -4px 10px rgba(255,255,255,0.95);
+  --neu-in:  inset 3px 3px 8px rgba(180,180,190,0.5), inset -2px -2px 6px rgba(255,255,255,0.9);
+  --neu-glow-out: 5px 5px 14px rgba(180,180,190,0.7), -4px -4px 10px rgba(255,255,255,0.95), 0 0 12px var(--ac-glow);
 }
 html,body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rtl;height:100%;transition:background .3s,color .3s;}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--ac-border);border-radius:4px;}
@@ -35,31 +45,31 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 /* Top bar */
 .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 0;gap:10px;}
 .topbar-actions{display:flex;gap:8px;align-items:center;}
-.tb-btn{width:36px;height:36px;border-radius:10px;background:var(--ac-faint);border:1px solid var(--ac-border);color:var(--ac);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;box-shadow:0 0 10px var(--ac-faint);}
-.tb-btn:hover{background:rgba(0,255,136,0.15);box-shadow:0 0 16px var(--ac-glow);}
+.tb-btn{width:36px;height:36px;border-radius:10px;background:var(--bg);border:none;color:var(--ac);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;box-shadow:var(--neu-out);}
+.tb-btn:hover{box-shadow:var(--neu-glow-out);}
 
 /* Nav */
-.bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,5,5,.96);backdrop-filter:blur(24px);border-top:1px solid var(--ac-border);display:flex;justify-content:space-around;align-items:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));box-shadow:0 -6px 30px rgba(0,255,136,0.08);}
-[data-theme="light"] .bnav{background:rgba(244,244,244,.96);}
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--bg);backdrop-filter:blur(24px);border-top:1px solid var(--muted2);display:flex;justify-content:space-around;align-items:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(0,0,0,0.3);}
 .bni{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 14px;border-radius:12px;transition:all .2s;flex:1;}
 .bni:hover{background:var(--ac-faint);}
-.bni.on{background:var(--ac-faint);}
+.bni.on{background:transparent;}
 .bni.on .bni-lbl{color:var(--ac);}
 .bni-lbl{font-size:10px;color:var(--muted);font-weight:700;transition:color .2s;}
 
-.nbox{width:36px;height:36px;border-radius:10px;border:1px solid var(--ac-border);background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:inset 0 0 12px var(--ac-faint);}
+.nbox{width:36px;height:36px;border-radius:10px;border:none;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--neu-out);}
 .nbox.sm{width:28px;height:28px;border-radius:8px;}
 
-.card{background:var(--surface);border:1px solid var(--muted2);border-radius:14px;padding:12px;transition:all .2s;position:relative;overflow:hidden;}
-.card:hover{border-color:var(--ac-border);box-shadow:0 0 20px var(--ac-faint);}
-.card-gl{border-color:var(--ac-border)!important;box-shadow:0 0 28px var(--ac-glow)!important;}
+/* ── NEUMORPHIC CARDS ── */
+.card{background:var(--bg);border:none;border-radius:16px;padding:14px;transition:all .25s;position:relative;overflow:hidden;box-shadow:var(--neu-out);}
+.card:hover{box-shadow:var(--neu-glow-out);}
+.card-gl{box-shadow:var(--neu-glow-out)!important;}
 
-/* Stats */
-.stat{background:var(--surface);border:1px solid var(--muted2);border-radius:13px;padding:14px 16px;transition:all .2s;position:relative;overflow:hidden;}
-.stat:hover{border-color:var(--ac-border);transform:translateY(-1px);box-shadow:0 4px 16px var(--ac-faint);}
-.slbl{font-size:12px;color:var(--ac);font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px var(--ac-glow);}
-.sval{font-size:18px;font-weight:800;color:var(--text);}
-.sval.sm{font-size:13px;color:var(--text);}
+/* ── NEUMORPHIC STATS ── */
+.stat{background:var(--bg);border:none;border-radius:16px;padding:16px 18px;transition:all .25s;position:relative;overflow:hidden;box-shadow:var(--neu-out);}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--neu-glow-out);}
+.slbl{font-size:11px;color:var(--ac);font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px var(--ac-glow);}
+.sval{font-size:20px;font-weight:800;color:var(--text);}
+.sval.sm{font-size:14px;color:var(--text);}
 
 .sh{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:18px 0 8px;}
 .pt{font-size:20px;font-weight:900;color:var(--text);margin-bottom:3px;}
@@ -68,68 +78,71 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:800;border:1px solid;}
 .badge::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0;}
 
+/* ── NEUMORPHIC BUTTONS ── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:10px;border:none;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:700;transition:all .2s;}
 .btn:hover{transform:translateY(-1px);}
-.btn:active{transform:scale(.97);}
-.bng{background:transparent;color:var(--ac);border:1.5px solid var(--ac-border);box-shadow:0 0 12px var(--ac-faint);}
-.bng:hover{background:var(--ac-faint);}
-.bngf{background:var(--ac);color:#050505;border:1.5px solid var(--ac);box-shadow:0 0 18px var(--ac-glow);font-weight:900;}
-.bngf:hover{background:var(--ac2);}
-.bgh{background:var(--surface2);color:var(--muted);border:1px solid var(--muted2);font-size:12px;}
-.bgh:hover{color:var(--text);}
+.btn:active{transform:scale(.97);box-shadow:var(--neu-in);}
+.bng{background:var(--bg);color:var(--ac);border:none;box-shadow:var(--neu-out);}
+.bng:hover{box-shadow:var(--neu-glow-out);}
+.bngf{background:var(--ac);color:#050505;border:none;box-shadow:0 4px 14px var(--ac-glow);font-weight:900;}
+.bngf:hover{background:var(--ac2);box-shadow:0 6px 20px var(--ac-glow);}
+.bgh{background:var(--bg);color:var(--muted);border:none;font-size:12px;box-shadow:var(--neu-out);}
+.bgh:hover{color:var(--text);box-shadow:var(--neu-glow-out);}
 
 /* Icon buttons - small */
-.ico-btn{width:30px;height:30px;border-radius:8px;background:var(--surface2);border:1px solid var(--muted2);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
-.ico-btn:hover{color:var(--ac);border-color:var(--ac-border);background:var(--ac-faint);}
+.ico-btn{width:30px;height:30px;border-radius:8px;background:var(--bg);border:none;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;box-shadow:var(--neu-out);}
+.ico-btn:hover{color:var(--ac);box-shadow:var(--neu-glow-out);}
 .ico-btn.red{color:var(--danger);}
-.ico-btn.red:hover{color:var(--danger);border-color:#ff4d4d44;background:#ff4d4d11;}
-.ico-btn.wa:hover{color:#25D366;border-color:#25D36644;background:#25D36611;}
+.ico-btn.red:hover{color:var(--danger);box-shadow:4px 4px 10px rgba(0,0,0,0.7),-2px -2px 8px rgba(255,255,255,0.03),0 0 12px rgba(255,77,77,0.25);}
+.ico-btn.wa:hover{color:#25D366;box-shadow:4px 4px 10px rgba(0,0,0,0.7),-2px -2px 8px rgba(255,255,255,0.03),0 0 12px rgba(37,211,102,0.2);}
 
-/* Contract card - compact */
-.cc{background:var(--surface);border:1px solid var(--muted2);border-radius:13px;overflow:hidden;margin-bottom:8px;transition:all .2s;}
-.cc:hover{border-color:var(--ac-border);box-shadow:0 3px 18px var(--ac-faint);}
-.cc-h{padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.cc-b{padding:6px 12px 10px;}
+/* ── NEUMORPHIC CONTRACT CARD ── */
+.cc{background:var(--bg);border:none;border-radius:16px;overflow:hidden;margin-bottom:10px;transition:all .25s;box-shadow:var(--neu-out);}
+.cc:hover{box-shadow:var(--neu-glow-out);transform:translateY(-1px);}
+.cc-h{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.cc-b{padding:6px 14px 12px;}
 .cc-n{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cc-sub{font-size:9px;color:var(--muted);margin-top:1px;}
 
-/* Compact single amount box */
-.amt-box{background:var(--bg);border:1px solid var(--muted2);border-radius:7px;padding:6px 10px;margin-bottom:6px;}
+/* Amount box - inset neumorphic */
+.amt-box{background:var(--bg);border:none;border-radius:10px;padding:8px 12px;margin-bottom:8px;box-shadow:var(--neu-in);}
 .amt-lbl{font-size:8px;color:var(--muted);font-weight:700;margin-bottom:2px;}
-.amt-val{font-size:12px;font-weight:800;color:var(--ac);text-shadow:0 0 6px var(--ac-glow);}
+.amt-val{font-size:13px;font-weight:800;color:var(--ac);text-shadow:0 0 6px var(--ac-glow);}
 
-/* Payment - horizontal squares */
-.psec{background:var(--bg);border-radius:7px;padding:7px 9px;border:1px solid var(--muted2);margin-top:5px;}
-.pbar{height:2px;background:var(--muted2);border-radius:4px;margin:4px 0 6px;overflow:hidden;}
+/* Payment section - inset */
+.psec{background:var(--bg);border-radius:10px;padding:8px 10px;border:none;margin-top:6px;box-shadow:var(--neu-in);}
+.pbar{height:3px;background:var(--muted2);border-radius:4px;margin:5px 0 8px;overflow:hidden;}
 .pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 6px var(--ac-glow);}
-.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
-.pitem{background:var(--surface);border-radius:7px;padding:6px 8px;border:1px solid var(--muted2);display:flex;justify-content:space-between;align-items:center;gap:4px;}
-.ptog{padding:3px 7px;border-radius:5px;border:1px solid;font-size:9px;font-weight:800;cursor:pointer;font-family:var(--font);transition:all .2s;white-space:nowrap;}
-.ptog.ok{background:rgba(0,255,136,.08);color:var(--ac);border-color:rgba(0,255,136,.3);}
-.ptog.no{background:var(--surface2);color:var(--muted);border-color:var(--muted2);}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.pitem{background:var(--bg);border-radius:8px;padding:7px 9px;border:none;display:flex;justify-content:space-between;align-items:center;gap:4px;box-shadow:var(--neu-out);}
+.ptog{padding:3px 8px;border-radius:6px;border:none;font-size:9px;font-weight:800;cursor:pointer;font-family:var(--font);transition:all .2s;white-space:nowrap;box-shadow:var(--neu-out);}
+.ptog.ok{background:var(--bg);color:var(--ac);}
+.ptog.ok:active,.ptog.no:active{box-shadow:var(--neu-in);}
+.ptog.no{background:var(--bg);color:var(--muted);}
 
-/* Video progress */
-.vpsec{background:var(--bg);border-radius:7px;padding:7px 9px;border:1px solid var(--muted2);margin-top:5px;}
-.vpbar{height:2px;background:var(--muted2);border-radius:4px;margin:4px 0 6px;overflow:hidden;}
+/* Video progress - inset */
+.vpsec{background:var(--bg);border-radius:10px;padding:8px 10px;border:none;margin-top:6px;box-shadow:var(--neu-in);}
+.vpbar{height:3px;background:var(--muted2);border-radius:4px;margin:5px 0 8px;overflow:hidden;}
 .vpfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 6px var(--ac-glow);}
-.vp-btn{padding:4px 14px;border-radius:6px;border:1px solid var(--ac-border);background:var(--ac-faint);color:var(--ac);font-size:10px;font-weight:800;cursor:pointer;font-family:var(--font);transition:all .2s;}
-.vp-btn:hover{background:var(--ac);color:#050505;}
+.vp-btn{padding:5px 14px;border-radius:7px;border:none;background:var(--bg);color:var(--ac);font-size:10px;font-weight:800;cursor:pointer;font-family:var(--font);transition:all .2s;box-shadow:var(--neu-out);}
+.vp-btn:hover{box-shadow:var(--neu-glow-out);}
+.vp-btn:active{box-shadow:var(--neu-in);}
 
 /* Modal */
 .mov{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(8px);}
-.mod{background:var(--surface);border:1px solid var(--ac-border);border-radius:20px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;padding:22px;box-shadow:0 0 50px var(--ac-glow);animation:fu .25s cubic-bezier(.4,0,.2,1);}
+.mod{background:var(--bg);border:none;border-radius:22px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;padding:24px;box-shadow:var(--neu-out),0 0 50px var(--ac-glow);animation:fu .25s cubic-bezier(.4,0,.2,1);}
 .mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
 .mtitle{font-size:16px;font-weight:900;color:var(--ac);}
-.mclose{width:28px;height:28px;border-radius:7px;background:var(--surface2);border:1px solid var(--muted2);color:var(--muted);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;}
-.mclose:hover{color:var(--ac);border-color:var(--ac-border);}
+.mclose{width:28px;height:28px;border-radius:7px;background:var(--bg);border:none;color:var(--muted);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;box-shadow:var(--neu-out);}
+.mclose:hover{color:var(--ac);box-shadow:var(--neu-glow-out);}
 .mft{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--muted2);}
 
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
 .ffl{grid-column:1/-1;}
 .fg{display:flex;flex-direction:column;gap:4px;}
 .flbl{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.4px;}
-.finp,.fsel,.fta{background:var(--bg);border:1px solid var(--muted2);border-radius:8px;padding:8px 11px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .2s;width:100%;}
-.finp:focus,.fsel:focus,.fta:focus{border-color:var(--ac);box-shadow:0 0 10px var(--ac-faint);}
+.finp,.fsel,.fta{background:var(--bg);border:none;border-radius:10px;padding:9px 13px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:box-shadow .2s;width:100%;box-shadow:var(--neu-in);}
+.finp:focus,.fsel:focus,.fta:focus{box-shadow:var(--neu-in),0 0 0 2px var(--ac-border);}
 .finp[readonly]{color:var(--muted);cursor:default;}
 .fta{min-height:60px;resize:vertical;}
 .fsel option{background:var(--surface);}
@@ -137,27 +150,27 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .fck input{accent-color:var(--ac);width:14px;height:14px;}
 .fck label{font-size:12px;color:var(--muted);cursor:pointer;}
 .dur-btns{display:flex;gap:5px;}
-.dur-btn{flex:1;padding:7px 5px;border-radius:7px;border:1px solid var(--muted2);background:var(--bg);color:var(--muted);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;transition:all .2s;text-align:center;}
-.dur-btn.on{background:var(--ac-faint);color:var(--ac);border-color:var(--ac-border);}
+.dur-btn{flex:1;padding:8px 5px;border-radius:8px;border:none;background:var(--bg);color:var(--muted);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;transition:all .2s;text-align:center;box-shadow:var(--neu-out);}
+.dur-btn.on{background:var(--bg);color:var(--ac);box-shadow:var(--neu-in),0 0 10px var(--ac-faint);}
 
-.sb{background:var(--surface);border:1px solid var(--muted2);border-radius:10px;padding:9px 13px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;width:100%;transition:border-color .2s;}
-.sb:focus{border-color:var(--ac);box-shadow:0 0 12px var(--ac-faint);}
+.sb{background:var(--bg);border:none;border-radius:12px;padding:10px 13px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;width:100%;transition:box-shadow .2s;box-shadow:var(--neu-in);}
+.sb:focus{box-shadow:var(--neu-in),0 0 0 2px var(--ac-border);}
 .sb::placeholder{color:var(--muted);}
 .sb-wrap{position:relative;margin-bottom:10px;}
-.sb-ico{position:absolute;right:11px;top:50%;transform:translateY(-50%);pointer-events:none;}
+.sb-ico{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;}
 
-.tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
-.tab{padding:6px 11px;border-radius:8px;border:1px solid var(--muted2);background:var(--surface);color:var(--muted);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;transition:all .2s;}
-.tab.on{background:var(--ac-faint);color:var(--ac);border-color:var(--ac-border);}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.tab{padding:6px 12px;border-radius:9px;border:none;background:var(--bg);color:var(--muted);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;transition:all .2s;box-shadow:var(--neu-out);}
+.tab.on{background:var(--bg);color:var(--ac);box-shadow:var(--neu-in),0 0 10px var(--ac-faint);}
 
-.alr{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:10px;margin-bottom:7px;font-size:11px;font-weight:700;border:1px solid;border-right-width:3px;animation:fu .3s;}
+.alr{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:12px;margin-bottom:7px;font-size:11px;font-weight:700;border:1px solid;border-right-width:3px;animation:fu .3s;}
 .au{background:rgba(255,77,77,.05);border-color:#ff4d4d33;border-right-color:#ff4d4d;color:#ff4d4d;}
 .aw{background:rgba(255,214,0,.05);border-color:#ffd60033;border-right-color:#ffd600;color:#ffd600;}
 
-.clic{background:var(--surface);border:1px solid var(--muted2);border-radius:13px;padding:13px 15px;margin-bottom:9px;display:flex;align-items:center;gap:13px;transition:all .2s;cursor:pointer;}
-.clic:hover{border-color:var(--ac-border);transform:translateX(-2px);box-shadow:0 3px 16px var(--ac-faint);}
-.cav{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--ac-border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--ac);background:var(--ac-faint);flex-shrink:0;}
-.lmark{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--ac-border);background:var(--ac-faint);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--ac);}
+.clic{background:var(--bg);border:none;border-radius:14px;padding:13px 15px;margin-bottom:9px;display:flex;align-items:center;gap:13px;transition:all .25s;cursor:pointer;box-shadow:var(--neu-out);}
+.clic:hover{box-shadow:var(--neu-glow-out);transform:translateX(-2px);}
+.cav{width:42px;height:42px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--ac);background:var(--bg);flex-shrink:0;box-shadow:var(--neu-out);}
+.lmark{width:36px;height:36px;border-radius:10px;border:none;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--ac);box-shadow:var(--neu-out);}
 .empty{text-align:center;padding:50px 16px;color:var(--muted);}
 
 .cv-wrap{background:#fff;color:#111;padding:30px 38px;font-family:'Tajawal',sans-serif;direction:rtl;font-size:14px;line-height:1.9;}
@@ -170,20 +183,20 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 
 /* Global search */
 .gsearch-wrap{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.93);backdrop-filter:blur(12px);display:flex;flex-direction:column;padding:20px 14px;}
-.gsearch-inp{background:var(--surface2);border:1.5px solid var(--ac-border);border-radius:13px;padding:13px 16px;color:var(--text);font-size:15px;font-family:var(--font);outline:none;width:100%;box-shadow:0 0 24px var(--ac-glow);}
-.gresult{background:var(--surface);border:1px solid var(--muted2);border-radius:11px;padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:11px;}
-.gresult:hover{border-color:var(--ac-border);background:var(--ac-faint);}
+.gsearch-inp{background:var(--bg);border:none;border-radius:14px;padding:14px 16px;color:var(--text);font-size:15px;font-family:var(--font);outline:none;width:100%;box-shadow:var(--neu-in),0 0 20px var(--ac-glow);}
+.gresult{background:var(--bg);border:none;border-radius:12px;padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:11px;box-shadow:var(--neu-out);}
+.gresult:hover{box-shadow:var(--neu-glow-out);}
 
 /* Confirm */
 .conf-ov{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);}
-.conf-box{background:var(--surface);border:1px solid #ff4d4d33;border-radius:16px;padding:22px;max-width:320px;width:100%;text-align:center;box-shadow:0 0 36px #ff4d4d18;}
+.conf-box{background:var(--bg);border:none;border-radius:20px;padding:24px;max-width:320px;width:100%;text-align:center;box-shadow:var(--neu-out),0 0 36px rgba(255,77,77,0.12);}
 
 /* File upload */
-.file-zone{border:2px dashed var(--muted2);border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;}
-.file-zone:hover,.file-zone.drag{border-color:var(--ac-border);background:var(--ac-faint);}
+.file-zone{border:2px dashed var(--muted2);border-radius:12px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;box-shadow:var(--neu-in);}
+.file-zone:hover,.file-zone.drag{border-color:var(--ac-border);box-shadow:var(--neu-in),0 0 10px var(--ac-faint);}
 
 [data-tip]{position:relative;}
-[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:var(--surface3);color:var(--ac);border:1px solid var(--ac-border);padding:3px 7px;border-radius:6px;font-size:9px;white-space:nowrap;z-index:50;pointer-events:none;}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:var(--bg);color:var(--ac);border:none;padding:4px 8px;border-radius:7px;font-size:9px;white-space:nowrap;z-index:50;pointer-events:none;box-shadow:var(--neu-out);}
 
 @media(max-width:500px){.fgrid{grid-template-columns:1fr;}.ffl{grid-column:1;}.pgrid{grid-template-columns:1fr;}}
 `;
@@ -286,7 +299,7 @@ function ConfirmDialog({ msg, onConfirm, onCancel }) {
         <div style={{ fontWeight: 800, fontSize: 14, margin: "12px 0 6px", color: "var(--text)" }}>{msg}</div>
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
           <button className="btn bgh" style={{ flex: 1 }} onClick={onCancel}>إلغاء</button>
-          <button className="btn" style={{ flex: 1, background: "#ff4d4d22", color: "var(--danger)", border: "1px solid #ff4d4d44" }} onClick={onConfirm}>تأكيد</button>
+          <button className="btn" style={{ flex: 1, background: "#ff4d4d22", color: "var(--danger)", boxShadow: "var(--neu-out)" }} onClick={onConfirm}>تأكيد</button>
         </div>
       </div>
     </div>
@@ -312,7 +325,7 @@ function GlobalSearch({ contracts, clients, onClose, onViewContract, goToClient 
       {q && results.length === 0 && <div style={{ color: "var(--muted)", textAlign: "center", padding: 28, fontSize: 13 }}>لا توجد نتائج</div>}
       {results.map((r, i) => (
         <div key={i} className="gresult" onClick={() => { r.type === "contract" ? onViewContract(r.obj) : goToClient(r.obj.id); onClose(); }}>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--ac-faint)", border: "1px solid var(--ac-border)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "var(--neu-out)" }}>
             <Icon name={r.type === "contract" ? "contracts" : "clients"} size={13} />
           </div>
           <div style={{ flex: 1 }}>
@@ -346,7 +359,7 @@ function WABtn({ phone, sm }) {
   const sz = sm ? 28 : 30;
   return (
     <button className="ico-btn wa" onClick={e => { e.stopPropagation(); window.open(`https://wa.me/${num}`, "_blank"); }} data-tip="واتساب"
-      style={{ width: sz, height: sz, borderRadius: 8, background: "var(--surface2)", border: "1px solid var(--muted2)", color: "#25D366", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+      style={{ width: sz, height: sz, borderRadius: 8, background: "var(--bg)", border: "none", color: "#25D366", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
       <Icon name="whatsapp" size={sm ? 12 : 13} color="#25D366" />
     </button>
   );
@@ -409,12 +422,12 @@ function ContractModal({ contract, clients, onClose, onSave }) {
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}><span className="flbl">العميل</span>{f.clientName && <span style={{ fontSize: 10, color: "var(--ac)", fontWeight: 800 }}>✓ {f.clientName}</span>}</div>
           <button className="btn bng" style={{ width: "100%", justifyContent: "space-between" }} onClick={() => setDrop(p => !p)}><span>{f.clientName || "اختر عميلاً..."}</span><Icon name="clients" size={12} /></button>
           {drop && (
-            <div style={{ position: "absolute", top: "100%", insetInline: 0, zIndex: 50, background: "var(--surface2)", border: "1px solid var(--ac-border)", borderRadius: 11, padding: 7, marginTop: 3, maxHeight: 170, overflowY: "auto", boxShadow: "0 8px 28px var(--ac-glow)" }}>
+            <div style={{ position: "absolute", top: "100%", insetInline: 0, zIndex: 50, background: "var(--bg)", border: "none", borderRadius: 14, padding: 7, marginTop: 6, maxHeight: 170, overflowY: "auto", boxShadow: "var(--neu-out)" }}>
               {clients.length === 0 && <div style={{ padding: 10, color: "var(--muted)", fontSize: 12, textAlign: "center" }}>لا يوجد عملاء</div>}
               {clients.map(c => (
                 <div key={c.id} onClick={() => pick(c)} style={{ padding: "8px 11px", borderRadius: 8, cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 9 }}
                   onMouseEnter={e => e.currentTarget.style.background = "var(--ac-faint)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                  <div style={{ width: 26, height: 26, borderRadius: "50%", background: "var(--ac-faint)", border: "1px solid var(--ac-border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: "var(--ac)" }}>{c.name[0]}</div>
+                  <div style={{ width: 26, height: 26, borderRadius: "50%", background: "var(--bg)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: "var(--ac)", boxShadow: "var(--neu-out)" }}>{c.name[0]}</div>
                   <div><div style={{ fontWeight: 700, fontSize: 13 }}>{c.name}</div>{c.phone && <div style={{ fontSize: 10, color: "var(--muted)" }}>{c.phone}</div>}</div>
                 </div>
               ))}
@@ -470,8 +483,8 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
 
   return (
     <div className="mov" style={{ alignItems: "flex-start", overflowY: "auto" }}>
-      <div style={{ background: "var(--surface)", border: "1px solid var(--ac-border)", borderRadius: 18, width: "100%", maxWidth: 740, margin: "12px 0", overflow: "hidden", boxShadow: "0 0 50px var(--ac-glow)" }}>
-        <div style={{ background: "var(--bg)", padding: "11px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--ac-border)" }}>
+      <div style={{ background: "var(--bg)", border: "none", borderRadius: 20, width: "100%", maxWidth: 740, margin: "12px 0", overflow: "hidden", boxShadow: "var(--neu-out),0 0 50px var(--ac-glow)" }}>
+        <div style={{ background: "var(--bg)", padding: "11px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--muted2)" }}>
           <span style={{ color: "var(--ac)", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 7 }}><Icon name="doc" size={13} />تفاصيل العقد</span>
           <div style={{ display: "flex", gap: 7 }}>
             {c.fileUrl && <a href={c.fileUrl} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}><button className="btn bng" style={{ fontSize: 11, padding: "5px 11px", display: "flex", alignItems: "center", gap: 5 }}><Icon name="file" size={11} />نسخة العقد</button></a>}
@@ -484,7 +497,7 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
             <div><div style={{ fontSize: 17, fontWeight: 900 }}>{c.clientName}</div><div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{c.videoCount ? `${c.videoCount} فيديو` : ""}</div></div>
             <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
           </div>
-          <div style={{ background: "var(--bg)", border: "1px solid var(--muted2)", borderRadius: 8, padding: "8px 12px", marginBottom: 10 }}>
+          <div style={{ background: "var(--bg)", border: "none", borderRadius: 10, padding: "8px 12px", marginBottom: 10, boxShadow: "var(--neu-in)" }}>
             <div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700, marginBottom: 3 }}>الإجمالي</div>
             <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ac)" }}>{fmt(c.totalAmount, c.currency)}</div>
           </div>
@@ -515,7 +528,7 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
               ))}
             </div>
           )}
-          {c.notes && <div style={{ marginTop: 9, fontSize: 11, color: "var(--muted)", padding: "7px 9px", background: "var(--bg)", borderRadius: 7, border: "1px solid var(--muted2)" }}>📝 {c.notes}</div>}
+          {c.notes && <div style={{ marginTop: 9, fontSize: 11, color: "var(--muted)", padding: "7px 9px", background: "var(--bg)", borderRadius: 8, boxShadow: "var(--neu-in)" }}>📝 {c.notes}</div>}
         </div>
         {/* Hidden PDF content */}
         <div ref={ref} style={{ display: "none", background: "#fff", color: "#111", padding: "30px 38px", fontFamily: "'Tajawal',sans-serif", direction: "rtl", fontSize: 14, lineHeight: 1.9 }}>
@@ -559,13 +572,23 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
   const f50d = c.final50Date ? daysDiff(c.final50Date) : null;
   const vc = Number(c.videoCount || 0), vd = Number(c.videoDone || 0);
   const vpct = vc > 0 ? Math.round((vd / vc) * 100) : 0;
-  const ibtn = { width: 30, height: 30, borderRadius: 8, background: "var(--ac-faint)", border: "1px solid var(--ac-border)", color: "var(--ac)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all .2s", flexShrink: 0, boxShadow: "0 0 8px var(--ac-faint)" };
-  const rbtn = { width: 30, height: 30, borderRadius: 8, background: "var(--surface2)", border: "1px solid #ff4d4d30", color: "var(--danger)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all .2s", flexShrink: 0 };
+
+  const ibtn = {
+    width: 30, height: 30, borderRadius: 8, background: "var(--bg)", border: "none",
+    color: "var(--ac)", display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer", transition: "all .2s", flexShrink: 0,
+    boxShadow: "var(--neu-out)"
+  };
+  const rbtn = {
+    width: 30, height: 30, borderRadius: 8, background: "var(--bg)", border: "none",
+    color: "var(--danger)", display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer", transition: "all .2s", flexShrink: 0,
+    boxShadow: "var(--neu-out)"
+  };
 
   return (
     <div className="cc">
       <div className="cc-h">
-        {/* Name + badge */}
         <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => onView(c)}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <div className="cc-n">{c.clientName || "عميل"}</div>
@@ -573,30 +596,25 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
           </div>
           <div className="cc-sub">{vc > 0 ? `${vd}/${vc} فيديو` : ""}{vc > 0 && c.startDate ? " — " : ""}{fmtDate(c.startDate)}</div>
         </div>
-        {/* Buttons: 2 rows */}
         <div style={{ display: "flex", flexDirection: "column", gap: 4, flexShrink: 0 }}>
-          {/* Row 1: edit, pdf, wa */}
           <div style={{ display: "flex", gap: 4 }}>
-            <button style={ibtn} onClick={() => onEdit(c)} data-tip="تعديل" onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,255,136,0.15)"; e.currentTarget.style.boxShadow = "0 0 14px var(--ac-glow)"; }} onMouseLeave={e => { e.currentTarget.style.background = "var(--ac-faint)"; e.currentTarget.style.boxShadow = "0 0 8px var(--ac-faint)"; }}><Icon name="edit" size={12} color="var(--ac)" /></button>
-            <button style={ibtn} onClick={() => onView(c)} data-tip="عرض PDF" onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,255,136,0.15)"; e.currentTarget.style.boxShadow = "0 0 14px var(--ac-glow)"; }} onMouseLeave={e => { e.currentTarget.style.background = "var(--ac-faint)"; e.currentTarget.style.boxShadow = "0 0 8px var(--ac-faint)"; }}><Icon name="doc" size={12} color="var(--ac)" /></button>
+            <button style={ibtn} onClick={() => onEdit(c)} data-tip="تعديل"><Icon name="edit" size={12} color="var(--ac)" /></button>
+            <button style={ibtn} onClick={() => onView(c)} data-tip="عرض PDF"><Icon name="doc" size={12} color="var(--ac)" /></button>
             <WABtn phone={c.clientPhone} sm />
           </div>
-          {/* Row 2: cancel, delete */}
           <div style={{ display: "flex", gap: 4 }}>
-            <button style={rbtn} onClick={() => onCancel(c.id)} data-tip="إلغاء" onMouseEnter={e => { e.currentTarget.style.background = "#ff4d4d15"; e.currentTarget.style.borderColor = "#ff4d4d55"; }} onMouseLeave={e => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.borderColor = "#ff4d4d30"; }}><Icon name="cancel" size={12} color="var(--danger)" /></button>
-            <button style={{ ...rbtn, flex: 1 }} onClick={() => onDelete(c.id)} data-tip="حذف" onMouseEnter={e => { e.currentTarget.style.background = "#ff4d4d15"; e.currentTarget.style.borderColor = "#ff4d4d55"; }} onMouseLeave={e => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.borderColor = "#ff4d4d30"; }}><Icon name="trash" size={12} color="var(--danger)" /></button>
+            <button style={rbtn} onClick={() => onCancel(c.id)} data-tip="إلغاء"><Icon name="cancel" size={12} color="var(--danger)" /></button>
+            <button style={{ ...rbtn, flex: 1 }} onClick={() => onDelete(c.id)} data-tip="حذف"><Icon name="trash" size={12} color="var(--danger)" /></button>
           </div>
         </div>
       </div>
 
       <div className="cc-b">
-        {/* Only total amount */}
         <div className="amt-box">
           <div className="amt-lbl">الإجمالي</div>
           <div className="amt-val">{fmt(c.totalAmount, c.currency)}</div>
         </div>
 
-        {/* Payment */}
         <div className="psec">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>الدفع</span>
@@ -617,7 +635,6 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
           </div>
         </div>
 
-        {/* Video progress */}
         {vc > 0 && (
           <div className="vpsec">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -627,7 +644,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
             <div className="vpbar"><div className="vpfill" style={{ width: `${vpct}%` }} /></div>
             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
               <button className="vp-btn" onClick={() => onVideoUpdate(c.id, Math.min(vc, vd + 2))}>+2 فيديو</button>
-              <button className="vp-btn" style={{ background: "#ff4d4d10", borderColor: "#ff4d4d40", color: "var(--danger)" }} onClick={() => onVideoUpdate(c.id, 0)}>صفر</button>
+              <button className="vp-btn" style={{ color: "var(--danger)" }} onClick={() => onVideoUpdate(c.id, 0)}>صفر</button>
             </div>
           </div>
         )}
@@ -644,7 +661,7 @@ function Dashboard({ contracts, clients, goTo, onViewContract }) {
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
       <Alerts contracts={contracts} />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 4 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 4 }}>
         <div className="stat" style={{ gridColumn: "1/-1" }}>
           <div className="slbl"><Icon name="income" size={13} />إجمالي المحصّل</div>
           <div className="sval sm">{fmt(collected)}</div>
@@ -723,7 +740,7 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
           {[["📞", cl.phone], ["📍", cl.address], ["📝", cl.notes]].filter(([, v]) => v).map(([i, v]) => <div key={i} style={{ display: "flex", gap: 9, padding: "7px 0", borderTop: "1px solid var(--muted2)", fontSize: 12 }}><span>{i}</span><span style={{ color: "var(--muted)", flex: 1 }}>{v}</span></div>)}
           <div style={{ display: "flex", gap: 7, marginTop: 12 }}>
             <button className="btn bng" style={{ flex: 1, display: "flex", alignItems: "center", gap: 5, justifyContent: "center", fontSize: 12 }} onClick={() => onEdit(cl)}><Icon name="edit" size={12} />تعديل</button>
-            <button className="btn bgh" style={{ color: "var(--danger)", borderColor: "#ff4d4d33", display: "flex", alignItems: "center", gap: 5, fontSize: 12 }} onClick={() => { if (confirm("حذف العميل؟")) { onDelete(cl.id); setSel(null); } }}><Icon name="trash" size={12} color="var(--danger)" />حذف</button>
+            <button className="btn bgh" style={{ color: "var(--danger)", display: "flex", alignItems: "center", gap: 5, fontSize: 12 }} onClick={() => { if (confirm("حذف العميل؟")) { onDelete(cl.id); setSel(null); } }}><Icon name="trash" size={12} color="var(--danger)" />حذف</button>
           </div>
         </div>
         <div className="sh">عقوده ({clc.length})</div>
@@ -759,7 +776,7 @@ function IncomeScreen({ contracts }) {
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
       <div style={{ marginBottom: 16 }}><div className="pt">الدخل</div><div className="ps">التحليل المالي — الفيديوهات فقط</div></div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {[
           { l: "آخر 30 يوم", v: fmt(last30), icon: "clock" },
           { l: String(NOW.getFullYear()), v: fmt(yearT), icon: "income" },
@@ -880,7 +897,6 @@ export default function App() {
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="app">
-        {/* Top bar */}
         <div className="topbar">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div className="lmark" style={{ width: 32, height: 32, fontSize: 14 }}>F</div>
