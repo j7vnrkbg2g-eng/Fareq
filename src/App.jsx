@@ -8,271 +8,506 @@ const addMonths = (dateStr, months) => { const d = new Date(dateStr); d.setMonth
 const NOW = new Date();
 
 const SL = { active:"جارٍ", pending:"معلق", completed:"مكتمل", cancelled:"ملغي" };
-const SC = { active:"#00ff88", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4444" };
+const SC = { active:"#00ff88", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4d4d" };
+
+const FAREQ_LOGO_B64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --bg:#050505;--surface:#0a0a0a;--surface2:#111;--surface3:#161616;
-  --ac:#00ff88;--ac2:#00e57a;--ac-glow:rgba(0,255,136,0.22);
-  --ac-faint:rgba(0,255,136,0.07);--ac-border:rgba(0,255,136,0.3);
-  --text:#f0f0f0;--muted:#555;--muted2:#222;--font:'Tajawal',sans-serif;
-  --danger:#ff4d4d;--warn:#ffd600;
-  --neu-out: 4px 4px 10px rgba(0,0,0,0.7), -2px -2px 8px rgba(255,255,255,0.03);
-  --neu-in:  inset 2px 2px 6px rgba(0,0,0,0.6), inset -1px -1px 4px rgba(255,255,255,0.03);
-  --neu-glow-out: 4px 4px 10px rgba(0,0,0,0.7), -2px -2px 8px rgba(255,255,255,0.03), 0 0 14px var(--ac-glow);
-  --card-border: rgba(255,255,255,0.045);
+
+:root {
+  --bg: #f0f2f7;
+  --surface: #ffffff;
+  --surface2: #e8ebf4;
+  --surface3: #dde1ef;
+  --ac: #00c96e;
+  --ac2: #00a85a;
+  --ac-glow: rgba(0,201,110,0.25);
+  --ac-faint: rgba(0,201,110,0.10);
+  --ac-border: rgba(0,201,110,0.35);
+  --text: #0d1b2a;
+  --text2: #4a5568;
+  --muted: #94a3b8;
+  --muted2: #e2e8f0;
+  --danger: #ff4d6d;
+  --warn: #f59e0b;
+  --card-border: rgba(255,255,255,0.8);
   --card-gap: 10px;
+  --font: 'Tajawal', sans-serif;
+  --grad-card: linear-gradient(135deg, #1a2340 0%, #0f1829 60%, #0a1020 100%);
+  --grad-accent: linear-gradient(135deg, #00ff88, #00c96e);
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-float: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.1);
+  --shadow-inner: inset 0 2px 8px rgba(0,0,0,0.06);
+  --nav-bg: rgba(255,255,255,0.95);
 }
-[data-theme="light"]{
-  --bg:#f0f0f3;--surface:#f0f0f3;--surface2:#e8e8eb;--surface3:#e0e0e3;
-  --ac:#009955;--ac2:#007a44;--ac-glow:rgba(0,153,85,0.18);
-  --ac-faint:rgba(0,153,85,0.07);--ac-border:rgba(0,153,85,0.3);
-  --text:#111;--muted:#888;--muted2:#d8d8db;
-  --neu-out: 5px 5px 14px rgba(180,180,190,0.7), -4px -4px 10px rgba(255,255,255,0.95);
-  --neu-in:  inset 3px 3px 8px rgba(180,180,190,0.5), inset -2px -2px 6px rgba(255,255,255,0.9);
-  --neu-glow-out: 5px 5px 14px rgba(180,180,190,0.7), -4px -4px 10px rgba(255,255,255,0.95), 0 0 12px var(--ac-glow);
-  --card-border: rgba(0,0,0,0.06);
+
+[data-theme="dark"] {
+  --bg: #0a0f1e;
+  --surface: #111827;
+  --surface2: #1a2340;
+  --surface3: #1e2a4a;
+  --ac: #00ff88;
+  --ac2: #00e07a;
+  --ac-glow: rgba(0,255,136,0.30);
+  --ac-faint: rgba(0,255,136,0.08);
+  --ac-border: rgba(0,255,136,0.35);
+  --text: #f0f4ff;
+  --text2: #94a3b8;
+  --muted: #4a5568;
+  --muted2: #1e2a4a;
+  --danger: #ff4d6d;
+  --warn: #fbbf24;
+  --card-border: rgba(255,255,255,0.06);
+  --grad-card: linear-gradient(135deg, #1e2d50 0%, #151f38 60%, #0f1829 100%);
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-float: 0 20px 60px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-inner: inset 0 2px 8px rgba(0,0,0,0.3);
+  --nav-bg: rgba(10,15,30,0.97);
 }
-html,body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rtl;height:100%;transition:background .3s,color .3s;}
-::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--ac-border);border-radius:4px;}
-.app{display:flex;flex-direction:column;height:100dvh;background:var(--bg);overflow:hidden;}
-.screen{flex:1;overflow-y:auto;padding:16px 14px 90px;animation:fu .3s cubic-bezier(.4,0,.2,1);}
-@keyframes fu{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
 
-/* Top bar */
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 0;gap:10px;}
-.topbar-actions{display:flex;gap:8px;align-items:center;}
-.tb-btn{width:36px;height:36px;border-radius:10px;background:var(--bg);border:none;color:var(--ac);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;box-shadow:var(--neu-out);}
-.tb-btn:hover{box-shadow:var(--neu-glow-out);}
-
-/* Nav */
-.bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--bg);backdrop-filter:blur(24px);border-top:1px solid var(--muted2);display:flex;justify-content:space-around;align-items:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(0,0,0,0.3);}
-.bni{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 14px;border-radius:12px;transition:all .2s;flex:1;}
-.bni:hover{background:var(--ac-faint);}
-.bni.on{background:transparent;}
-.bni.on .bni-lbl{color:var(--ac);}
-.bni-lbl{font-size:10px;color:var(--muted);font-weight:700;transition:color .2s;}
-
-.nbox{width:36px;height:36px;border-radius:10px;border:none;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--neu-out);}
-.nbox.sm{width:28px;height:28px;border-radius:8px;}
-
-/* ── NEUMORPHIC CARDS — now separated with border ── */
-.card{
-  background:var(--bg);
-  border:1px solid var(--card-border);
-  border-radius:16px;
-  padding:14px;
-  transition:all .25s;
-  position:relative;
-  overflow:hidden;
-  box-shadow:var(--neu-out);
-  margin-bottom:var(--card-gap);
+html,body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  direction: rtl;
+  height: 100%;
+  transition: background .3s, color .3s;
 }
-.card:hover{box-shadow:var(--neu-glow-out);border-color:var(--ac-border);}
-.card-gl{box-shadow:var(--neu-glow-out)!important;border-color:var(--ac-border)!important;}
 
-/* ── NEUMORPHIC STATS ── */
-.stat{
-  background:var(--bg);
-  border:1px solid var(--card-border);
-  border-radius:16px;
-  padding:16px 18px;
-  transition:all .25s;
-  position:relative;
-  overflow:hidden;
-  box-shadow:var(--neu-out);
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--ac-border); border-radius: 4px; }
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--bg);
+  overflow: hidden;
 }
-.stat:hover{transform:translateY(-2px);box-shadow:var(--neu-glow-out);border-color:var(--ac-border);}
-.slbl{font-size:11px;color:var(--ac);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px var(--ac-glow);}
-.sval{font-size:20px;font-weight:800;color:var(--text);}
-.sval.sm{font-size:14px;font-weight:600;color:var(--text);}
 
-/* Dashboard card text — softer */
-.dash-card-name{font-size:13px;font-weight:500;color:var(--text);}
-.dash-card-sub{font-size:10px;color:var(--muted);margin-top:1px;font-weight:400;}
-
-.sh{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:18px 0 8px;}
-.pt{font-size:20px;font-weight:900;color:var(--text);margin-bottom:3px;}
-.ps{font-size:12px;color:var(--muted);}
-
-.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;border:1px solid;}
-.badge::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0;}
-
-/* ── NEUMORPHIC BUTTONS ── */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:10px;border:none;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:700;transition:all .2s;}
-.btn:hover{transform:translateY(-1px);}
-.btn:active{transform:scale(.97);box-shadow:var(--neu-in);}
-.bng{background:var(--bg);color:var(--ac);border:none;box-shadow:var(--neu-out);}
-.bng:hover{box-shadow:var(--neu-glow-out);}
-
-/* ── Softer action buttons (Add Contract / Add Client) ── */
-.bngf{
-  background:var(--bg);
-  color:var(--ac);
-  border:1px solid var(--ac-border);
-  box-shadow:var(--neu-out);
-  font-weight:700;
+.screen {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 14px 90px;
+  animation: fu .3s cubic-bezier(.4,0,.2,1);
 }
-.bngf:hover{
-  box-shadow:var(--neu-glow-out);
-  background:var(--ac-faint);
-  border-color:var(--ac);
+
+@keyframes fu { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes pulse-glow { 0%,100% { box-shadow: 0 0 20px var(--ac-glow); } 50% { box-shadow: 0 0 40px var(--ac-glow), 0 0 60px var(--ac-glow); } }
+
+/* ── HERO BALANCE CARD ── */
+.hero-card {
+  background: linear-gradient(135deg, #0f1e3a 0%, #0a1428 50%, #060e1f 100%);
+  border-radius: 24px;
+  padding: 24px 20px 20px;
+  margin: 14px 0 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-float), 0 0 40px rgba(0,201,110,0.15);
+  border: 1px solid rgba(0,255,136,0.12);
 }
-.bngf:active{box-shadow:var(--neu-in);}
-
-.bgh{background:var(--bg);color:var(--muted);border:none;font-size:12px;box-shadow:var(--neu-out);}
-.bgh:hover{color:var(--text);box-shadow:var(--neu-glow-out);}
-
-/* Icon buttons - small */
-.ico-btn{width:30px;height:30px;border-radius:8px;background:var(--bg);border:none;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;box-shadow:var(--neu-out);}
-.ico-btn:hover{color:var(--ac);box-shadow:var(--neu-glow-out);}
-.ico-btn.red{color:var(--danger);}
-.ico-btn.red:hover{color:var(--danger);box-shadow:4px 4px 10px rgba(0,0,0,0.7),-2px -2px 8px rgba(255,255,255,0.03),0 0 12px rgba(255,77,77,0.25);}
-.ico-btn.wa:hover{color:#25D366;box-shadow:4px 4px 10px rgba(0,0,0,0.7),-2px -2px 8px rgba(255,255,255,0.03),0 0 12px rgba(37,211,102,0.2);}
-
-/* ── CONTRACT CARD — compact & separated ── */
-.cc{
-  background:var(--bg);
-  border:1px solid var(--card-border);
-  border-radius:14px;
-  overflow:hidden;
-  margin-bottom:var(--card-gap);
-  transition:all .25s;
-  box-shadow:var(--neu-out);
+.hero-card::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(0,255,136,0.15) 0%, transparent 70%);
+  border-radius: 50%;
 }
-.cc:hover{box-shadow:var(--neu-glow-out);border-color:var(--ac-border);transform:translateY(-1px);}
-.cc-h{padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.cc-b{padding:4px 12px 10px;}
-.cc-n{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cc-sub{font-size:9px;color:var(--muted);margin-top:1px;font-weight:400;}
+.hero-card::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; left: -40px;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, rgba(0,150,255,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero-lbl { font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 500; margin-bottom: 6px; letter-spacing: 0.5px; }
+.hero-amount { font-size: 34px; font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 4px; }
+.hero-change { font-size: 11px; color: var(--ac); font-weight: 600; display: flex; align-items: center; gap: 4px; }
 
-/* Amount box - inset neumorphic — compact */
-.amt-box{background:var(--bg);border:none;border-radius:8px;padding:5px 10px;margin-bottom:6px;box-shadow:var(--neu-in);display:flex;justify-content:space-between;align-items:center;}
-.amt-lbl{font-size:8px;color:var(--muted);font-weight:600;}
-.amt-val{font-size:12px;font-weight:700;color:var(--ac);text-shadow:0 0 6px var(--ac-glow);}
+/* Quick action buttons */
+.quick-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 20px; position: relative; z-index: 1; }
+.qa-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px; padding: 12px 6px; cursor: pointer;
+  transition: all .2s; backdrop-filter: blur(10px);
+}
+.qa-btn:hover { background: rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.3); transform: translateY(-2px); }
+.qa-btn:active { transform: scale(.96); }
+.qa-icon { width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; }
+.qa-lbl { font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 600; }
 
-/* Payment section - compact */
-.psec{background:var(--bg);border-radius:8px;padding:6px 9px;border:none;margin-top:4px;box-shadow:var(--neu-in);}
-.pbar{height:2px;background:var(--muted2);border-radius:4px;margin:4px 0 6px;overflow:hidden;}
-.pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 6px var(--ac-glow);}
-.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
-.pitem{background:var(--bg);border-radius:7px;padding:5px 8px;border:none;display:flex;justify-content:space-between;align-items:center;gap:4px;box-shadow:var(--neu-out);}
-.ptog{padding:2px 7px;border-radius:5px;border:none;font-size:8px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s;white-space:nowrap;box-shadow:var(--neu-out);}
-.ptog.ok{background:var(--bg);color:var(--ac);}
-.ptog.ok:active,.ptog.no:active{box-shadow:var(--neu-in);}
-.ptog.no{background:var(--bg);color:var(--muted);}
+/* ── TRANSACTION CARD ── */
+.tx-card {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-card);
+  transition: all .2s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.tx-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,255,136,0.02), transparent);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.tx-card:hover::before { opacity: 1; }
+.tx-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-float); border-color: var(--ac-border); }
 
-/* Video progress - compact */
-.vpsec{background:var(--bg);border-radius:8px;padding:6px 9px;border:none;margin-top:4px;box-shadow:var(--neu-in);}
-.vpbar{height:2px;background:var(--muted2);border-radius:4px;margin:4px 0 6px;overflow:hidden;}
-.vpfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 6px var(--ac-glow);}
-.vp-btn{padding:4px 11px;border-radius:6px;border:none;background:var(--bg);color:var(--ac);font-size:9px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s;box-shadow:var(--neu-out);}
-.vp-btn:hover{box-shadow:var(--neu-glow-out);}
-.vp-btn:active{box-shadow:var(--neu-in);}
+.tx-icon {
+  width: 44px; height: 44px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--surface2), var(--surface3));
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.tx-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.tx-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.tx-amt { font-size: 13px; font-weight: 700; }
+.tx-amt.pos { color: var(--ac); }
+.tx-amt.neg { color: var(--danger); }
+
+/* ── SECTION HEADER ── */
+.sec-hdr {
+  display: flex; justify-content: space-between; align-items: center;
+  margin: 18px 0 10px;
+}
+.sec-title { font-size: 15px; font-weight: 800; color: var(--text); }
+.sec-link { font-size: 11px; color: var(--ac); font-weight: 700; cursor: pointer; }
+
+/* ── STAT GRID ── */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+  transition: all .25s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-float); }
+.stat-card.wide { grid-column: 1/-1; }
+.stat-lbl { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.stat-val { font-size: 18px; font-weight: 800; color: var(--text); }
+.stat-val.ac { color: var(--ac); }
+.stat-val.sm { font-size: 14px; }
+
+/* ── NAV BAR ── */
+.bnav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: var(--nav-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  padding: 6px 8px max(6px, env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+  gap: 4px;
+}
+.bni {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer; padding: 7px 6px; border-radius: 14px;
+  transition: all .2s; flex: 1; position: relative;
+}
+.bni:hover { background: var(--ac-faint); }
+.bni-lbl { font-size: 9px; color: var(--muted); font-weight: 700; transition: color .2s; }
+.bni.on .bni-lbl { color: var(--ac); }
+
+.bni-fab {
+  width: 50px; height: 50px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #00ff88, #00c96e);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,201,110,0.5), 0 0 0 4px rgba(0,201,110,0.15);
+  margin-bottom: 2px;
+  transition: all .2s;
+  cursor: pointer;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+.bni-fab:hover { transform: scale(1.08); }
+.bni-fab:active { transform: scale(.95); }
+
+/* ── TOP BAR ── */
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 14px 0; gap: 10px;
+}
+.tb-btn {
+  width: 38px; height: 38px; border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  color: var(--text2); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .2s;
+  box-shadow: var(--shadow-card);
+}
+.tb-btn:hover { border-color: var(--ac-border); color: var(--ac); }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: var(--card-gap);
+  transition: all .25s;
+}
+.card:hover { box-shadow: var(--shadow-float); border-color: var(--ac-border); }
+
+/* ── CONTRACT CARD ── */
+.cc {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  overflow: hidden;
+  margin-bottom: var(--card-gap);
+  box-shadow: var(--shadow-card);
+  transition: all .25s;
+}
+.cc:hover { box-shadow: var(--shadow-float); border-color: var(--ac-border); transform: translateY(-1px); }
+.cc-h { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.cc-b { padding: 4px 14px 12px; }
+.cc-n { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-sub { font-size: 10px; color: var(--muted); margin-top: 2px; font-weight: 500; }
+
+/* Amount box */
+.amt-box {
+  background: var(--surface2);
+  border-radius: 10px; padding: 8px 12px; margin-bottom: 8px;
+  display: flex; justify-content: space-between; align-items: center;
+  border: 1px solid var(--card-border);
+}
+.amt-lbl { font-size: 9px; color: var(--muted); font-weight: 600; }
+.amt-val { font-size: 14px; font-weight: 800; color: var(--ac); }
+
+/* Payment section */
+.psec { background: var(--surface2); border-radius: 12px; padding: 10px 12px; border: 1px solid var(--card-border); margin-top: 6px; }
+.pbar { height: 4px; background: var(--muted2); border-radius: 4px; margin: 6px 0 8px; overflow: hidden; }
+.pfill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--ac), #00ffcc); transition: width .5s cubic-bezier(.4,0,.2,1); box-shadow: 0 0 8px var(--ac-glow); }
+.pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.pitem { background: var(--surface); border-radius: 10px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; gap: 6px; border: 1px solid var(--card-border); box-shadow: var(--shadow-card); }
+.ptog { padding: 4px 10px; border-radius: 7px; border: none; font-size: 9px; font-weight: 800; cursor: pointer; font-family: var(--font); transition: all .2s; white-space: nowrap; }
+.ptog.ok { background: rgba(0,255,136,0.15); color: var(--ac); }
+.ptog.no { background: var(--surface2); color: var(--muted); }
+
+/* Video progress */
+.vpsec { background: var(--surface2); border-radius: 12px; padding: 10px 12px; border: 1px solid var(--card-border); margin-top: 8px; }
+.vpbar { height: 4px; background: var(--muted2); border-radius: 4px; margin: 6px 0 8px; overflow: hidden; }
+.vpfill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--ac), #00ffcc); transition: width .5s cubic-bezier(.4,0,.2,1); }
+.vp-btn { padding: 5px 13px; border-radius: 8px; border: none; background: var(--surface); color: var(--ac); font-size: 10px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all .2s; border: 1px solid var(--card-border); box-shadow: var(--shadow-card); }
+.vp-btn:hover { border-color: var(--ac-border); }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 9px; font-weight: 800; border: 1px solid; }
+.badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 16px; border-radius: 12px; border: none; cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 700; transition: all .2s; }
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: scale(.97); }
+.bng { background: var(--surface); color: var(--text); border: 1px solid var(--card-border); box-shadow: var(--shadow-card); }
+.bng:hover { border-color: var(--ac-border); color: var(--ac); }
+.bngf { background: linear-gradient(135deg, var(--ac), var(--ac2)); color: #000; font-weight: 800; box-shadow: 0 4px 20px var(--ac-glow); }
+.bngf:hover { box-shadow: 0 6px 28px var(--ac-glow); }
+.bgh { background: var(--surface2); color: var(--muted); border: 1px solid var(--card-border); }
+.bgh:hover { color: var(--text); }
+.btn-danger { background: rgba(255,77,109,0.12); color: var(--danger); border: 1px solid rgba(255,77,109,0.2); }
+
+/* Icon buttons */
+.ico-btn { width: 32px; height: 32px; border-radius: 9px; background: var(--surface2); border: 1px solid var(--card-border); color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; flex-shrink: 0; box-shadow: var(--shadow-card); }
+.ico-btn:hover { color: var(--ac); border-color: var(--ac-border); }
+.ico-btn.red:hover { color: var(--danger); border-color: rgba(255,77,109,0.3); }
+.ico-btn.wa:hover { color: #25D366; border-color: rgba(37,211,102,0.3); }
 
 /* Modal */
-.mov{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(8px);}
-.mod{background:var(--bg);border:1px solid var(--card-border);border-radius:22px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;padding:24px;box-shadow:var(--neu-out),0 0 50px var(--ac-glow);animation:fu .25s cubic-bezier(.4,0,.2,1);}
-.mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
-.mtitle{font-size:16px;font-weight:900;color:var(--ac);}
-.mclose{width:28px;height:28px;border-radius:7px;background:var(--bg);border:none;color:var(--muted);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;box-shadow:var(--neu-out);}
-.mclose:hover{color:var(--ac);box-shadow:var(--neu-glow-out);}
-.mft{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--muted2);}
+.mov { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 14px; backdrop-filter: blur(12px); }
+.mod { background: var(--surface); border: 1px solid var(--card-border); border-radius: 24px; width: 100%; max-width: 600px; max-height: 92vh; overflow-y: auto; padding: 24px; box-shadow: var(--shadow-float), 0 0 60px var(--ac-glow); animation: fu .25s cubic-bezier(.4,0,.2,1); }
+.mhd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.mtitle { font-size: 17px; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.mclose { width: 30px; height: 30px; border-radius: 9px; background: var(--surface2); border: 1px solid var(--card-border); color: var(--muted); font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; }
+.mclose:hover { color: var(--danger); border-color: rgba(255,77,109,0.3); }
+.mft { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--muted2); }
 
-.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
-.ffl{grid-column:1/-1;}
-.fg{display:flex;flex-direction:column;gap:4px;}
-.flbl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.4px;}
-.finp,.fsel,.fta{background:var(--bg);border:none;border-radius:10px;padding:9px 13px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:box-shadow .2s;width:100%;box-shadow:var(--neu-in);}
-.finp:focus,.fsel:focus,.fta:focus{box-shadow:var(--neu-in),0 0 0 2px var(--ac-border);}
-.finp[readonly]{color:var(--muted);cursor:default;}
-.fta{min-height:60px;resize:vertical;}
-.fsel option{background:var(--surface);}
-.fck{display:flex;align-items:center;gap:7px;cursor:pointer;}
-.fck input{accent-color:var(--ac);width:14px;height:14px;}
-.fck label{font-size:12px;color:var(--muted);cursor:pointer;}
-.dur-btns{display:flex;gap:5px;}
-.dur-btn{flex:1;padding:8px 5px;border-radius:8px;border:none;background:var(--bg);color:var(--muted);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;transition:all .2s;text-align:center;box-shadow:var(--neu-out);}
-.dur-btn.on{background:var(--bg);color:var(--ac);box-shadow:var(--neu-in),0 0 10px var(--ac-faint);}
+.fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ffl { grid-column: 1/-1; }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.flbl { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .3px; }
+.finp,.fsel,.fta { background: var(--surface2); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px 14px; color: var(--text); font-size: 13px; font-family: var(--font); outline: none; transition: all .2s; width: 100%; }
+.finp:focus,.fsel:focus,.fta:focus { border-color: var(--ac-border); box-shadow: 0 0 0 3px var(--ac-faint); }
+.finp[readonly] { color: var(--muted); cursor: default; }
+.fta { min-height: 60px; resize: vertical; }
+.fsel option { background: var(--surface); }
+.fck { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.fck input { accent-color: var(--ac); width: 15px; height: 15px; }
+.fck label { font-size: 12px; color: var(--text2); cursor: pointer; font-weight: 500; }
+.dur-btns { display: flex; gap: 6px; }
+.dur-btn { flex: 1; padding: 9px 5px; border-radius: 10px; border: 1px solid var(--card-border); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--font); font-size: 12px; font-weight: 700; transition: all .2s; text-align: center; }
+.dur-btn.on { background: var(--ac-faint); color: var(--ac); border-color: var(--ac-border); }
 
-.sb{background:var(--bg);border:1px solid var(--card-border);border-radius:12px;padding:10px 13px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;width:100%;transition:box-shadow .2s;box-shadow:var(--neu-in);}
-.sb:focus{box-shadow:var(--neu-in),0 0 0 2px var(--ac-border);}
-.sb::placeholder{color:var(--muted);}
-.sb-wrap{position:relative;margin-bottom:10px;}
-.sb-ico{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;}
+.sb { background: var(--surface); border: 1px solid var(--card-border); border-radius: 14px; padding: 10px 14px; color: var(--text); font-size: 13px; font-family: var(--font); outline: none; width: 100%; transition: all .2s; box-shadow: var(--shadow-inner); }
+.sb:focus { border-color: var(--ac-border); box-shadow: 0 0 0 3px var(--ac-faint); }
+.sb::placeholder { color: var(--muted); }
+.sb-wrap { position: relative; margin-bottom: 12px; }
+.sb-ico { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
 
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-.tab{padding:6px 12px;border-radius:9px;border:1px solid transparent;background:var(--bg);color:var(--muted);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:600;transition:all .2s;box-shadow:var(--neu-out);}
-.tab.on{background:var(--bg);color:var(--ac);box-shadow:var(--neu-in),0 0 10px var(--ac-faint);border-color:var(--ac-border);}
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.tab { padding: 7px 14px; border-radius: 10px; border: 1px solid var(--card-border); background: var(--surface); color: var(--muted); cursor: pointer; font-family: var(--font); font-size: 11px; font-weight: 700; transition: all .2s; box-shadow: var(--shadow-card); }
+.tab.on { background: var(--ac); color: #000; border-color: var(--ac); box-shadow: 0 4px 16px var(--ac-glow); }
 
-.alr{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:12px;margin-bottom:7px;font-size:11px;font-weight:600;border:1px solid;border-right-width:3px;animation:fu .3s;}
-.au{background:rgba(255,77,77,.05);border-color:#ff4d4d33;border-right-color:#ff4d4d;color:#ff4d4d;}
-.aw{background:rgba(255,214,0,.05);border-color:#ffd60033;border-right-color:#ffd600;color:#ffd600;}
+.alr { display: flex; align-items: center; gap: 9px; padding: 10px 14px; border-radius: 14px; margin-bottom: 8px; font-size: 11px; font-weight: 700; border: 1px solid; animation: fu .3s; }
+.au { background: rgba(255,77,109,.06); border-color: rgba(255,77,109,.2); color: var(--danger); }
+.aw { background: rgba(251,191,36,.06); border-color: rgba(251,191,36,.2); color: var(--warn); }
 
-/* ── CLIENT LIST ITEM — separated ── */
-.clic{
-  background:var(--bg);
-  border:1px solid var(--card-border);
-  border-radius:14px;
-  padding:11px 13px;
-  margin-bottom:var(--card-gap);
-  display:flex;
-  align-items:center;
-  gap:12px;
-  transition:all .25s;
-  cursor:pointer;
-  box-shadow:var(--neu-out);
-}
-.clic:hover{box-shadow:var(--neu-glow-out);border-color:var(--ac-border);transform:translateX(-2px);}
-
-/* Client avatar — icon based */
-.cav{
-  width:40px;height:40px;border-radius:50%;border:1px solid var(--card-border);
-  display:flex;align-items:center;justify-content:center;
-  background:var(--bg);flex-shrink:0;box-shadow:var(--neu-out);
-}
-
-/* Client name — softer weight */
-.clic-name{font-weight:500;font-size:13px;color:var(--text);}
-.clic-sub{font-size:10px;color:var(--muted);margin-top:2px;font-weight:400;}
-
-.lmark{width:36px;height:36px;border-radius:10px;border:none;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--ac);box-shadow:var(--neu-out);}
-.empty{text-align:center;padding:50px 16px;color:var(--muted);}
-
-.cv-wrap{background:#fff;color:#111;padding:30px 38px;font-family:'Tajawal',sans-serif;direction:rtl;font-size:14px;line-height:1.9;}
-
-/* Status history */
-.hist-line{display:flex;align-items:flex-start;gap:9px;padding:5px 0;position:relative;}
-.hist-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px;}
-.hist-line::before{content:'';position:absolute;right:3px;top:17px;bottom:-5px;width:1px;background:var(--muted2);}
-.hist-line:last-child::before{display:none;}
-
-/* Global search */
-.gsearch-wrap{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.93);backdrop-filter:blur(12px);display:flex;flex-direction:column;padding:20px 14px;}
-.gsearch-inp{background:var(--bg);border:1px solid var(--ac-border);border-radius:14px;padding:14px 16px;color:var(--text);font-size:15px;font-family:var(--font);outline:none;width:100%;box-shadow:var(--neu-in),0 0 20px var(--ac-glow);}
-.gresult{background:var(--bg);border:1px solid var(--card-border);border-radius:12px;padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:11px;box-shadow:var(--neu-out);}
-.gresult:hover{box-shadow:var(--neu-glow-out);border-color:var(--ac-border);}
+/* Client list */
+.clic { background: var(--surface); border: 1px solid var(--card-border); border-radius: 16px; padding: 12px 14px; margin-bottom: var(--card-gap); display: flex; align-items: center; gap: 12px; transition: all .25s; cursor: pointer; box-shadow: var(--shadow-card); }
+.clic:hover { box-shadow: var(--shadow-float); border-color: var(--ac-border); transform: translateX(-2px); }
+.cav { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: center; background: var(--surface2); flex-shrink: 0; }
+.clic-name { font-weight: 700; font-size: 14px; color: var(--text); }
+.clic-sub { font-size: 10px; color: var(--muted); margin-top: 2px; font-weight: 500; }
 
 /* Confirm */
-.conf-ov{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);}
-.conf-box{background:var(--bg);border:1px solid var(--card-border);border-radius:20px;padding:24px;max-width:320px;width:100%;text-align:center;box-shadow:var(--neu-out),0 0 36px rgba(255,77,77,0.12);}
+.conf-ov { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,.75); display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(12px); }
+.conf-box { background: var(--surface); border: 1px solid var(--card-border); border-radius: 22px; padding: 26px; max-width: 320px; width: 100%; text-align: center; box-shadow: var(--shadow-float); }
 
-[data-tip]{position:relative;}
-[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:var(--bg);color:var(--ac);border:none;padding:4px 8px;border-radius:7px;font-size:9px;white-space:nowrap;z-index:50;pointer-events:none;box-shadow:var(--neu-out);}
+/* Global search */
+.gsearch-wrap { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,.88); backdrop-filter: blur(16px); display: flex; flex-direction: column; padding: 20px 14px; }
+.gsearch-inp { background: var(--surface); border: 1px solid var(--ac-border); border-radius: 16px; padding: 14px 16px; color: var(--text); font-size: 15px; font-family: var(--font); outline: none; width: 100%; box-shadow: 0 0 30px var(--ac-glow); }
+.gresult { background: var(--surface); border: 1px solid var(--card-border); border-radius: 14px; padding: 12px 14px; margin-bottom: 7px; cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card); }
+.gresult:hover { box-shadow: var(--shadow-float); border-color: var(--ac-border); }
 
-@media(max-width:500px){.fgrid{grid-template-columns:1fr;}.ffl{grid-column:1;}.pgrid{grid-template-columns:1fr;}}
+/* ── WALLET SCREEN ── */
+.wallet-hero {
+  background: linear-gradient(135deg, #0f1e3a 0%, #0a1428 50%, #060e1f 100%);
+  border-radius: 24px;
+  padding: 22px 20px 20px;
+  margin: 14px 0 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-float), 0 0 40px rgba(0,201,110,0.15);
+  border: 1px solid rgba(0,255,136,0.12);
+}
+.wallet-hero::before {
+  content: '';
+  position: absolute;
+  top: -50px; right: -50px;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(0,255,136,0.18) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.wallet-tabs {
+  display: flex;
+  background: rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 3px;
+  margin-bottom: 18px;
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.wallet-tab-btn {
+  flex: 1; padding: 8px; border: none; border-radius: 9px;
+  cursor: pointer; font-family: var(--font); font-size: 12px; font-weight: 700;
+  transition: all .2s; background: transparent; color: rgba(255,255,255,0.5);
+}
+.wallet-tab-btn.on {
+  background: rgba(0,255,136,0.2);
+  color: var(--ac);
+  box-shadow: 0 0 12px rgba(0,255,136,0.2);
+}
+.wallet-balance-lbl { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 500; margin-bottom: 4px; position: relative; z-index: 1; }
+.wallet-balance-amt { font-size: 36px; font-weight: 900; color: #fff; margin-bottom: 16px; position: relative; z-index: 1; line-height: 1; }
+.wallet-actions { display: flex; gap: 10px; position: relative; z-index: 1; }
+.wa-btn {
+  flex: 1; padding: 11px; border: none; border-radius: 14px; cursor: pointer;
+  font-family: var(--font); font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: all .2s;
+}
+.wa-btn.income-btn {
+  background: rgba(0,255,136,0.18);
+  color: var(--ac);
+  border: 1px solid rgba(0,255,136,0.3);
+}
+.wa-btn.expense-btn {
+  background: rgba(255,77,109,0.15);
+  color: #ff4d6d;
+  border: 1px solid rgba(255,77,109,0.25);
+}
+.wa-btn.savings-btn {
+  background: rgba(167,139,250,0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(167,139,250,0.25);
+}
+.wa-btn:hover { transform: translateY(-1px); }
+.wa-btn:active { transform: scale(.97); }
+
+.wallet-tx-card {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 13px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-card);
+  transition: all .2s;
+  animation: fu .3s;
+}
+.wallet-tx-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-float); }
+.wtx-icon {
+  width: 44px; height: 44px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.wtx-icon.green { background: rgba(0,255,136,0.12); }
+.wtx-icon.red { background: rgba(255,77,109,0.12); }
+.wtx-icon.purple { background: rgba(167,139,250,0.12); }
+.wtx-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.wtx-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.wtx-amt { font-size: 14px; font-weight: 800; }
+.wtx-amt.pos { color: var(--ac); }
+.wtx-amt.neg { color: var(--danger); }
+.wtx-amt.purple { color: #a78bfa; }
+
+/* page title */
+.pt { font-size: 22px; font-weight: 900; color: var(--text); margin-bottom: 2px; }
+.ps { font-size: 12px; color: var(--muted); }
+.sh { font-size: 10px; font-weight: 800; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin: 18px 0 8px; }
+
+.lmark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--ac), var(--ac2)); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #000; box-shadow: 0 4px 14px var(--ac-glow); }
+.empty { text-align: center; padding: 50px 16px; color: var(--muted); }
+
+@media(max-width:500px) { .fgrid { grid-template-columns: 1fr; } .ffl { grid-column: 1; } .pgrid { grid-template-columns: 1fr; } }
 `;
 
-const Icon = ({ name, size = 20, color = "var(--ac)" }) => {
-  const s = { width: size, height: size, stroke: color, fill: "none", strokeWidth: 1.6, strokeLinecap: "round", strokeLinejoin: "round", flexShrink: 0, display: "block" };
+// ── Icons ─────────────────────────────────────────────────────────
+const Icon = ({ name, size = 20, color = "currentColor" }) => {
+  const s = { width: size, height: size, stroke: color, fill: "none", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round", flexShrink: 0, display: "block" };
   const p = {
-    dashboard: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
+    dashboard: <><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></>,
     contracts: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></>,
     clients: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></>,
     income: <><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></>,
+    wallet: <><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M16 12h2"/><path d="M2 10h20"/></>,
     plus: <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+    minus: <><line x1="5" y1="12" x2="19" y2="12"/></>,
     edit: <><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></>,
     trash: <><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></>,
     doc: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></>,
@@ -291,15 +526,12 @@ const Icon = ({ name, size = 20, color = "var(--ac)" }) => {
     history: <><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></>,
     file: <><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13,2 13,9 20,9"/></>,
     person: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></>,
+    piggy: <><path d="M19 11a2 2 0 00-2-2h-1.5"/><path d="M12 7a5 5 0 00-5 5c0 2.8 2.2 5 5 5s5-2.2 5-5"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/></>,
+    arrow_up: <><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5,12 12,5 19,12"/></>,
+    arrow_down: <><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19,12 12,19 5,12"/></>,
   };
   return <svg style={s} viewBox="0 0 24 24">{p[name] || null}</svg>;
 };
-
-const NBox = ({ name, sm }) => (
-  <div className={`nbox${sm ? " sm" : ""}`}>
-    <Icon name={name} size={sm ? 13 : 17} />
-  </div>
-);
 
 // ─── Supabase helpers ─────────────────────────────────────────────
 const toApp = r => ({
@@ -359,11 +591,11 @@ function ConfirmDialog({ msg, onConfirm, onCancel }) {
   return (
     <div className="conf-ov">
       <div className="conf-box">
-        <Icon name="alert" size={34} color="var(--danger)" />
-        <div style={{ fontWeight: 700, fontSize: 14, margin: "12px 0 6px", color: "var(--text)" }}>{msg}</div>
-        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+        <Icon name="alert" size={36} color="var(--danger)" />
+        <div style={{ fontWeight: 700, fontSize: 15, margin: "14px 0 6px", color: "var(--text)" }}>{msg}</div>
+        <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
           <button className="btn bgh" style={{ flex: 1 }} onClick={onCancel}>إلغاء</button>
-          <button className="btn" style={{ flex: 1, background: "#ff4d4d22", color: "var(--danger)", boxShadow: "var(--neu-out)" }} onClick={onConfirm}>تأكيد</button>
+          <button className="btn btn-danger" style={{ flex: 1 }} onClick={onConfirm}>تأكيد الحذف</button>
         </div>
       </div>
     </div>
@@ -377,25 +609,26 @@ function GlobalSearch({ contracts, clients, onClose, onViewContract, goToClient 
   useEffect(() => { setTimeout(() => inp.current?.focus(), 80); }, []);
   const results = q.trim().length < 1 ? [] : [
     ...clients.filter(c => c.name.includes(q) || c.phone?.includes(q)).map(c => ({ type: "client", label: c.name, sub: c.phone, obj: c })),
-    ...contracts.filter(c => c.clientName.includes(q) || String(c.totalAmount).includes(q) || String(c.videoAmount).includes(q)).map(c => ({ type: "contract", label: c.clientName, sub: `${fmt(c.videoAmount || c.totalAmount, c.currency)}`, obj: c })),
+    ...contracts.filter(c => c.clientName.includes(q) || String(c.totalAmount).includes(q)).map(c => ({ type: "contract", label: c.clientName, sub: fmt(c.videoAmount || c.totalAmount, c.currency), obj: c })),
   ].slice(0, 10);
   return (
     <div className="gsearch-wrap" onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "center" }}>
-        <Icon name="search" size={18} />
+        <Icon name="search" size={18} color="var(--ac)" />
         <input ref={inp} className="gsearch-inp" value={q} onChange={e => setQ(e.target.value)} placeholder="ابحث عن عميل، عقد، مبلغ..." />
         <button className="btn bgh" style={{ padding: "9px 12px", flexShrink: 0 }} onClick={onClose}>إغلاق</button>
       </div>
       {q && results.length === 0 && <div style={{ color: "var(--muted)", textAlign: "center", padding: 28, fontSize: 13 }}>لا توجد نتائج</div>}
       {results.map((r, i) => (
         <div key={i} className="gresult" onClick={() => { r.type === "contract" ? onViewContract(r.obj) : goToClient(r.obj.id); onClose(); }}>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "var(--neu-out)", border: "1px solid var(--card-border)" }}>
-            <Icon name={r.type === "contract" ? "contracts" : "person"} size={13} />
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--surface2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name={r.type === "contract" ? "contracts" : "person"} size={15} color="var(--ac)" />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 500, fontSize: 13 }}>{r.label}</div>
+            <div style={{ fontWeight: 700, fontSize: 13 }}>{r.label}</div>
             <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 1 }}>{r.type === "contract" ? "عقد" : "عميل"} · {r.sub}</div>
           </div>
+          <Icon name="back" size={14} color="var(--muted)" />
         </div>
       ))}
     </div>
@@ -412,7 +645,7 @@ function Alerts({ contracts }) {
     if (c.endDate) { const d = daysDiff(c.endDate); if (d !== null && d >= 0 && d <= 2) a.push({ id: c.id + "e", msg: `ينتهي ${d === 0 ? "اليوم" : "خلال " + d + " أيام"} — ${c.clientName}`, type: "u" }); }
   });
   if (!a.length) return null;
-  return <div style={{ marginBottom: 12 }}>{a.map(x => <div key={x.id} className={`alr ${x.type === "u" ? "au" : "aw"}`}><Icon name="alert" size={12} color="currentColor" />{x.msg}</div>)}</div>;
+  return <div style={{ marginBottom: 14 }}>{a.map(x => <div key={x.id} className={`alr ${x.type === "u" ? "au" : "aw"}`}><Icon name="alert" size={13} color="currentColor" />{x.msg}</div>)}</div>;
 }
 
 // ─── WhatsApp Button ──────────────────────────────────────────────
@@ -420,11 +653,11 @@ function WABtn({ phone, sm }) {
   if (!phone) return null;
   const clean = phone.replace(/\D/g, "");
   const num = clean.startsWith("0") ? "218" + clean.slice(1) : clean;
-  const sz = sm ? 28 : 30;
+  const sz = sm ? 28 : 32;
   return (
-    <button className="ico-btn wa" onClick={e => { e.stopPropagation(); window.open(`https://wa.me/${num}`, "_blank"); }} data-tip="واتساب"
-      style={{ width: sz, height: sz, borderRadius: 8, background: "var(--bg)", border: "none", color: "#25D366", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-      <Icon name="whatsapp" size={sm ? 12 : 13} color="#25D366" />
+    <button className="ico-btn wa" onClick={e => { e.stopPropagation(); window.open(`https://wa.me/${num}`, "_blank"); }} title="واتساب"
+      style={{ width: sz, height: sz }}>
+      <Icon name="whatsapp" size={sm ? 12 : 14} color="#25D366" />
     </button>
   );
 }
@@ -436,7 +669,7 @@ function ClientModal({ client, onClose, onSave }) {
   return (
     <div className="mov" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="mod">
-        <div className="mhd"><div className="mtitle" style={{ display: "flex", alignItems: "center", gap: 7 }}><Icon name={client ? "edit" : "user_plus"} size={15} />{client ? "تعديل عميل" : "عميل جديد"}</div><button className="mclose" onClick={onClose}>×</button></div>
+        <div className="mhd"><div className="mtitle"><Icon name={client ? "edit" : "user_plus"} size={17} color="var(--ac)" />{client ? "تعديل عميل" : "عميل جديد"}</div><button className="mclose" onClick={onClose}>×</button></div>
         <div className="fgrid">
           <div className="fg ffl"><label className="flbl">اسم العميل</label><input className="finp" value={f.name} onChange={e => s("name", e.target.value)} placeholder="الطرف الثاني" /></div>
           <div className="fg ffl"><label className="flbl">رقم الهاتف</label><input className="finp" value={f.phone} onChange={e => s("phone", e.target.value)} placeholder="09..." /></div>
@@ -449,7 +682,7 @@ function ClientModal({ client, onClose, onSave }) {
   );
 }
 
-// ─── Contract Modal (file upload removed) ─────────────────────────
+// ─── Contract Modal ───────────────────────────────────────────────
 const EC = { clientId: "", clientName: "", clientAddress: "", clientPhone: "", videoCount: "", videoDone: 0, totalAmount: "", videoAmount: "", presenterAmount: "", currency: "LYD", startDate: "", endDate: "", deposit50Date: "", deposit50Paid: false, final50Date: "", final50Paid: false, status: "pending", notes: "", statusHistory: [], fileUrl: "", fileName: "" };
 
 function ContractModal({ contract, clients, onClose, onSave }) {
@@ -469,20 +702,20 @@ function ContractModal({ contract, clients, onClose, onSave }) {
   return (
     <div className="mov" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="mod">
-        <div className="mhd"><div className="mtitle" style={{ display: "flex", alignItems: "center", gap: 7 }}><Icon name={contract ? "edit" : "contract_plus"} size={15} />{contract ? "تعديل" : "عقد جديد"}</div><button className="mclose" onClick={onClose}>×</button></div>
-        <div style={{ marginBottom: 12, position: "relative" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}><span className="flbl">العميل</span>{f.clientName && <span style={{ fontSize: 10, color: "var(--ac)", fontWeight: 700 }}>✓ {f.clientName}</span>}</div>
-          <button className="btn bng" style={{ width: "100%", justifyContent: "space-between" }} onClick={() => setDrop(p => !p)}><span>{f.clientName || "اختر عميلاً..."}</span><Icon name="clients" size={12} /></button>
+        <div className="mhd"><div className="mtitle"><Icon name={contract ? "edit" : "contract_plus"} size={17} color="var(--ac)" />{contract ? "تعديل" : "عقد جديد"}</div><button className="mclose" onClick={onClose}>×</button></div>
+        <div style={{ marginBottom: 14, position: "relative" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}><span className="flbl">العميل</span>{f.clientName && <span style={{ fontSize: 11, color: "var(--ac)", fontWeight: 700 }}>✓ {f.clientName}</span>}</div>
+          <button className="btn bng" style={{ width: "100%", justifyContent: "space-between" }} onClick={() => setDrop(p => !p)}><span>{f.clientName || "اختر عميلاً..."}</span><Icon name="clients" size={13} color="var(--ac)" /></button>
           {drop && (
-            <div style={{ position: "absolute", top: "100%", insetInline: 0, zIndex: 50, background: "var(--bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 7, marginTop: 6, maxHeight: 170, overflowY: "auto", boxShadow: "var(--neu-out)" }}>
+            <div style={{ position: "absolute", top: "100%", insetInline: 0, zIndex: 50, background: "var(--surface)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 8, marginTop: 6, maxHeight: 170, overflowY: "auto", boxShadow: "var(--shadow-float)" }}>
               {clients.length === 0 && <div style={{ padding: 10, color: "var(--muted)", fontSize: 12, textAlign: "center" }}>لا يوجد عملاء</div>}
               {clients.map(c => (
-                <div key={c.id} onClick={() => pick(c)} style={{ padding: "8px 11px", borderRadius: 8, cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 9 }}
+                <div key={c.id} onClick={() => pick(c)} style={{ padding: "9px 12px", borderRadius: 10, cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 10 }}
                   onMouseEnter={e => e.currentTarget.style.background = "var(--ac-faint)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                  <div style={{ width: 26, height: 26, borderRadius: "50%", background: "var(--bg)", border: "1px solid var(--card-border)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "var(--neu-out)" }}>
-                    <Icon name="person" size={12} color="var(--ac)" />
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--surface2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Icon name="person" size={13} color="var(--ac)" />
                   </div>
-                  <div><div style={{ fontWeight: 500, fontSize: 13 }}>{c.name}</div>{c.phone && <div style={{ fontSize: 10, color: "var(--muted)" }}>{c.phone}</div>}</div>
+                  <div><div style={{ fontWeight: 600, fontSize: 13 }}>{c.name}</div>{c.phone && <div style={{ fontSize: 10, color: "var(--muted)" }}>{c.phone}</div>}</div>
                 </div>
               ))}
             </div>
@@ -493,7 +726,7 @@ function ContractModal({ contract, clients, onClose, onSave }) {
           <div className="fg"><label className="flbl">العملة</label><select className="fsel" value={f.currency} onChange={e => s("currency", e.target.value)}><option value="LYD">دينار ليبي</option><option value="SAR">ريال سعودي</option><option value="AED">درهم إماراتي</option><option value="USD">دولار</option></select></div>
           <div className="fg"><label className="flbl">قيمة الفيديوهات</label><input className="finp" type="number" value={f.videoAmount} onChange={e => s("videoAmount", e.target.value)} /></div>
           <div className="fg"><label className="flbl">قيمة الوجه الإعلامي</label><input className="finp" type="number" value={f.presenterAmount} onChange={e => s("presenterAmount", e.target.value)} /></div>
-          <div className="fg ffl"><label className="flbl">الإجمالي (تلقائي)</label><input className="finp" type="number" value={f.totalAmount} readOnly style={{ color: "var(--ac)", fontWeight: 700 }} /></div>
+          <div className="fg ffl"><label className="flbl">الإجمالي (تلقائي)</label><input className="finp" type="number" value={f.totalAmount} readOnly style={{ color: "var(--ac)", fontWeight: 800 }} /></div>
           <div className="fg"><label className="flbl">تاريخ البدء</label><input className="finp" type="date" value={f.startDate} onChange={e => handleStart(e.target.value)} /></div>
           <div className="fg"><label className="flbl">المدة</label><div className="dur-btns"><button className={`dur-btn${dur === 1 ? " on" : ""}`} onClick={() => handleDur(1)}>شهر</button><button className={`dur-btn${dur === 3 ? " on" : ""}`} onClick={() => handleDur(3)}>3 أشهر</button></div></div>
           <div className="fg"><label className="flbl">تاريخ الانتهاء</label><input className="finp" type="date" value={f.endDate} onChange={e => s("endDate", e.target.value)} /></div>
@@ -530,81 +763,86 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
 
   return (
     <div className="mov" style={{ alignItems: "flex-start", overflowY: "auto" }}>
-      <div style={{ background: "var(--bg)", border: "1px solid var(--card-border)", borderRadius: 20, width: "100%", maxWidth: 740, margin: "12px 0", overflow: "hidden", boxShadow: "var(--neu-out),0 0 50px var(--ac-glow)" }}>
-        <div style={{ background: "var(--bg)", padding: "11px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--muted2)" }}>
-          <span style={{ color: "var(--ac)", fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 7 }}><Icon name="doc" size={13} />تفاصيل العقد</span>
+      <div style={{ background: "var(--surface)", border: "1px solid var(--card-border)", borderRadius: 22, width: "100%", maxWidth: 740, margin: "12px 0", overflow: "hidden", boxShadow: "var(--shadow-float)" }}>
+        <div style={{ background: "var(--surface2)", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--muted2)" }}>
+          <span style={{ color: "var(--text)", fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 7 }}><Icon name="doc" size={14} color="var(--ac)" />تفاصيل العقد</span>
           <div style={{ display: "flex", gap: 7 }}>
-            {c.fileUrl && <a href={c.fileUrl} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}><button className="btn bng" style={{ fontSize: 11, padding: "5px 11px", display: "flex", alignItems: "center", gap: 5 }}><Icon name="file" size={11} />نسخة العقد</button></a>}
-            <button className="btn bngf" style={{ fontSize: 11, padding: "6px 13px", display: "flex", alignItems: "center", gap: 5 }} onClick={exportPDF}><Icon name="doc" size={11} color="var(--ac)" />تصدير PDF</button>
+            {c.fileUrl && <a href={c.fileUrl} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}><button className="btn bng" style={{ fontSize: 11, padding: "5px 11px" }}><Icon name="file" size={11} color="var(--ac)" />نسخة العقد</button></a>}
+            <button className="btn bngf" style={{ fontSize: 11, padding: "6px 13px" }} onClick={exportPDF}><Icon name="doc" size={11} color="#000" />تصدير PDF</button>
             <button className="mclose" onClick={onClose}>×</button>
           </div>
         </div>
-        <div style={{ padding: "14px 18px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <div><div style={{ fontSize: 16, fontWeight: 600 }}>{c.clientName}</div><div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2, fontWeight: 400 }}>{c.videoCount ? `${c.videoCount} فيديو` : ""}</div></div>
+        <div style={{ padding: "16px 18px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <div><div style={{ fontSize: 17, fontWeight: 700 }}>{c.clientName}</div><div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{c.videoCount ? `${c.videoCount} فيديو` : ""}</div></div>
             <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
           </div>
-          <div style={{ background: "var(--bg)", border: "none", borderRadius: 10, padding: "8px 12px", marginBottom: 10, boxShadow: "var(--neu-in)" }}>
-            <div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 600, marginBottom: 3 }}>الإجمالي</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ac)" }}>{fmt(c.totalAmount, c.currency)}</div>
-          </div>
+          <div className="amt-box"><div className="amt-lbl">الإجمالي</div><div className="amt-val">{fmt(c.totalAmount, c.currency)}</div></div>
           <div className="psec">
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 600 }}>الدفع</span><span style={{ fontSize: 10, fontWeight: 700, color: pct === 100 ? "var(--ac)" : "var(--warn)" }}>{pct}%</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700 }}>الدفع</span><span style={{ fontSize: 11, fontWeight: 800, color: pct === 100 ? "var(--ac)" : "var(--warn)" }}>{pct}%</span></div>
             <div className="pbar"><div className="pfill" style={{ width: `${pct}%` }} /></div>
             <div className="pgrid">
               {[{ l: "الأولى 50%", paid: c.deposit50Paid, date: c.deposit50Date }, { l: "الثانية 50%", paid: c.final50Paid, date: c.final50Date }].map(p => (
                 <div key={p.l} className="pitem">
-                  <div><div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 600 }}>{p.l}</div><div style={{ fontSize: 11, fontWeight: 600 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>{p.date && <div style={{ fontSize: 9, color: "var(--muted)" }}>{fmtDate(p.date)}</div>}</div>
-                  <div style={{ fontSize: 10, color: p.paid ? "var(--ac)" : "var(--muted)", fontWeight: 700 }}>{p.paid ? "✓" : "—"}</div>
+                  <div><div style={{ fontSize: 10, color: "var(--muted)", fontWeight: 600 }}>{p.l}</div><div style={{ fontSize: 12, fontWeight: 700 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>{p.date && <div style={{ fontSize: 9, color: "var(--muted)" }}>{fmtDate(p.date)}</div>}</div>
+                  <div style={{ fontSize: 11, color: p.paid ? "var(--ac)" : "var(--muted)", fontWeight: 800 }}>{p.paid ? "✓" : "—"}</div>
                 </div>
               ))}
             </div>
           </div>
           {vc > 0 && <div className="vpsec" style={{ marginTop: 8 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 600 }}>الفيديوهات</span><span style={{ fontSize: 10, fontWeight: 700, color: "var(--ac)" }}>{vd}/{vc}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700 }}>الفيديوهات</span><span style={{ fontSize: 11, fontWeight: 800, color: "var(--ac)" }}>{vd}/{vc}</span></div>
             <div className="vpbar"><div className="vpfill" style={{ width: `${vc > 0 ? (vd / vc) * 100 : 0}%` }} /></div>
           </div>}
           {c.statusHistory && c.statusHistory.length > 0 && (
-            <div style={{ marginTop: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "var(--muted)", marginBottom: 7, display: "flex", alignItems: "center", gap: 5 }}><Icon name="history" size={10} color="var(--muted)" />سجل الحالات</div>
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "var(--muted)", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}><Icon name="history" size={11} color="var(--muted)" />سجل الحالات</div>
               {c.statusHistory.map((h, i) => (
-                <div key={i} className="hist-line">
-                  <div className="hist-dot" style={{ background: SC[h.status] || "var(--muted)" }} />
-                  <div><div style={{ fontSize: 11, fontWeight: 600, color: SC[h.status] || "var(--muted)" }}>{SL[h.status] || h.status}</div><div style={{ fontSize: 9, color: "var(--muted)" }}>{new Date(h.date).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric" })}</div></div>
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "5px 0" }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: SC[h.status] || "var(--muted)", flexShrink: 0, marginTop: 5 }} />
+                  <div><div style={{ fontSize: 12, fontWeight: 700, color: SC[h.status] || "var(--muted)" }}>{SL[h.status] || h.status}</div><div style={{ fontSize: 10, color: "var(--muted)" }}>{new Date(h.date).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric" })}</div></div>
                 </div>
               ))}
             </div>
           )}
-          {c.notes && <div style={{ marginTop: 9, fontSize: 11, color: "var(--muted)", padding: "7px 9px", background: "var(--bg)", borderRadius: 8, boxShadow: "var(--neu-in)" }}>📝 {c.notes}</div>}
+          {c.notes && <div style={{ marginTop: 10, fontSize: 12, color: "var(--text2)", padding: "9px 12px", background: "var(--surface2)", borderRadius: 10, border: "1px solid var(--card-border)" }}>📝 {c.notes}</div>}
         </div>
         {/* Hidden PDF content */}
-        <div ref={ref} style={{ display: "none", background: "#fff", color: "#111", padding: "30px 38px", fontFamily: "'Tajawal',sans-serif", direction: "rtl", fontSize: 14, lineHeight: 1.9 }}>
-          <div style={{ textAlign: "center", marginBottom: 16 }}><div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#111", color: "#fff", fontSize: 24, fontWeight: 900, width: 52, height: 52, borderRadius: 11, marginBottom: 7 }}>ف</div><div style={{ fontWeight: 800, fontSize: 16 }}>شركة فارق للإنتاج</div><div style={{ color: "#555", fontSize: 11 }}>FAREQ Productions — 0920953918</div></div>
+        <div ref={ref} style={{ display: "none" }}>
+          <div style={{ textAlign: "center", marginBottom: 16 }}>
+            <img src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG" alt="فارق" style={{ width: 70, height: 70, objectFit: "contain", marginBottom: 7 }} />
+            <div style={{ fontWeight: 800, fontSize: 16, fontFamily: "'Tajawal',sans-serif" }}>شركة فارق للإنتاج</div>
+            <div style={{ color: "#555", fontSize: 11, fontFamily: "'Tajawal',sans-serif" }}>FAREQ Productions — 0920953918</div>
+          </div>
           <hr style={{ border: "none", borderTop: "2px solid #111", margin: "12px 0" }} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11, margin: "11px 0" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11, margin: "11px 0", fontFamily: "'Tajawal',sans-serif" }}>
             <div style={{ border: "1px solid #ddd", borderRadius: 7, padding: "9px 11px" }}><div style={{ fontWeight: 800, fontSize: 10, color: "#555", marginBottom: 5, borderRight: "3px solid #111", paddingRight: 6 }}>الطرف الأول</div>{[["الاسم", "شركة فارق للإنتاج FAREQ productions"], ["الهاتف", "0920953918"]].map(([l, v]) => <div key={l} style={{ display: "flex", gap: 4, margin: "2px 0", fontSize: 13 }}><span style={{ color: "#666", minWidth: 45 }}>{l}:</span><span style={{ fontWeight: 600 }}>{v}</span></div>)}</div>
             <div style={{ border: "1px solid #ddd", borderRadius: 7, padding: "9px 11px" }}><div style={{ fontWeight: 800, fontSize: 10, color: "#555", marginBottom: 5, borderRight: "3px solid #111", paddingRight: 6 }}>الطرف الثاني</div>{[["الاسم", c.clientName], ["العنوان", c.clientAddress], ["الهاتف", c.clientPhone]].map(([l, v]) => <div key={l} style={{ display: "flex", gap: 4, margin: "2px 0", fontSize: 13 }}><span style={{ color: "#666", minWidth: 45 }}>{l}:</span><span style={{ fontWeight: 600, borderBottom: "1px solid #ddd", flex: 1 }}>{v || ""}</span></div>)}</div>
           </div>
-          <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7 }}>موضوع العقد</div>
-          <div>يلتزم الطرف الأول بتقديم خدمات إنتاج محتوى فيديو تشمل:</div>
-          <div>- تصوير وإنتاج عدد ({c.videoCount || "          "}) فيديوهات</div>
-          <div>يلتزم الطرف الثاني بتوفير المعلومات/ المنتجات</div>
-          <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7 }}>مدة العقد:</div>
-          <div>مدة العقد تبدأ من تاريخ {sd.d} / {sd.m} / {sd.y} وتنتهي في {ed.d} / {ed.m} / {ed.y}</div>
-          <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7 }}>القيمة المالية وطريقة الدفع:</div>
-          <div>- القيمة الخاصة بالفيديوهات: {vAmt} {cur}</div>
-          <div>- القيمة الخاصة بالوجه الإعلامي: {pAmt} {cur}</div>
-          <div style={{ margin: "9px 0 3px", fontWeight: 700 }}>طريقة الدفع:</div>
-          <div>  - 50% مقدماً</div><div>  - 50% عند تسليم آخر فيديو</div>
-          <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7 }}>التعديلات:</div>
-          <div>- يحق للعميل طلب تعديل فقط لكل فيديو</div><div>- أي تعديلات إضافية يتم احتسابها بتكلفة إضافية</div>
-          <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7 }}>الإلغاء:</div>
-          <div>- لا يحق للعميل الغاء العقد بعد تنفيذ نصف عدد الفيديوهات المتفق عليها</div><div>- في حالة الإلغاء بعد بدء العمل، لا يتم استرجاع الدفعة المقدمة</div>
-          <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7 }}>حقوق الاستخدام:</div>
-          <div>- يحق للعميل استخدام الفيديوهات لأغراضه التسويقية</div><div>- يحق للطرف الأول استخدام الأعمال في معرض أعماله</div>
-          {c.notes && <><div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7 }}>ملاحظات:</div><div>{c.notes}</div></>}
+          <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7, fontFamily: "'Tajawal',sans-serif" }}>موضوع العقد</div>
+          <div style={{ fontFamily: "'Tajawal',sans-serif", lineHeight: 1.9 }}>
+            <div>يلتزم الطرف الأول بتقديم خدمات إنتاج محتوى فيديو تشمل:</div>
+            <div>- تصوير وإنتاج عدد ({c.videoCount || "          "}) فيديوهات</div>
+            <div>يلتزم الطرف الثاني بتوفير المعلومات/ المنتجات</div>
+          </div>
+          <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7, fontFamily: "'Tajawal',sans-serif" }}>مدة العقد:</div>
+          <div style={{ fontFamily: "'Tajawal',sans-serif" }}>مدة العقد تبدأ من تاريخ {sd.d} / {sd.m} / {sd.y} وتنتهي في {ed.d} / {ed.m} / {ed.y}</div>
+          <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7, fontFamily: "'Tajawal',sans-serif" }}>القيمة المالية وطريقة الدفع:</div>
+          <div style={{ fontFamily: "'Tajawal',sans-serif" }}>
+            <div>- القيمة الخاصة بالفيديوهات: {vAmt} {cur}</div>
+            <div>- القيمة الخاصة بالوجه الإعلامي: {pAmt} {cur}</div>
+            <div style={{ margin: "9px 0 3px", fontWeight: 700 }}>طريقة الدفع:</div>
+            <div>  - 50% مقدماً</div><div>  - 50% عند تسليم آخر فيديو</div>
+          </div>
+          <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7, fontFamily: "'Tajawal',sans-serif" }}>التعديلات:</div>
+          <div style={{ fontFamily: "'Tajawal',sans-serif" }}><div>- يحق للعميل طلب تعديل فقط لكل فيديو</div><div>- أي تعديلات إضافية يتم احتسابها بتكلفة إضافية</div></div>
+          <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7, fontFamily: "'Tajawal',sans-serif" }}>الإلغاء:</div>
+          <div style={{ fontFamily: "'Tajawal',sans-serif" }}><div>- لا يحق للعميل الغاء العقد بعد تنفيذ نصف عدد الفيديوهات المتفق عليها</div><div>- في حالة الإلغاء بعد بدء العمل، لا يتم استرجاع الدفعة المقدمة</div></div>
+          <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7, fontFamily: "'Tajawal',sans-serif" }}>حقوق الاستخدام:</div>
+          <div style={{ fontFamily: "'Tajawal',sans-serif" }}><div>- يحق للعميل استخدام الفيديوهات لأغراضه التسويقية</div><div>- يحق للطرف الأول استخدام الأعمال في معرض أعماله</div></div>
+          {c.notes && <><div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7, fontFamily: "'Tajawal',sans-serif" }}>ملاحظات:</div><div style={{ fontFamily: "'Tajawal',sans-serif" }}>{c.notes}</div></>}
           <hr style={{ border: "none", borderTop: "1px solid #ddd", margin: "18px 0 14px" }} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36, fontFamily: "'Tajawal',sans-serif" }}>
             {["الطرف الأول — شركة فارق للإنتاج", `الطرف الثاني — ${c.clientName || "___________"}`].map((p, i) => <div key={i} style={{ textAlign: "center" }}><div style={{ fontSize: 11, color: "#555", marginBottom: 3 }}>{p}</div><div style={{ fontWeight: 700 }}>التوقيع</div><div style={{ marginTop: 34, borderBottom: "1.5px dashed #bbb" }} /></div>)}
           </div>
         </div>
@@ -613,57 +851,47 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
   );
 }
 
-// ─── Contract Card — compact ──────────────────────────────────────
+// ─── Contract Card ────────────────────────────────────────────────
 function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, onCancel }) {
   const pct = Math.round(((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)) * 100);
   const f50d = c.final50Date ? daysDiff(c.final50Date) : null;
   const vc = Number(c.videoCount || 0), vd = Number(c.videoDone || 0);
   const vpct = vc > 0 ? Math.round((vd / vc) * 100) : 0;
 
-  const ibtn = {
-    width: 28, height: 28, borderRadius: 7, background: "var(--bg)", border: "none",
-    color: "var(--ac)", display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer", transition: "all .2s", flexShrink: 0, boxShadow: "var(--neu-out)"
-  };
-  const rbtn = {
-    width: 28, height: 28, borderRadius: 7, background: "var(--bg)", border: "none",
-    color: "var(--danger)", display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer", transition: "all .2s", flexShrink: 0, boxShadow: "var(--neu-out)"
-  };
-
   return (
     <div className="cc">
       <div className="cc-h">
         <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => onView(c)}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div className="cc-n">{c.clientName || "عميل"}</div>
-            <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44", flexShrink: 0 }}>{SL[c.status]}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 11, background: "var(--surface2)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--card-border)", flexShrink: 0 }}>
+              <Icon name="contracts" size={14} color="var(--ac)" />
+            </div>
+            <div>
+              <div className="cc-n">{c.clientName || "عميل"}</div>
+              <div className="cc-sub">{vc > 0 ? `${vd}/${vc} فيديو` : ""}{vc > 0 && c.startDate ? " · " : ""}{fmtDate(c.startDate)}</div>
+            </div>
           </div>
-          <div className="cc-sub">{vc > 0 ? `${vd}/${vc} فيديو` : ""}{vc > 0 && c.startDate ? " · " : ""}{fmtDate(c.startDate)}</div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 3, flexShrink: 0 }}>
-          <div style={{ display: "flex", gap: 3 }}>
-            <button style={ibtn} onClick={() => onEdit(c)} data-tip="تعديل"><Icon name="edit" size={11} color="var(--ac)" /></button>
-            <button style={ibtn} onClick={() => onView(c)} data-tip="عرض"><Icon name="doc" size={11} color="var(--ac)" /></button>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, flexShrink: 0, alignItems: "flex-end" }}>
+          <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
+          <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
+            <button className="ico-btn" onClick={() => onEdit(c)} title="تعديل"><Icon name="edit" size={12} color="var(--text2)" /></button>
+            <button className="ico-btn" onClick={() => onView(c)} title="عرض"><Icon name="doc" size={12} color="var(--text2)" /></button>
             <WABtn phone={c.clientPhone} sm />
-          </div>
-          <div style={{ display: "flex", gap: 3 }}>
-            <button style={rbtn} onClick={() => onCancel(c.id)} data-tip="إلغاء"><Icon name="cancel" size={11} color="var(--danger)" /></button>
-            <button style={{ ...rbtn, flex: 1 }} onClick={() => onDelete(c.id)} data-tip="حذف"><Icon name="trash" size={11} color="var(--danger)" /></button>
+            <button className="ico-btn red" onClick={() => onCancel(c.id)} title="إلغاء"><Icon name="cancel" size={12} color="var(--danger)" /></button>
+            <button className="ico-btn red" onClick={() => onDelete(c.id)} title="حذف"><Icon name="trash" size={12} color="var(--danger)" /></button>
           </div>
         </div>
       </div>
-
       <div className="cc-b">
         <div className="amt-box">
           <div className="amt-lbl">الإجمالي</div>
           <div className="amt-val">{fmt(c.totalAmount, c.currency)}</div>
         </div>
-
         <div className="psec">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 8, color: "var(--muted)", fontWeight: 600 }}>الدفع</span>
-            <span style={{ fontSize: 8, fontWeight: 700, color: pct === 100 ? "var(--ac)" : "var(--warn)" }}>{pct}%</span>
+            <span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700 }}>الدفع</span>
+            <span style={{ fontSize: 10, fontWeight: 800, color: pct === 100 ? "var(--ac)" : "var(--warn)" }}>{pct}%</span>
           </div>
           <div className="pbar"><div className="pfill" style={{ width: `${pct}%` }} /></div>
           <div className="pgrid">
@@ -673,31 +901,196 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
             ].map(p => (
               <div key={p.field} className="pitem">
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 7, color: "var(--muted)", fontWeight: 600 }}>{p.label}</div>
-                  <div style={{ fontSize: 9, fontWeight: 600 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>
-                  {p.date && <div style={{ fontSize: 7, color: !p.paid && p.diff !== null && p.diff <= 7 && p.diff >= 0 ? "var(--warn)" : "var(--muted)" }}>{fmtDate(p.date)}</div>}
+                  <div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>{p.label}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>
+                  {p.date && <div style={{ fontSize: 9, color: !p.paid && p.diff !== null && p.diff <= 7 && p.diff >= 0 ? "var(--warn)" : "var(--muted)" }}>{fmtDate(p.date)}</div>}
                 </div>
-                <button className={`ptog ${p.paid ? "ok" : "no"}`} onClick={() => onToggle(c.id, p.field)}>{p.paid ? "✓" : "تحديد"}</button>
+                <button className={`ptog ${p.paid ? "ok" : "no"}`} onClick={() => onToggle(c.id, p.field)}>{p.paid ? "✓ مدفوع" : "تحديد"}</button>
               </div>
             ))}
           </div>
         </div>
-
         {vc > 0 && (
           <div className="vpsec">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 8, color: "var(--muted)", fontWeight: 600 }}>الفيديوهات</span>
-              <span style={{ fontSize: 8, fontWeight: 700, color: "var(--ac)" }}>{vd}/{vc}</span>
+              <span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700 }}>الفيديوهات</span>
+              <span style={{ fontSize: 10, fontWeight: 800, color: "var(--ac)" }}>{vd}/{vc}</span>
             </div>
             <div className="vpbar"><div className="vpfill" style={{ width: `${vpct}%` }} /></div>
-            <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+            <div style={{ display: "flex", gap: 6 }}>
               <button className="vp-btn" onClick={() => onVideoUpdate(c.id, Math.min(vc, vd + 2))}>+2 فيديو</button>
               <button className="vp-btn" style={{ color: "var(--danger)" }} onClick={() => onVideoUpdate(c.id, 0)}>صفر</button>
             </div>
           </div>
         )}
       </div>
-      {c.notes && <div style={{ fontSize: 9, color: "var(--muted)", padding: "3px 12px 8px", borderTop: "1px solid var(--muted2)", display: "flex", gap: 4, fontWeight: 400 }}><Icon name="doc" size={9} />{ c.notes}</div>}
+      {c.notes && <div style={{ fontSize: 10, color: "var(--muted)", padding: "4px 14px 10px", borderTop: "1px solid var(--muted2)", display: "flex", gap: 5 }}><Icon name="doc" size={10} />{ c.notes}</div>}
+    </div>
+  );
+}
+
+// ─── Wallet Modal ─────────────────────────────────────────────────
+function WalletModal({ type, walletType, onClose, onSave }) {
+  const [amount, setAmount] = useState("");
+  const [desc, setDesc] = useState("");
+  const labels = {
+    income: { title: "إضافة رصيد", color: "var(--ac)", icon: "arrow_up" },
+    expense: { title: "إضافة مصروف", color: "var(--danger)", icon: "arrow_down" },
+    savings_add: { title: "إضافة للادخار", color: "#a78bfa", icon: "arrow_up" },
+    savings_withdraw: { title: "سحب من الادخار", color: "var(--warn)", icon: "arrow_down" },
+  };
+  const lbl = labels[type] || labels.income;
+
+  return (
+    <div className="mov" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="mod" style={{ maxWidth: 380 }}>
+        <div className="mhd">
+          <div className="mtitle" style={{ color: lbl.color }}><Icon name={lbl.icon} size={17} color={lbl.color} />{lbl.title}</div>
+          <button className="mclose" onClick={onClose}>×</button>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div className="fg">
+            <label className="flbl">المبلغ (LYD)</label>
+            <input className="finp" type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" autoFocus style={{ fontSize: 22, fontWeight: 800, color: lbl.color, textAlign: "center" }} />
+          </div>
+          {type === "expense" && (
+            <div className="fg">
+              <label className="flbl">البند / الوصف</label>
+              <input className="finp" value={desc} onChange={e => setDesc(e.target.value)} placeholder="مثل: بنزين، طعام، إيجار..." />
+            </div>
+          )}
+          {type === "savings_withdraw" && (
+            <div className="fg">
+              <label className="flbl">سبب السحب</label>
+              <input className="finp" value={desc} onChange={e => setDesc(e.target.value)} placeholder="وصف اختياري..." />
+            </div>
+          )}
+        </div>
+        <div className="mft">
+          <button className="btn bgh" onClick={onClose}>إلغاء</button>
+          <button className="btn bngf" style={{ background: lbl.color, color: type === "income" ? "#000" : "#fff", boxShadow: `0 4px 20px ${lbl.color}44` }}
+            onClick={() => {
+              if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) { alert("أدخل مبلغاً صحيحاً"); return; }
+              onSave({ type, amount: Number(amount), desc: desc || (type === "income" ? "إضافة رصيد" : type === "savings_add" ? "إضافة ادخار" : type === "savings_withdraw" ? "سحب ادخار" : "مصروف"), date: new Date().toISOString() });
+            }}>
+            تأكيد
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Wallet Screen ────────────────────────────────────────────────
+function WalletScreen() {
+  const [walletTab, setWalletTab] = useState("expense");
+  const [modal, setModal] = useState(null); // 'income' | 'expense' | 'savings_add' | 'savings_withdraw'
+  const [txns, setTxns] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("wallet_txns") || "[]"); } catch { return []; }
+  });
+
+  const save = (newTxns) => {
+    setTxns(newTxns);
+    try { localStorage.setItem("wallet_txns", JSON.stringify(newTxns)); } catch {}
+  };
+
+  const expenseTxns = txns.filter(t => t.type === "income" || t.type === "expense");
+  const savingsTxns = txns.filter(t => t.type === "savings_add" || t.type === "savings_withdraw");
+
+  const expenseBalance = expenseTxns.reduce((s, t) => t.type === "income" ? s + t.amount : s - t.amount, 0);
+  const savingsBalance = savingsTxns.reduce((s, t) => t.type === "savings_add" ? s + t.amount : s - t.amount, 0);
+
+  const balance = walletTab === "expense" ? expenseBalance : savingsBalance;
+  const currentTxns = walletTab === "expense" ? [...expenseTxns].reverse() : [...savingsTxns].reverse();
+
+  const handleAdd = (data) => {
+    save([...txns, data]);
+    setModal(null);
+  };
+
+  const deleteTx = (idx) => {
+    const actualIdx = txns.length - 1 - (currentTxns.length - 1 - idx);
+    const all = walletTab === "expense" ? expenseTxns : savingsTxns;
+    const reversed = [...all].reverse();
+    const item = reversed[idx];
+    const newTxns = txns.filter(t => t !== item);
+    save(newTxns);
+  };
+
+  return (
+    <div className="screen" style={{ paddingTop: 0 }}>
+      {/* Hero wallet card */}
+      <div className="wallet-hero">
+        <div className="wallet-tabs">
+          <button className={`wallet-tab-btn${walletTab === "expense" ? " on" : ""}`} onClick={() => setWalletTab("expense")}>💳 المصروف</button>
+          <button className={`wallet-tab-btn${walletTab === "savings" ? " on" : ""}`} onClick={() => setWalletTab("savings")}>🏦 الادخار</button>
+        </div>
+        <div className="wallet-balance-lbl">{walletTab === "expense" ? "رصيد المحفظة" : "رصيد الادخار"}</div>
+        <div className="wallet-balance-amt" style={{ color: balance < 0 ? "#ff4d6d" : "#fff" }}>
+          {balance.toLocaleString("en-US", { minimumFractionDigits: 2 })} <span style={{ fontSize: 16, fontWeight: 500, color: "rgba(255,255,255,0.5)" }}>LYD</span>
+        </div>
+        <div className="wallet-actions">
+          {walletTab === "expense" ? (
+            <>
+              <button className="wa-btn income-btn" onClick={() => setModal("income")}>
+                <Icon name="plus" size={14} color="var(--ac)" /> إضافة رصيد
+              </button>
+              <button className="wa-btn expense-btn" onClick={() => setModal("expense")}>
+                <Icon name="minus" size={14} color="#ff4d6d" /> إضافة مصروف
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="wa-btn savings-btn" onClick={() => setModal("savings_add")}>
+                <Icon name="plus" size={14} color="#a78bfa" /> إضافة للادخار
+              </button>
+              <button className="wa-btn expense-btn" onClick={() => setModal("savings_withdraw")}>
+                <Icon name="minus" size={14} color="#ff4d6d" /> سحب
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Transactions */}
+      <div className="sec-hdr">
+        <span className="sec-title">آخر العمليات</span>
+        <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>{currentTxns.length} عملية</span>
+      </div>
+
+      {currentTxns.length === 0 && (
+        <div className="empty">
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="wallet" size={40} color="var(--muted)" /></div>
+          <div style={{ fontWeight: 500, color: "var(--muted)", fontSize: 13 }}>لا توجد عمليات بعد</div>
+        </div>
+      )}
+
+      {currentTxns.map((t, i) => {
+        const isPos = t.type === "income" || t.type === "savings_add";
+        const iconColor = isPos ? "green" : t.type === "savings_withdraw" ? "purple" : "red";
+        const amtColor = isPos ? "pos" : t.type === "savings_withdraw" ? "purple" : "neg";
+        const iconName = isPos ? "arrow_up" : "arrow_down";
+        const iconSvgColor = isPos ? "var(--ac)" : t.type === "savings_withdraw" ? "#a78bfa" : "var(--danger)";
+        return (
+          <div key={i} className="wallet-tx-card" style={{ justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div className={`wtx-icon ${iconColor}`}>
+                <Icon name={iconName} size={18} color={iconSvgColor} />
+              </div>
+              <div>
+                <div className="wtx-name">{t.desc}</div>
+                <div className="wtx-sub">{new Date(t.date).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div className={`wtx-amt ${amtColor}`}>{isPos ? "+" : "-"}{t.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} LYD</div>
+              <button className="ico-btn red" style={{ width: 26, height: 26 }} onClick={() => deleteTx(i)}><Icon name="trash" size={11} color="var(--danger)" /></button>
+            </div>
+          </div>
+        );
+      })}
+
+      {modal && <WalletModal type={modal} walletType={walletTab} onClose={() => setModal(null)} onSave={handleAdd} />}
     </div>
   );
 }
@@ -705,43 +1098,78 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
 // ─── Dashboard ────────────────────────────────────────────────────
 function Dashboard({ contracts, clients, goTo, onViewContract }) {
   const collected = contracts.reduce((s, c) => s + Number(c.videoAmount || 0) * ((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)), 0);
-  const recent = [...contracts].sort((a, b) => Number(b.id) - Number(a.id)).slice(0, 3);
+  const recent = [...contracts].sort((a, b) => Number(b.id) - Number(a.id)).slice(0, 4);
+
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
-      <Alerts contracts={contracts} />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 4 }}>
-        <div className="stat" style={{ gridColumn: "1/-1" }}>
-          <div className="slbl"><Icon name="income" size={13} />إجمالي المحصّل</div>
-          <div className="sval sm">{fmt(collected)}</div>
+      {/* Hero balance card */}
+      <div className="hero-card">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8, position: "relative", zIndex: 1 }}>
+          <div>
+            <div className="hero-lbl">إجمالي المحصّل</div>
+            <div className="hero-amount">{collected.toLocaleString("en-US", { minimumFractionDigits: 2 })} <span style={{ fontSize: 16, fontWeight: 400, color: "rgba(255,255,255,0.4)" }}>LYD</span></div>
+          </div>
+          <div style={{ textAlign: "left" }}>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>العقود</div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: "#fff" }}>{contracts.length}</div>
+          </div>
         </div>
+        <div className="hero-change" style={{ position: "relative", zIndex: 1 }}>
+          <Icon name="check" size={12} color="var(--ac)" />
+          {contracts.filter(c => c.status === "active").length} نشط · {contracts.filter(c => c.status === "pending").length} معلق
+        </div>
+        <div className="quick-actions">
+          {[
+            { label: "عقد جديد", icon: "contract_plus", action: () => goTo("contracts_new") },
+            { label: "عميل", icon: "user_plus", action: () => goTo("clients_new") },
+            { label: "العقود", icon: "contracts", action: () => goTo("contracts") },
+            { label: "الدخل", icon: "income", action: () => goTo("income") },
+          ].map(q => (
+            <button key={q.label} className="qa-btn" onClick={q.action}>
+              <div className="qa-icon"><Icon name={q.icon} size={16} color="rgba(255,255,255,0.85)" /></div>
+              <span className="qa-lbl">{q.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Alerts contracts={contracts} />
+
+      {/* Stats */}
+      <div className="stat-grid">
         {[
-          { l: "العقود", v: contracts.length, icon: "contracts" },
-          { l: "نشطة", v: contracts.filter(c => c.status === "active").length, icon: "check" },
+          { l: "نشطة", v: contracts.filter(c => c.status === "active").length, icon: "check", ac: true },
           { l: "معلقة", v: contracts.filter(c => c.status === "pending").length, icon: "clock" },
-          { l: "العملاء", v: clients.length, icon: "clients" }
+          { l: "مكتملة", v: contracts.filter(c => c.status === "completed").length, icon: "history" },
+          { l: "العملاء", v: clients.length, icon: "clients" },
         ].map(s => (
-          <div key={s.l} className="stat">
-            <div className="slbl"><Icon name={s.icon} size={13} />{s.l}</div>
-            <div className="sval">{s.v}</div>
+          <div key={s.l} className="stat-card">
+            <div className="stat-lbl"><Icon name={s.icon} size={12} color={s.ac ? "var(--ac)" : "var(--muted)"} />{s.l}</div>
+            <div className={`stat-val${s.ac ? " ac" : ""}`}>{s.v}</div>
           </div>
         ))}
       </div>
+
       {recent.length > 0 && <>
-        <div className="sh" style={{ display: "flex", justifyContent: "space-between" }}>
-          <span>آخر العقود</span>
-          <span style={{ cursor: "pointer", color: "var(--ac)", fontSize: 10, fontWeight: 600 }} onClick={() => goTo("contracts")}>عرض الكل ←</span>
+        <div className="sec-hdr">
+          <span className="sec-title">آخر العقود</span>
+          <span className="sec-link" onClick={() => goTo("contracts")}>عرض الكل ←</span>
         </div>
         {recent.map(c => (
-          <div key={c.id} className="card" style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => onViewContract(c)}>
-            <NBox name="contracts" sm />
+          <div key={c.id} className="tx-card" onClick={() => onViewContract(c)}>
+            <div className="tx-icon"><Icon name="contracts" size={18} color="var(--ac)" /></div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="dash-card-name">{c.clientName}</div>
-              <div className="dash-card-sub">{c.videoCount ? `${c.videoCount} فيديو · ` : ""}{fmt(c.videoAmount || c.totalAmount, c.currency)}</div>
+              <div className="tx-name">{c.clientName}</div>
+              <div className="tx-sub">{c.videoCount ? `${c.videoCount} فيديو · ` : ""}{fmtDate(c.startDate)}</div>
             </div>
-            <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
+            <div style={{ textAlign: "left" }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ac)" }}>{fmt(c.videoAmount || c.totalAmount, c.currency)}</div>
+              <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
+            </div>
           </div>
         ))}
       </>}
+
       {contracts.length === 0 && <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="contracts" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 500, color: "var(--muted)", fontSize: 13 }}>ابدأ بإضافة أول عقد</div></div>}
     </div>
   );
@@ -764,16 +1192,16 @@ function ContractsScreen({ contracts, clients, onAdd, onEdit, onDelete, onToggle
 
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div><div className="pt">العقود</div><div className="ps">{contracts.length} عقد</div></div>
-        <button className="btn bngf" onClick={onAdd} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 13px", fontSize: 12 }}>
-          <Icon name="contract_plus" size={13} color="var(--ac)" />جديد
+        <button className="btn bngf" onClick={onAdd} style={{ padding: "8px 16px", fontSize: 13 }}>
+          <Icon name="contract_plus" size={14} color="#000" />جديد
         </button>
       </div>
-      <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)" /></span><input className="sb" value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight: 34 }} /></div>
-      <div className="tabs">{tabs.map(t => <button key={t.key} className={`tab${filter === t.key ? " on" : ""}`} onClick={() => setFilter(t.key)}>{t.label}{t.count > 0 && <span style={{ marginRight: 4, background: filter === t.key ? "var(--ac)" : "var(--muted2)", color: filter === t.key ? "#050505" : "var(--muted)", borderRadius: 20, padding: "0 5px", fontSize: 9, fontWeight: 800 }}>{t.count}</span>}</button>)}</div>
+      <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)" /></span><input className="sb" value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight: 36 }} /></div>
+      <div className="tabs">{tabs.map(t => <button key={t.key} className={`tab${filter === t.key ? " on" : ""}`} onClick={() => setFilter(t.key)}>{t.label}{t.count > 0 && <span style={{ marginRight: 5, background: filter === t.key ? "rgba(0,0,0,0.2)" : "var(--surface2)", color: filter === t.key ? "#000" : "var(--muted)", borderRadius: 20, padding: "0 6px", fontSize: 9, fontWeight: 800 }}>{t.count}</span>}</button>)}</div>
       {filtered.length === 0
-        ? <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="contracts" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 500, color: "var(--muted)", marginBottom: 12, fontSize: 13 }}>{contracts.length === 0 ? "لا توجد عقود" : "لا توجد نتائج"}</div>{contracts.length === 0 && <button className="btn bng" onClick={onAdd}>+ إضافة</button>}</div>
+        ? <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="contracts" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 500, color: "var(--muted)", marginBottom: 12, fontSize: 13 }}>{contracts.length === 0 ? "لا توجد عقود" : "لا توجد نتائج"}</div>{contracts.length === 0 && <button className="btn bngf" onClick={onAdd}>+ إضافة</button>}</div>
         : filtered.map(c => <ContractCard key={c.id} c={c} onEdit={onEdit} onDelete={onDelete} onToggle={onToggle} onView={onView} onVideoUpdate={onVideoUpdate} onCancel={onCancel} />)}
     </div>
   );
@@ -793,31 +1221,34 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
     return (
       <div className="screen" style={{ paddingTop: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-          <button className="btn bgh" style={{ padding: "5px 9px", display: "flex", alignItems: "center", gap: 5, fontSize: 12 }} onClick={() => setSel(null)}><Icon name="back" size={12} color="var(--muted)" />رجوع</button>
+          <button className="btn bng" style={{ padding: "6px 10px", fontSize: 12 }} onClick={() => setSel(null)}><Icon name="back" size={13} color="var(--text2)" />رجوع</button>
           <div className="pt">{cl.name}</div>
         </div>
-        <div className="card card-gl" style={{ marginBottom: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-            <div className="cav" style={{ width: 44, height: 44 }}><Icon name="person" size={20} color="var(--ac)" /></div>
-            <div style={{ flex: 1 }}><div style={{ fontSize: 15, fontWeight: 600 }}>{cl.name}</div></div>
+        <div className="card" style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
+            <div className="cav" style={{ width: 50, height: 50 }}><Icon name="person" size={22} color="var(--ac)" /></div>
+            <div style={{ flex: 1 }}><div style={{ fontSize: 17, fontWeight: 700 }}>{cl.name}</div></div>
             <WABtn phone={cl.phone} />
           </div>
-          {[["📞", cl.phone], ["📍", cl.address], ["📝", cl.notes]].filter(([, v]) => v).map(([i, v]) => <div key={i} style={{ display: "flex", gap: 9, padding: "7px 0", borderTop: "1px solid var(--muted2)", fontSize: 12 }}><span>{i}</span><span style={{ color: "var(--muted)", flex: 1, fontWeight: 400 }}>{v}</span></div>)}
-          <div style={{ display: "flex", gap: 7, marginTop: 12 }}>
-            <button className="btn bng" style={{ flex: 1, display: "flex", alignItems: "center", gap: 5, justifyContent: "center", fontSize: 12 }} onClick={() => onEdit(cl)}><Icon name="edit" size={12} />تعديل</button>
-            <button className="btn bgh" style={{ color: "var(--danger)", display: "flex", alignItems: "center", gap: 5, fontSize: 12 }} onClick={() => { if (confirm("حذف العميل؟")) { onDelete(cl.id); setSel(null); } }}><Icon name="trash" size={12} color="var(--danger)" />حذف</button>
+          {[["📞", cl.phone], ["📍", cl.address], ["📝", cl.notes]].filter(([, v]) => v).map(([i, v]) => <div key={i} style={{ display: "flex", gap: 10, padding: "8px 0", borderTop: "1px solid var(--muted2)", fontSize: 13 }}><span>{i}</span><span style={{ color: "var(--text2)", flex: 1 }}>{v}</span></div>)}
+          <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+            <button className="btn bng" style={{ flex: 1, fontSize: 13 }} onClick={() => onEdit(cl)}><Icon name="edit" size={13} color="var(--ac)" />تعديل</button>
+            <button className="btn btn-danger" style={{ fontSize: 13 }} onClick={() => { if (confirm("حذف العميل؟")) { onDelete(cl.id); setSel(null); } }}><Icon name="trash" size={13} color="var(--danger)" /></button>
           </div>
         </div>
-        <div className="sh">عقوده ({clc.length})</div>
-        {clc.length === 0 && <div style={{ color: "var(--muted)", fontSize: 12, textAlign: "center", padding: "16px 0" }}>لا توجد عقود</div>}
+        <div className="sec-hdr"><span className="sec-title">عقوده ({clc.length})</span></div>
+        {clc.length === 0 && <div style={{ color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "16px 0" }}>لا توجد عقود</div>}
         {clc.map(c => (
-          <div key={c.id} className="card" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <NBox name="contracts" sm />
+          <div key={c.id} className="tx-card">
+            <div className="tx-icon"><Icon name="contracts" size={16} color="var(--ac)" /></div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 500, fontSize: 12 }}>{c.videoCount ? `${c.videoCount} فيديو` : "عقد"}</div>
-              <div style={{ fontSize: 11, color: "var(--ac)", fontWeight: 600 }}>{fmt(c.videoAmount || c.totalAmount, c.currency)}</div>
+              <div className="tx-name">{c.videoCount ? `${c.videoCount} فيديو` : "عقد"}</div>
+              <div className="tx-sub">{fmtDate(c.startDate)}</div>
             </div>
-            <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ac)" }}>{fmt(c.videoAmount || c.totalAmount, c.currency)}</div>
+              <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
+            </div>
           </div>
         ))}
       </div>
@@ -826,18 +1257,18 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
 
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div><div className="pt">العملاء</div><div className="ps">{clients.length} عميل</div></div>
-        <button className="btn bngf" onClick={onAdd} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 13px", fontSize: 12 }}>
-          <Icon name="user_plus" size={13} color="var(--ac)" />عميل
+        <button className="btn bngf" onClick={onAdd} style={{ padding: "8px 16px", fontSize: 13 }}>
+          <Icon name="user_plus" size={14} color="#000" />عميل
         </button>
       </div>
-      <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)" /></span><input className="sb" value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight: 34 }} /></div>
+      <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)" /></span><input className="sb" value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight: 36 }} /></div>
       {filtered.length === 0
-        ? <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="clients" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 500, color: "var(--muted)", marginBottom: 12, fontSize: 13 }}>{clients.length === 0 ? "أضف أول عميل" : "لا نتائج"}</div>{clients.length === 0 && <button className="btn bng" onClick={onAdd}>+ إضافة</button>}</div>
+        ? <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="clients" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 500, color: "var(--muted)", marginBottom: 12, fontSize: 13 }}>{clients.length === 0 ? "أضف أول عميل" : "لا نتائج"}</div>{clients.length === 0 && <button className="btn bngf" onClick={onAdd}>+ إضافة</button>}</div>
         : filtered.map(cl => (
           <div key={cl.id} className="clic" onClick={() => setSel(cl.id)}>
-            <div className="cav"><Icon name="person" size={17} color="var(--ac)" /></div>
+            <div className="cav"><Icon name="person" size={18} color="var(--ac)" /></div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="clic-name">{cl.name}</div>
               <div className="clic-sub">{[cl.phone, `${contracts.filter(c => c.clientId === cl.id).length} عقد`].filter(Boolean).join(" · ")}</div>
@@ -859,19 +1290,46 @@ function IncomeScreen({ contracts }) {
   const pend = contracts.filter(c => c.status !== "cancelled").reduce((s, c) => s + videoOnly(c) * ((!c.deposit50Paid ? 0.5 : 0) + (!c.final50Paid ? 0.5 : 0)), 0);
   const totalC = contracts.reduce((s, c) => s + videoOnly(c), 0);
   const activeT = contracts.filter(c => c.status === "active").reduce((s, c) => s + videoOnly(c), 0);
+
+  const stats = [
+    { l: "آخر 30 يوم", v: fmt(last30), icon: "clock" },
+    { l: String(NOW.getFullYear()), v: fmt(yearT), icon: "income" },
+    { l: "محصّل", v: fmt(allCollected), icon: "check", ac: true },
+    { l: "متوقع", v: fmt(pend), icon: "calendar" },
+    { l: "إجمالي العقود", v: fmt(totalC), icon: "contracts" },
+    { l: "العقود النشطة", v: fmt(activeT), icon: "check" },
+  ];
+
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
-      <div style={{ marginBottom: 16 }}><div className="pt">الدخل</div><div className="ps">التحليل المالي — الفيديوهات فقط</div></div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        {[
-          { l: "آخر 30 يوم", v: fmt(last30), icon: "clock" },
-          { l: String(NOW.getFullYear()), v: fmt(yearT), icon: "income" },
-          { l: "محصّل", v: fmt(allCollected), icon: "check" },
-          { l: "متوقع", v: fmt(pend), icon: "calendar" },
-          { l: "إجمالي العقود", v: fmt(totalC), icon: "contracts" },
-          { l: "العقود النشطة", v: fmt(activeT), icon: "contracts" },
-        ].map(s => <div key={s.l} className="stat"><div className="slbl"><Icon name={s.icon} size={13} />{s.l}</div><div className="sval sm">{s.v}</div></div>)}
+      {/* Hero */}
+      <div className="hero-card">
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div className="hero-lbl">إجمالي المحصّل</div>
+          <div className="hero-amount">{allCollected.toLocaleString("en-US", { minimumFractionDigits: 2 })} <span style={{ fontSize: 16, fontWeight: 400, color: "rgba(255,255,255,0.4)" }}>LYD</span></div>
+          <div className="hero-change"><Icon name="check" size={12} color="var(--ac)" />{String(NOW.getFullYear())} · الفيديوهات فقط</div>
+        </div>
       </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        {stats.map(s => (
+          <div key={s.l} className="stat-card">
+            <div className="stat-lbl" style={{ color: s.ac ? "var(--ac)" : "var(--muted)" }}><Icon name={s.icon} size={12} color={s.ac ? "var(--ac)" : "var(--muted)"} />{s.l}</div>
+            <div className={`stat-val sm${s.ac ? " ac" : ""}`}>{s.v}</div>
+          </div>
+        ))}
+      </div>
+      {/* Recent paid contracts */}
+      <div className="sec-hdr"><span className="sec-title">المحصّل حديثاً</span></div>
+      {contracts.filter(c => c.deposit50Paid || c.final50Paid).slice(0, 6).map(c => (
+        <div key={c.id} className="tx-card">
+          <div className="tx-icon"><Icon name="income" size={16} color="var(--ac)" /></div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="tx-name">{c.clientName}</div>
+            <div className="tx-sub">{c.deposit50Paid && c.final50Paid ? "مدفوع بالكامل" : c.deposit50Paid ? "الدفعة الأولى" : "الدفعة الثانية"}</div>
+          </div>
+          <div className="tx-amt pos">{fmt(videoOnly(c) * ((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)), c.currency)}</div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -886,7 +1344,7 @@ export default function App() {
   const [clm, setClm] = useState(null);
   const [vm, setVm] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState("light");
   const [confirm, setConfirm] = useState(null);
   const [selClient, setSelClient] = useState(null);
 
@@ -916,7 +1374,6 @@ export default function App() {
   };
 
   const delContract = id => setConfirm({ msg: "هل تريد حذف هذا العقد نهائياً؟", onConfirm: async () => { await supabase.from("contracts").delete().eq("id", id); setContracts(p => p.filter(c => c.id !== id)); setConfirm(null); } });
-
   const cancelContract = async id => {
     const c = contracts.find(x => x.id === id); if (!c) return;
     const hist = addHist(c, "cancelled");
@@ -957,23 +1414,27 @@ export default function App() {
 
   const delClient = async id => { await supabase.from("clients").delete().eq("id", id); setClients(p => p.filter(c => c.id !== id)); };
   const goToClient = id => { setSelClient(id); setTab("clients"); };
-  const goTo = t => setTab(t);
+
+  const goTo = t => {
+    if (t === "contracts_new") { setTab("contracts"); setTimeout(() => setCm("new"), 100); }
+    else if (t === "clients_new") { setTab("clients"); setTimeout(() => setClm("new"), 100); }
+    else setTab(t);
+  };
 
   const nav = [
     { key: "dashboard", label: "الرئيسية", icon: "dashboard" },
     { key: "clients", label: "العملاء", icon: "clients" },
     { key: "contracts", label: "العقود", icon: "contracts" },
     { key: "income", label: "الدخل", icon: "income" },
+    { key: "wallet", label: "المحفظة", icon: "wallet" },
   ];
-
-  const titles = { dashboard: "فارق للإنتاج", clients: "العملاء", contracts: "العقود", income: "الدخل" };
 
   if (loading) return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100dvh", background: "var(--bg)", flexDirection: "column", gap: 12 }}>
-        <div className="lmark">F</div>
-        <div style={{ color: "var(--muted)", fontSize: 11, fontWeight: 600 }}>جارٍ التحميل...</div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100dvh", background: "var(--bg)", flexDirection: "column", gap: 14 }}>
+        <div className="lmark" style={{ width: 52, height: 52, borderRadius: 16, fontSize: 22 }}>F</div>
+        <div style={{ color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>جارٍ التحميل...</div>
       </div>
     </>
   );
@@ -982,14 +1443,18 @@ export default function App() {
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="app">
+        {/* Top bar */}
         <div className="topbar">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div className="lmark" style={{ width: 32, height: 32, fontSize: 14 }}>F</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ac)" }}>{titles[tab]}</div>
+            <div className="lmark" style={{ width: 34, height: 34, borderRadius: 11, fontSize: 15 }}>F</div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text)", lineHeight: 1.1 }}>فارق</div>
+              <div style={{ fontSize: 10, color: "var(--muted)", fontWeight: 500 }}>للإنتاج</div>
+            </div>
           </div>
-          <div className="topbar-actions">
-            <button className="tb-btn" onClick={() => setShowSearch(true)} data-tip="بحث"><Icon name="search" size={16} color="var(--ac)" /></button>
-            <button className="tb-btn" onClick={() => setTheme(t => t === "dark" ? "light" : "dark")} data-tip={theme === "dark" ? "وضع فاتح" : "وضع داكن"}><Icon name={theme === "dark" ? "sun" : "moon"} size={16} color="var(--ac)" /></button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="tb-btn" onClick={() => setShowSearch(true)}><Icon name="search" size={16} color="var(--text2)" /></button>
+            <button className="tb-btn" onClick={() => setTheme(t => t === "dark" ? "light" : "dark")}><Icon name={theme === "dark" ? "sun" : "moon"} size={16} color="var(--text2)" /></button>
           </div>
         </div>
 
@@ -997,11 +1462,20 @@ export default function App() {
         {tab === "contracts" && <ContractsScreen contracts={contracts} clients={clients} onAdd={() => setCm("new")} onEdit={setCm} onDelete={delContract} onToggle={togglePay} onView={setVm} onVideoUpdate={updateVideoDone} onCancel={cancelContract} />}
         {tab === "clients" && <ClientsScreen clients={clients} contracts={contracts} onAdd={() => setClm("new")} onEdit={c => setClm(c)} onDelete={delClient} initialSel={selClient} />}
         {tab === "income" && <IncomeScreen contracts={contracts} />}
+        {tab === "wallet" && <WalletScreen />}
 
+        {/* Bottom Nav */}
         <nav className="bnav">
           {nav.map(n => (
-            <div key={n.key} className={`bni${tab === n.key ? " on" : ""}`} onClick={() => { setTab(n.key); if (n.key !== "clients") setSelClient(null); }}>
-              <div><Icon name={n.icon} size={19} color={tab === n.key ? "var(--ac)" : "var(--muted)"} /></div>
+            <div key={n.key} className={`bni${tab === n.key ? " on" : ""}`}
+              onClick={() => { setTab(n.key); if (n.key !== "clients") setSelClient(null); }}>
+              {n.key === "contracts" ? (
+                <div className="bni-fab">
+                  <Icon name={n.icon} size={20} color="#000" />
+                </div>
+              ) : (
+                <Icon name={n.icon} size={20} color={tab === n.key ? "var(--ac)" : "var(--muted)"} />
+              )}
               <div className="bni-lbl">{n.label}</div>
             </div>
           ))}
