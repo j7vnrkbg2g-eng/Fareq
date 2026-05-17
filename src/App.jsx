@@ -11,388 +11,124 @@ const CREDENTIALS = { user: "fahed", pass: "771997" };
 const SL = { active:"جارٍ", pending:"معلق", completed:"مكتمل", cancelled:"ملغي" };
 const SC = { active:"#00ff88", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4d4d" };
 
-// Logo component – renders the uploaded image with black background removed via mix-blend-mode
 const FareqLogo = ({ size = 36, style = {} }) => (
-  <img
-    src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG"
-    alt="فارق"
-    style={{
-      width: size,
-      height: size,
-      objectFit: "contain",
-      mixBlendMode: "screen",   // removes the black background in dark contexts
-      filter: "brightness(1.1)",
-      display: "block",
-      ...style,
-    }}
-  />
+  <img src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG" alt="فارق" style={{ width: size, height: size, objectFit: "contain", mixBlendMode: "screen", filter: "brightness(1.1)", display: "block", ...style }} />
 );
 
-// For light backgrounds (PDF, light modals) – use luminosity inversion trick
 const FareqLogoLight = ({ size = 70, style = {} }) => (
-  <img
-    src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG"
-    alt="فارق"
-    style={{
-      width: size,
-      height: size,
-      objectFit: "contain",
-      filter: "invert(1)",      // white logo on light PDF bg becomes black mark
-      display: "block",
-      margin: "0 auto",
-      ...style,
-    }}
-  />
+  <img src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG" alt="فارق" style={{ width: size, height: size, objectFit: "contain", filter: "invert(1)", display: "block", margin: "0 auto", ...style }} />
 );
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-
 :root {
-  --bg: #f0f2f7;
-  --surface: #ffffff;
-  --surface2: #e8ebf4;
-  --surface3: #dde1ef;
-  --ac: #00c96e;
-  --ac2: #00a85a;
-  --ac-glow: rgba(0,201,110,0.25);
-  --ac-faint: rgba(0,201,110,0.10);
-  --ac-border: rgba(0,201,110,0.35);
-  --text: #0d1b2a;
-  --text2: #4a5568;
-  --muted: #94a3b8;
-  --muted2: #e2e8f0;
-  --danger: #ff4d6d;
-  --warn: #f59e0b;
-  --card-border: rgba(255,255,255,0.8);
-  --card-gap: 10px;
-  --font: 'Tajawal', sans-serif;
+  --bg: #f0f2f7; --surface: #ffffff; --surface2: #e8ebf4; --surface3: #dde1ef;
+  --ac: #00c96e; --ac2: #00a85a; --ac-glow: rgba(0,201,110,0.25); --ac-faint: rgba(0,201,110,0.10); --ac-border: rgba(0,201,110,0.35);
+  --text: #0d1b2a; --text2: #4a5568; --muted: #94a3b8; --muted2: #e2e8f0;
+  --danger: #ff4d6d; --warn: #f59e0b; --card-border: rgba(255,255,255,0.8); --card-gap: 10px; --font: 'Tajawal', sans-serif;
   --grad-card: linear-gradient(135deg, #1a2340 0%, #0f1829 60%, #0a1020 100%);
   --grad-accent: linear-gradient(135deg, #00ff88, #00c96e);
   --shadow-card: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
   --shadow-float: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.1);
-  --shadow-inner: inset 0 2px 8px rgba(0,0,0,0.06);
-  --nav-bg: rgba(255,255,255,0.95);
+  --shadow-inner: inset 0 2px 8px rgba(0,0,0,0.06); --nav-bg: rgba(255,255,255,0.95);
 }
-
 [data-theme="dark"] {
-  --bg: #0a0f1e;
-  --surface: #111827;
-  --surface2: #1a2340;
-  --surface3: #1e2a4a;
-  --ac: #00ff88;
-  --ac2: #00e07a;
-  --ac-glow: rgba(0,255,136,0.30);
-  --ac-faint: rgba(0,255,136,0.08);
-  --ac-border: rgba(0,255,136,0.35);
-  --text: #f0f4ff;
-  --text2: #94a3b8;
-  --muted: #4a5568;
-  --muted2: #1e2a4a;
-  --danger: #ff4d6d;
-  --warn: #fbbf24;
-  --card-border: rgba(255,255,255,0.06);
+  --bg: #0a0f1e; --surface: #111827; --surface2: #1a2340; --surface3: #1e2a4a;
+  --ac: #00ff88; --ac2: #00e07a; --ac-glow: rgba(0,255,136,0.30); --ac-faint: rgba(0,255,136,0.08); --ac-border: rgba(0,255,136,0.35);
+  --text: #f0f4ff; --text2: #94a3b8; --muted: #4a5568; --muted2: #1e2a4a;
+  --danger: #ff4d6d; --warn: #fbbf24; --card-border: rgba(255,255,255,0.06);
   --grad-card: linear-gradient(135deg, #1e2d50 0%, #151f38 60%, #0f1829 100%);
   --shadow-card: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
   --shadow-float: 0 20px 60px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.4);
-  --shadow-inner: inset 0 2px 8px rgba(0,0,0,0.3);
-  --nav-bg: rgba(10,15,30,0.97);
+  --shadow-inner: inset 0 2px 8px rgba(0,0,0,0.3); --nav-bg: rgba(10,15,30,0.97);
 }
-
-html,body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
-  direction: rtl;
-  height: 100%;
-  transition: background .3s, color .3s;
-}
-
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--ac-border); border-radius: 4px; }
-
-.app {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  background: var(--bg);
-  overflow: hidden;
-}
-
-.screen {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0 14px 90px;
-  animation: fu .3s cubic-bezier(.4,0,.2,1);
-}
-
+html,body { background: var(--bg); color: var(--text); font-family: var(--font); direction: rtl; height: 100%; transition: background .3s, color .3s; }
+::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--ac-border); border-radius: 4px; }
+.app { display: flex; flex-direction: column; height: 100dvh; background: var(--bg); overflow: hidden; }
+.screen { flex: 1; overflow-y: auto; padding: 0 14px 90px; animation: fu .3s cubic-bezier(.4,0,.2,1); }
 @keyframes fu { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 20px var(--ac-glow); } 50% { box-shadow: 0 0 40px var(--ac-glow), 0 0 60px var(--ac-glow); } }
 @keyframes expandCard { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: none; } }
-
-/* ── HERO BALANCE CARD ── */
-.hero-card {
-  background: linear-gradient(135deg, #0f1e3a 0%, #0a1428 50%, #060e1f 100%);
-  border-radius: 24px;
-  padding: 24px 20px 20px;
-  margin: 14px 0 16px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-float), 0 0 40px rgba(0,201,110,0.15);
-  border: 1px solid rgba(0,255,136,0.12);
-}
-.hero-card::before {
-  content: '';
-  position: absolute;
-  top: -60px; right: -60px;
-  width: 200px; height: 200px;
-  background: radial-gradient(circle, rgba(0,255,136,0.15) 0%, transparent 70%);
-  border-radius: 50%;
-}
-.hero-card::after {
-  content: '';
-  position: absolute;
-  bottom: -40px; left: -40px;
-  width: 160px; height: 160px;
-  background: radial-gradient(circle, rgba(0,150,255,0.08) 0%, transparent 70%);
-  border-radius: 50%;
-}
+.hero-card { background: linear-gradient(135deg, #0f1e3a 0%, #0a1428 50%, #060e1f 100%); border-radius: 24px; padding: 24px 20px 20px; margin: 14px 0 16px; position: relative; overflow: hidden; box-shadow: var(--shadow-float), 0 0 40px rgba(0,201,110,0.15); border: 1px solid rgba(0,255,136,0.12); }
+.hero-card::before { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(0,255,136,0.15) 0%, transparent 70%); border-radius: 50%; }
+.hero-card::after { content: ''; position: absolute; bottom: -40px; left: -40px; width: 160px; height: 160px; background: radial-gradient(circle, rgba(0,150,255,0.08) 0%, transparent 70%); border-radius: 50%; }
 .hero-lbl { font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 500; margin-bottom: 6px; letter-spacing: 0.5px; }
 .hero-amount { font-size: 34px; font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 4px; }
 .hero-change { font-size: 11px; color: var(--ac); font-weight: 600; display: flex; align-items: center; gap: 4px; }
-
-/* Quick action buttons */
 .quick-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 20px; position: relative; z-index: 1; }
-.qa-btn {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px; padding: 12px 6px; cursor: pointer;
-  transition: all .2s; backdrop-filter: blur(10px);
-}
+.qa-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 12px 6px; cursor: pointer; transition: all .2s; backdrop-filter: blur(10px); }
 .qa-btn:hover { background: rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.3); transform: translateY(-2px); }
 .qa-btn:active { transform: scale(.96); }
 .qa-icon { width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; }
 .qa-lbl { font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 600; }
-
-/* ── TRANSACTION CARD ── */
-.tx-card {
-  background: var(--surface);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  padding: 12px 14px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: var(--shadow-card);
-  transition: all .2s;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-}
-.tx-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(0,255,136,0.02), transparent);
-  opacity: 0;
-  transition: opacity .2s;
-}
+.tx-card { background: var(--surface); border: 1px solid var(--card-border); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card); transition: all .2s; cursor: pointer; position: relative; overflow: hidden; }
+.tx-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,255,136,0.02), transparent); opacity: 0; transition: opacity .2s; }
 .tx-card:hover::before { opacity: 1; }
 .tx-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-float); border-color: var(--ac-border); }
-
-.tx-icon {
-  width: 44px; height: 44px;
-  border-radius: 13px;
-  background: linear-gradient(135deg, var(--surface2), var(--surface3));
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
+.tx-icon { width: 44px; height: 44px; border-radius: 13px; background: linear-gradient(135deg, var(--surface2), var(--surface3)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .tx-name { font-size: 13px; font-weight: 600; color: var(--text); }
 .tx-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
-.tx-amt { font-size: 13px; font-weight: 700; }
-.tx-amt.pos { color: var(--ac); }
-.tx-amt.neg { color: var(--danger); }
-
-/* ── SECTION HEADER ── */
-.sec-hdr {
-  display: flex; justify-content: space-between; align-items: center;
-  margin: 18px 0 10px;
-}
+.tx-amt { font-size: 13px; font-weight: 700; } .tx-amt.pos { color: var(--ac); } .tx-amt.neg { color: var(--danger); }
+.sec-hdr { display: flex; justify-content: space-between; align-items: center; margin: 18px 0 10px; }
 .sec-title { font-size: 15px; font-weight: 800; color: var(--text); }
 .sec-link { font-size: 11px; color: var(--ac); font-weight: 700; cursor: pointer; }
-
-/* ── STAT GRID ── */
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--card-border);
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: var(--shadow-card);
-  transition: all .25s;
-}
+.stat-card { background: var(--surface); border: 1px solid var(--card-border); border-radius: 18px; padding: 16px; box-shadow: var(--shadow-card); transition: all .25s; }
 .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-float); }
 .stat-card.wide { grid-column: 1/-1; }
 .stat-lbl { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-.stat-val { font-size: 18px; font-weight: 800; color: var(--text); }
-.stat-val.ac { color: var(--ac); }
-.stat-val.sm { font-size: 14px; }
-
-/* ── NAV BAR ── */
-.bnav {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  background: var(--nav-bg);
-  backdrop-filter: blur(24px) saturate(180%);
-  border-top: 1px solid var(--card-border);
-  display: flex;
-  align-items: center;
-  padding: 6px 8px max(6px, env(safe-area-inset-bottom));
-  box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
-  gap: 4px;
-}
-.bni {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  cursor: pointer; padding: 7px 6px; border-radius: 14px;
-  transition: all .2s; flex: 1; position: relative;
-}
+.stat-val { font-size: 18px; font-weight: 800; color: var(--text); } .stat-val.ac { color: var(--ac); } .stat-val.sm { font-size: 14px; }
+.bnav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: var(--nav-bg); backdrop-filter: blur(24px) saturate(180%); border-top: 1px solid var(--card-border); display: flex; align-items: center; padding: 6px 8px max(6px, env(safe-area-inset-bottom)); box-shadow: 0 -8px 32px rgba(0,0,0,0.12); gap: 4px; }
+.bni { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 7px 6px; border-radius: 14px; transition: all .2s; flex: 1; position: relative; }
 .bni:hover { background: var(--ac-faint); }
 .bni-lbl { font-size: 9px; color: var(--muted); font-weight: 700; transition: color .2s; }
 .bni.on .bni-lbl { color: var(--ac); }
-
-.bni-fab {
-  width: 50px; height: 50px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #00ff88, #00c96e);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 20px rgba(0,201,110,0.5), 0 0 0 4px rgba(0,201,110,0.15);
-  margin-bottom: 2px;
-  transition: all .2s;
-  cursor: pointer;
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-.bni-fab:hover { transform: scale(1.08); }
-.bni-fab:active { transform: scale(.95); }
-
-/* ── TOP BAR ── */
-.topbar {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 14px 14px 0; gap: 10px;
-}
-.tb-btn {
-  width: 38px; height: 38px; border-radius: 12px;
-  background: var(--surface);
-  border: 1px solid var(--card-border);
-  color: var(--text2); display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all .2s;
-  box-shadow: var(--shadow-card);
-}
+.bni-fab { width: 50px; height: 50px; border-radius: 16px; background: linear-gradient(135deg, #00ff88, #00c96e); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,201,110,0.5), 0 0 0 4px rgba(0,201,110,0.15); margin-bottom: 2px; transition: all .2s; cursor: pointer; animation: pulse-glow 3s ease-in-out infinite; }
+.bni-fab:hover { transform: scale(1.08); } .bni-fab:active { transform: scale(.95); }
+.topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 14px 0; gap: 10px; }
+.tb-btn { width: 38px; height: 38px; border-radius: 12px; background: var(--surface); border: 1px solid var(--card-border); color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; box-shadow: var(--shadow-card); }
 .tb-btn:hover { border-color: var(--ac-border); color: var(--ac); }
-
-/* ── CARDS ── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--card-border);
-  border-radius: 18px;
-  padding: 14px;
-  box-shadow: var(--shadow-card);
-  margin-bottom: var(--card-gap);
-  transition: all .25s;
-}
+.card { background: var(--surface); border: 1px solid var(--card-border); border-radius: 18px; padding: 14px; box-shadow: var(--shadow-card); margin-bottom: var(--card-gap); transition: all .25s; }
 .card:hover { box-shadow: var(--shadow-float); border-color: var(--ac-border); }
-
-/* ── CONTRACT CARD ── */
-.cc {
-  background: var(--surface);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  overflow: hidden;
-  margin-bottom: 8px;
-  box-shadow: var(--shadow-card);
-  transition: all .25s;
-}
+.cc { background: var(--surface); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 8px; box-shadow: var(--shadow-card); transition: all .25s; }
 .cc:hover { box-shadow: var(--shadow-float); border-color: var(--ac-border); }
-
-/* Compact (collapsed) contract card */
-.cc-compact {
-  padding: 11px 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.cc-compact-icon {
-  width: 38px; height: 38px; border-radius: 11px;
-  background: var(--surface2); display: flex; align-items: center; justify-content: center;
-  border: 1px solid var(--card-border); flex-shrink: 0;
-}
+.cc-compact { padding: 11px 14px; display: flex; align-items: center; gap: 12px; }
+.cc-compact-icon { width: 38px; height: 38px; border-radius: 11px; background: var(--surface2); display: flex; align-items: center; justify-content: center; border: 1px solid var(--card-border); flex-shrink: 0; }
 .cc-compact-body { flex: 1; min-width: 0; }
 .cc-compact-name { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cc-compact-sub { font-size: 10px; color: var(--muted); margin-top: 1px; font-weight: 500; }
 .cc-compact-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
 .cc-compact-amt { font-size: 12px; font-weight: 800; color: var(--ac); }
-.cc-expand-btn {
-  width: 26px; height: 26px; border-radius: 8px;
-  background: var(--surface2); border: 1px solid var(--card-border);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all .2s; flex-shrink: 0;
-  color: var(--muted);
-}
+.cc-expand-btn { width: 26px; height: 26px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; flex-shrink: 0; color: var(--muted); }
 .cc-expand-btn:hover { border-color: var(--ac-border); color: var(--ac); }
 .cc-expand-btn svg { transition: transform .25s cubic-bezier(.4,0,.2,1); }
 .cc-expand-btn.open svg { transform: rotate(180deg); }
-
-/* Expanded body */
-.cc-expanded {
-  animation: expandCard .22s cubic-bezier(.4,0,.2,1);
-  border-top: 1px solid var(--muted2);
-  padding: 10px 14px 14px;
-}
+.cc-expanded { animation: expandCard .22s cubic-bezier(.4,0,.2,1); border-top: 1px solid var(--muted2); padding: 10px 14px 14px; }
 .cc-actions { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
-
 .cc-h { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .cc-b { padding: 4px 14px 12px; }
 .cc-n { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cc-sub { font-size: 10px; color: var(--muted); margin-top: 2px; font-weight: 500; }
-
-/* Amount box */
-.amt-box {
-  background: var(--surface2);
-  border-radius: 10px; padding: 8px 12px; margin-bottom: 8px;
-  display: flex; justify-content: space-between; align-items: center;
-  border: 1px solid var(--card-border);
-}
+.amt-box { background: var(--surface2); border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--card-border); }
 .amt-lbl { font-size: 9px; color: var(--muted); font-weight: 600; }
 .amt-val { font-size: 14px; font-weight: 800; color: var(--ac); }
-
-/* Payment section */
 .psec { background: var(--surface2); border-radius: 12px; padding: 10px 12px; border: 1px solid var(--card-border); margin-top: 6px; }
 .pbar { height: 4px; background: var(--muted2); border-radius: 4px; margin: 6px 0 8px; overflow: hidden; }
 .pfill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--ac), #00ffcc); transition: width .5s cubic-bezier(.4,0,.2,1); box-shadow: 0 0 8px var(--ac-glow); }
 .pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .pitem { background: var(--surface); border-radius: 10px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; gap: 6px; border: 1px solid var(--card-border); box-shadow: var(--shadow-card); }
 .ptog { padding: 4px 10px; border-radius: 7px; border: none; font-size: 9px; font-weight: 800; cursor: pointer; font-family: var(--font); transition: all .2s; white-space: nowrap; }
-.ptog.ok { background: rgba(0,255,136,0.15); color: var(--ac); }
-.ptog.no { background: var(--surface2); color: var(--muted); }
-
-/* Video progress */
+.ptog.ok { background: rgba(0,255,136,0.15); color: var(--ac); } .ptog.no { background: var(--surface2); color: var(--muted); }
 .vpsec { background: var(--surface2); border-radius: 12px; padding: 10px 12px; border: 1px solid var(--card-border); margin-top: 8px; }
 .vpbar { height: 4px; background: var(--muted2); border-radius: 4px; margin: 6px 0 8px; overflow: hidden; }
 .vpfill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--ac), #00ffcc); transition: width .5s cubic-bezier(.4,0,.2,1); }
 .vp-btn { padding: 5px 13px; border-radius: 8px; border: none; background: var(--surface); color: var(--ac); font-size: 10px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all .2s; border: 1px solid var(--card-border); box-shadow: var(--shadow-card); }
 .vp-btn:hover { border-color: var(--ac-border); }
-
-/* Badges */
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 9px; font-weight: 800; border: 1px solid; }
 .badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-
-/* Buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 16px; border-radius: 12px; border: none; cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 700; transition: all .2s; }
-.btn:hover { transform: translateY(-1px); }
-.btn:active { transform: scale(.97); }
+.btn:hover { transform: translateY(-1px); } .btn:active { transform: scale(.97); }
 .bng { background: var(--surface); color: var(--text); border: 1px solid var(--card-border); box-shadow: var(--shadow-card); }
 .bng:hover { border-color: var(--ac-border); color: var(--ac); }
 .bngf { background: linear-gradient(135deg, var(--ac), var(--ac2)); color: #000; font-weight: 800; box-shadow: 0 4px 20px var(--ac-glow); }
@@ -400,14 +136,10 @@ html,body {
 .bgh { background: var(--surface2); color: var(--muted); border: 1px solid var(--card-border); }
 .bgh:hover { color: var(--text); }
 .btn-danger { background: rgba(255,77,109,0.12); color: var(--danger); border: 1px solid rgba(255,77,109,0.2); }
-
-/* Icon buttons */
 .ico-btn { width: 32px; height: 32px; border-radius: 9px; background: var(--surface2); border: 1px solid var(--card-border); color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; flex-shrink: 0; box-shadow: var(--shadow-card); }
 .ico-btn:hover { color: var(--ac); border-color: var(--ac-border); }
 .ico-btn.red:hover { color: var(--danger); border-color: rgba(255,77,109,0.3); }
 .ico-btn.wa:hover { color: #25D366; border-color: rgba(37,211,102,0.3); }
-
-/* Modal */
 .mov { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 14px; backdrop-filter: blur(12px); }
 .mod { background: var(--surface); border: 1px solid var(--card-border); border-radius: 24px; width: 100%; max-width: 600px; max-height: 92vh; overflow-y: auto; padding: 24px; box-shadow: var(--shadow-float), 0 0 60px var(--ac-glow); animation: fu .25s cubic-bezier(.4,0,.2,1); }
 .mhd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -415,160 +147,69 @@ html,body {
 .mclose { width: 30px; height: 30px; border-radius: 9px; background: var(--surface2); border: 1px solid var(--card-border); color: var(--muted); font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; }
 .mclose:hover { color: var(--danger); border-color: rgba(255,77,109,0.3); }
 .mft { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--muted2); }
-
 .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.ffl { grid-column: 1/-1; }
-.fg { display: flex; flex-direction: column; gap: 5px; }
+.ffl { grid-column: 1/-1; } .fg { display: flex; flex-direction: column; gap: 5px; }
 .flbl { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .3px; }
 .finp,.fsel,.fta { background: var(--surface2); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px 14px; color: var(--text); font-size: 13px; font-family: var(--font); outline: none; transition: all .2s; width: 100%; }
 .finp:focus,.fsel:focus,.fta:focus { border-color: var(--ac-border); box-shadow: 0 0 0 3px var(--ac-faint); }
 .finp[readonly] { color: var(--muted); cursor: default; }
-.fta { min-height: 60px; resize: vertical; }
-.fsel option { background: var(--surface); }
+.fta { min-height: 60px; resize: vertical; } .fsel option { background: var(--surface); }
 .fck { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .fck input { accent-color: var(--ac); width: 15px; height: 15px; }
 .fck label { font-size: 12px; color: var(--text2); cursor: pointer; font-weight: 500; }
 .dur-btns { display: flex; gap: 6px; }
 .dur-btn { flex: 1; padding: 9px 5px; border-radius: 10px; border: 1px solid var(--card-border); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--font); font-size: 12px; font-weight: 700; transition: all .2s; text-align: center; }
 .dur-btn.on { background: var(--ac-faint); color: var(--ac); border-color: var(--ac-border); }
-
 .sb { background: var(--surface); border: 1px solid var(--card-border); border-radius: 14px; padding: 10px 14px; color: var(--text); font-size: 13px; font-family: var(--font); outline: none; width: 100%; transition: all .2s; box-shadow: var(--shadow-inner); }
 .sb:focus { border-color: var(--ac-border); box-shadow: 0 0 0 3px var(--ac-faint); }
 .sb::placeholder { color: var(--muted); }
 .sb-wrap { position: relative; margin-bottom: 12px; }
 .sb-ico { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
-
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .tab { padding: 7px 14px; border-radius: 10px; border: 1px solid var(--card-border); background: var(--surface); color: var(--muted); cursor: pointer; font-family: var(--font); font-size: 11px; font-weight: 700; transition: all .2s; box-shadow: var(--shadow-card); }
 .tab.on { background: var(--ac); color: #000; border-color: var(--ac); box-shadow: 0 4px 16px var(--ac-glow); }
-
 .alr { display: flex; align-items: center; gap: 9px; padding: 10px 14px; border-radius: 14px; margin-bottom: 8px; font-size: 11px; font-weight: 700; border: 1px solid; animation: fu .3s; }
 .au { background: rgba(255,77,109,.06); border-color: rgba(255,77,109,.2); color: var(--danger); }
 .aw { background: rgba(251,191,36,.06); border-color: rgba(251,191,36,.2); color: var(--warn); }
-
-/* Client list */
 .clic { background: var(--surface); border: 1px solid var(--card-border); border-radius: 16px; padding: 12px 14px; margin-bottom: var(--card-gap); display: flex; align-items: center; gap: 12px; transition: all .25s; cursor: pointer; box-shadow: var(--shadow-card); }
 .clic:hover { box-shadow: var(--shadow-float); border-color: var(--ac-border); transform: translateX(-2px); }
 .cav { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: center; background: var(--surface2); flex-shrink: 0; }
 .clic-name { font-weight: 700; font-size: 14px; color: var(--text); }
 .clic-sub { font-size: 10px; color: var(--muted); margin-top: 2px; font-weight: 500; }
-
-/* Confirm */
 .conf-ov { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,.75); display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(12px); }
 .conf-box { background: var(--surface); border: 1px solid var(--card-border); border-radius: 22px; padding: 26px; max-width: 320px; width: 100%; text-align: center; box-shadow: var(--shadow-float); }
-
-/* Global search */
 .gsearch-wrap { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,.88); backdrop-filter: blur(16px); display: flex; flex-direction: column; padding: 20px 14px; }
 .gsearch-inp { background: var(--surface); border: 1px solid var(--ac-border); border-radius: 16px; padding: 14px 16px; color: var(--text); font-size: 15px; font-family: var(--font); outline: none; width: 100%; box-shadow: 0 0 30px var(--ac-glow); }
 .gresult { background: var(--surface); border: 1px solid var(--card-border); border-radius: 14px; padding: 12px 14px; margin-bottom: 7px; cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card); }
 .gresult:hover { box-shadow: var(--shadow-float); border-color: var(--ac-border); }
-
-/* ── WALLET SCREEN ── */
-.wallet-hero {
-  background: linear-gradient(135deg, #0f1e3a 0%, #0a1428 50%, #060e1f 100%);
-  border-radius: 24px;
-  padding: 22px 20px 20px;
-  margin: 14px 0 16px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-float), 0 0 40px rgba(0,201,110,0.15);
-  border: 1px solid rgba(0,255,136,0.12);
-}
-.wallet-hero::before {
-  content: '';
-  position: absolute;
-  top: -50px; right: -50px;
-  width: 180px; height: 180px;
-  background: radial-gradient(circle, rgba(0,255,136,0.18) 0%, transparent 70%);
-  border-radius: 50%;
-}
-.wallet-tabs {
-  display: flex;
-  background: rgba(255,255,255,0.07);
-  border-radius: 12px;
-  padding: 3px;
-  margin-bottom: 18px;
-  position: relative;
-  z-index: 1;
-  border: 1px solid rgba(255,255,255,0.1);
-}
-.wallet-tab-btn {
-  flex: 1; padding: 8px; border: none; border-radius: 9px;
-  cursor: pointer; font-family: var(--font); font-size: 12px; font-weight: 700;
-  transition: all .2s; background: transparent; color: rgba(255,255,255,0.5);
-}
-.wallet-tab-btn.on {
-  background: rgba(0,255,136,0.2);
-  color: var(--ac);
-  box-shadow: 0 0 12px rgba(0,255,136,0.2);
-}
+.wallet-hero { background: linear-gradient(135deg, #0f1e3a 0%, #0a1428 50%, #060e1f 100%); border-radius: 24px; padding: 22px 20px 20px; margin: 14px 0 16px; position: relative; overflow: hidden; box-shadow: var(--shadow-float), 0 0 40px rgba(0,201,110,0.15); border: 1px solid rgba(0,255,136,0.12); }
+.wallet-hero::before { content: ''; position: absolute; top: -50px; right: -50px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(0,255,136,0.18) 0%, transparent 70%); border-radius: 50%; }
+.wallet-tabs { display: flex; background: rgba(255,255,255,0.07); border-radius: 12px; padding: 3px; margin-bottom: 18px; position: relative; z-index: 1; border: 1px solid rgba(255,255,255,0.1); }
+.wallet-tab-btn { flex: 1; padding: 8px; border: none; border-radius: 9px; cursor: pointer; font-family: var(--font); font-size: 12px; font-weight: 700; transition: all .2s; background: transparent; color: rgba(255,255,255,0.5); }
+.wallet-tab-btn.on { background: rgba(0,255,136,0.2); color: var(--ac); box-shadow: 0 0 12px rgba(0,255,136,0.2); }
 .wallet-balance-lbl { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 500; margin-bottom: 4px; position: relative; z-index: 1; }
 .wallet-balance-amt { font-size: 36px; font-weight: 900; color: #fff; margin-bottom: 16px; position: relative; z-index: 1; line-height: 1; }
 .wallet-actions { display: flex; gap: 10px; position: relative; z-index: 1; }
-.wa-btn {
-  flex: 1; padding: 11px; border: none; border-radius: 14px; cursor: pointer;
-  font-family: var(--font); font-size: 12px; font-weight: 800;
-  display: flex; align-items: center; justify-content: center; gap: 7px;
-  transition: all .2s;
-}
-.wa-btn.income-btn {
-  background: rgba(0,255,136,0.18);
-  color: var(--ac);
-  border: 1px solid rgba(0,255,136,0.3);
-}
-.wa-btn.expense-btn {
-  background: rgba(255,77,109,0.15);
-  color: #ff4d6d;
-  border: 1px solid rgba(255,77,109,0.25);
-}
-.wa-btn.savings-btn {
-  background: rgba(167,139,250,0.15);
-  color: #a78bfa;
-  border: 1px solid rgba(167,139,250,0.25);
-}
-.wa-btn:hover { transform: translateY(-1px); }
-.wa-btn:active { transform: scale(.97); }
-
-.wallet-tx-card {
-  background: var(--surface);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  padding: 13px 14px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: var(--shadow-card);
-  transition: all .2s;
-  animation: fu .3s;
-}
+.wa-btn { flex: 1; padding: 11px; border: none; border-radius: 14px; cursor: pointer; font-family: var(--font); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 7px; transition: all .2s; }
+.wa-btn.income-btn { background: rgba(0,255,136,0.18); color: var(--ac); border: 1px solid rgba(0,255,136,0.3); }
+.wa-btn.expense-btn { background: rgba(255,77,109,0.15); color: #ff4d6d; border: 1px solid rgba(255,77,109,0.25); }
+.wa-btn.savings-btn { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.25); }
+.wa-btn:hover { transform: translateY(-1px); } .wa-btn:active { transform: scale(.97); }
+.wallet-tx-card { background: var(--surface); border: 1px solid var(--card-border); border-radius: 16px; padding: 13px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card); transition: all .2s; animation: fu .3s; }
 .wallet-tx-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-float); }
-.wtx-icon {
-  width: 44px; height: 44px; border-radius: 14px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.wtx-icon.green { background: rgba(0,255,136,0.12); }
-.wtx-icon.red { background: rgba(255,77,109,0.12); }
-.wtx-icon.purple { background: rgba(167,139,250,0.12); }
+.wtx-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.wtx-icon.green { background: rgba(0,255,136,0.12); } .wtx-icon.red { background: rgba(255,77,109,0.12); } .wtx-icon.purple { background: rgba(167,139,250,0.12); }
 .wtx-name { font-size: 13px; font-weight: 700; color: var(--text); }
 .wtx-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
-.wtx-amt { font-size: 14px; font-weight: 800; }
-.wtx-amt.pos { color: var(--ac); }
-.wtx-amt.neg { color: var(--danger); }
-.wtx-amt.purple { color: #a78bfa; }
-
-/* page title */
+.wtx-amt { font-size: 14px; font-weight: 800; } .wtx-amt.pos { color: var(--ac); } .wtx-amt.neg { color: var(--danger); } .wtx-amt.purple { color: #a78bfa; }
 .pt { font-size: 22px; font-weight: 900; color: var(--text); margin-bottom: 2px; }
 .ps { font-size: 12px; color: var(--muted); }
 .sh { font-size: 10px; font-weight: 800; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin: 18px 0 8px; }
-
 .lmark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--ac), var(--ac2)); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #000; box-shadow: 0 4px 14px var(--ac-glow); }
 .empty { text-align: center; padding: 50px 16px; color: var(--muted); }
-
 @media(max-width:500px) { .fgrid { grid-template-columns: 1fr; } .ffl { grid-column: 1; } .pgrid { grid-template-columns: 1fr; } }
 `;
 
-// ── Icons ─────────────────────────────────────────────────────────
 const Icon = ({ name, size = 20, color = "currentColor" }) => {
   const s = { width: size, height: size, stroke: color, fill: "none", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round", flexShrink: 0, display: "block" };
   const p = {
@@ -597,7 +238,6 @@ const Icon = ({ name, size = 20, color = "currentColor" }) => {
     history: <><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></>,
     file: <><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13,2 13,9 20,9"/></>,
     person: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></>,
-    piggy: <><path d="M19 11a2 2 0 00-2-2h-1.5"/><path d="M12 7a5 5 0 00-5 5c0 2.8 2.2 5 5 5s5-2.2 5-5"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/></>,
     arrow_up: <><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5,12 12,5 19,12"/></>,
     arrow_down: <><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19,12 12,19 5,12"/></>,
     chevron_down: <><polyline points="6,9 12,15 18,9"/></>,
@@ -605,60 +245,34 @@ const Icon = ({ name, size = 20, color = "currentColor" }) => {
   return <svg style={s} viewBox="0 0 24 24">{p[name] || null}</svg>;
 };
 
-// ─── Supabase helpers ─────────────────────────────────────────────
 const toApp = r => ({
-  id: String(r.id),
-  clientId: r.client_id ? String(r.client_id) : "",
-  clientName: r.client_name || "",
-  clientAddress: r.client_address || "",
-  clientPhone: r.client_phone || "",
-  videoCount: r.video_count || "",
-  videoDone: r.video_done || 0,
-  totalAmount: r.total_amount || "",
-  videoAmount: r.video_amount || "",
-  presenterAmount: r.presenter_amount || "",
-  currency: r.currency || "LYD",
-  startDate: r.start_date || "",
-  endDate: r.end_date || "",
-  deposit50Date: r.deposit50_date || "",
-  deposit50Paid: r.deposit50_paid || false,
-  final50Date: r.final50_date || "",
-  final50Paid: r.final50_paid || false,
-  status: r.status || "pending",
-  notes: r.notes || "",
-  statusHistory: r.status_history || [],
-  fileUrl: r.file_url || "",
-  fileName: r.file_name || "",
+  id: String(r.id), clientId: r.client_id ? String(r.client_id) : "", clientName: r.client_name || "",
+  clientAddress: r.client_address || "", clientPhone: r.client_phone || "",
+  videoCount: r.video_count || "", videoDone: r.video_done || 0,
+  totalAmount: r.total_amount || "", videoAmount: r.video_amount || "", presenterAmount: r.presenter_amount || "",
+  currency: r.currency || "LYD", startDate: r.start_date || "", endDate: r.end_date || "",
+  deposit50Date: r.deposit50_date || "", deposit50Paid: r.deposit50_paid || false,
+  final50Date: r.final50_date || "", final50Paid: r.final50_paid || false,
+  status: r.status || "pending", notes: r.notes || "", statusHistory: r.status_history || [],
+  fileUrl: r.file_url || "", fileName: r.file_name || "",
 });
 
 const toDB = c => ({
-  client_id: c.clientId ? Number(c.clientId) : null,
-  client_name: c.clientName,
-  client_address: c.clientAddress,
-  client_phone: c.clientPhone,
-  video_count: c.videoCount,
-  video_done: Number(c.videoDone || 0),
-  total_amount: c.totalAmount ? Number(c.totalAmount) : null,
+  client_id: c.clientId ? Number(c.clientId) : null, client_name: c.clientName,
+  client_address: c.clientAddress, client_phone: c.clientPhone, video_count: c.videoCount,
+  video_done: Number(c.videoDone || 0), total_amount: c.totalAmount ? Number(c.totalAmount) : null,
   video_amount: c.videoAmount ? Number(c.videoAmount) : null,
   presenter_amount: c.presenterAmount ? Number(c.presenterAmount) : null,
-  currency: c.currency,
-  start_date: c.startDate || null,
-  end_date: c.endDate || null,
-  deposit50_date: c.deposit50Date || null,
-  deposit50_paid: c.deposit50Paid,
-  final50_date: c.final50Date || null,
-  final50_paid: c.final50Paid,
-  status: c.status,
-  notes: c.notes,
-  status_history: c.statusHistory || [],
-  file_url: c.fileUrl || "",
-  file_name: c.fileName || "",
+  currency: c.currency, start_date: c.startDate || null, end_date: c.endDate || null,
+  deposit50_date: c.deposit50Date || null, deposit50_paid: c.deposit50Paid,
+  final50_date: c.final50Date || null, final50_paid: c.final50Paid,
+  status: c.status, notes: c.notes, status_history: c.statusHistory || [],
+  file_url: c.fileUrl || "", file_name: c.fileName || "",
 });
 
 const toAppCl = r => ({ id: String(r.id), name: r.name || "", phone: r.phone || "", address: r.address || "", notes: r.notes || "" });
 const toDBCl = c => ({ name: c.name, phone: c.phone || "", address: c.address || "", notes: c.notes || "" });
 
-// ─── Confirm Dialog ───────────────────────────────────────────────
 function ConfirmDialog({ msg, onConfirm, onCancel }) {
   return (
     <div className="conf-ov">
@@ -674,7 +288,6 @@ function ConfirmDialog({ msg, onConfirm, onCancel }) {
   );
 }
 
-// ─── Global Search ────────────────────────────────────────────────
 function GlobalSearch({ contracts, clients, onClose, onViewContract, goToClient }) {
   const [q, setQ] = useState("");
   const inp = useRef();
@@ -707,61 +320,39 @@ function GlobalSearch({ contracts, clients, onClose, onViewContract, goToClient 
   );
 }
 
-// ─── Alerts ───────────────────────────────────────────────────────
 function Alerts({ contracts }) {
   const a = [];
   contracts.forEach(c => {
     if (c.status === "cancelled" || c.status === "completed") return;
-    const vc = Number(c.videoCount || 0);
-    const vd = Number(c.videoDone || 0);
-
-    // Payment alerts
+    const vc = Number(c.videoCount || 0), vd = Number(c.videoDone || 0);
     if (!c.final50Paid && c.final50Date) {
       const d = daysDiff(c.final50Date);
-      if (d !== null && d >= 0 && d <= 7)
-        a.push({ id: c.id, msg: `${d === 0 ? "اليوم" : d + " أيام"} — الدفعة الثانية لـ ${c.clientName}`, type: d <= 2 ? "u" : "w" });
+      if (d !== null && d >= 0 && d <= 7) a.push({ id: c.id, msg: `${d === 0 ? "اليوم" : d + " أيام"} — الدفعة الثانية لـ ${c.clientName}`, type: d <= 2 ? "u" : "w" });
     }
     if (!c.deposit50Paid && c.deposit50Date && daysDiff(c.deposit50Date) <= 0)
       a.push({ id: c.id + "d", msg: `المقدم غير مدفوع — ${c.clientName}`, type: "u" });
-
-    // Contract end date expired but videos not done
-    if (c.endDate && daysDiff(c.endDate) !== null && daysDiff(c.endDate) < 0) {
-      if (vc > 0 && vd < vc) {
-        a.push({ id: c.id + "exp", msg: `انتهى العقد ولم تكتمل الفيديوهات (${vd}/${vc}) — ${c.clientName}`, type: "u" });
-      }
-    }
-
-    // Videos done but contract date not expired yet
-    if (vc > 0 && vd >= vc && c.endDate && daysDiff(c.endDate) !== null && daysDiff(c.endDate) > 0) {
+    if (c.endDate && daysDiff(c.endDate) !== null && daysDiff(c.endDate) < 0 && vc > 0 && vd < vc)
+      a.push({ id: c.id + "exp", msg: `انتهى العقد ولم تكتمل الفيديوهات (${vd}/${vc}) — ${c.clientName}`, type: "u" });
+    if (vc > 0 && vd >= vc && c.endDate && daysDiff(c.endDate) !== null && daysDiff(c.endDate) > 0)
       a.push({ id: c.id + "vdone", msg: `اكتملت الفيديوهات قبل موعد انتهاء العقد — ${c.clientName}`, type: "w" });
-    }
-
-    // End date within 2 days
-    if (c.endDate) {
-      const d = daysDiff(c.endDate);
-      if (d !== null && d >= 0 && d <= 2)
-        a.push({ id: c.id + "e", msg: `ينتهي ${d === 0 ? "اليوم" : "خلال " + d + " أيام"} — ${c.clientName}`, type: "u" });
-    }
+    if (c.endDate) { const d = daysDiff(c.endDate); if (d !== null && d >= 0 && d <= 2) a.push({ id: c.id + "e", msg: `ينتهي ${d === 0 ? "اليوم" : "خلال " + d + " أيام"} — ${c.clientName}`, type: "u" }); }
   });
   if (!a.length) return null;
   return <div style={{ marginBottom: 14 }}>{a.map(x => <div key={x.id} className={`alr ${x.type === "u" ? "au" : "aw"}`}><Icon name="alert" size={13} color="currentColor" />{x.msg}</div>)}</div>;
 }
 
-// ─── WhatsApp Button ──────────────────────────────────────────────
 function WABtn({ phone, sm }) {
   if (!phone) return null;
   const clean = phone.replace(/\D/g, "");
   const num = clean.startsWith("0") ? "218" + clean.slice(1) : clean;
   const sz = sm ? 28 : 32;
   return (
-    <button className="ico-btn wa" onClick={e => { e.stopPropagation(); window.open(`https://wa.me/${num}`, "_blank"); }} title="واتساب"
-      style={{ width: sz, height: sz }}>
+    <button className="ico-btn wa" onClick={e => { e.stopPropagation(); window.open(`https://wa.me/${num}`, "_blank"); }} title="واتساب" style={{ width: sz, height: sz }}>
       <Icon name="whatsapp" size={sm ? 12 : 14} color="#25D366" />
     </button>
   );
 }
 
-// ─── Client Modal ─────────────────────────────────────────────────
 function ClientModal({ client, onClose, onSave }) {
   const [f, setF] = useState(client ? { ...client } : { name: "", phone: "", address: "", notes: "" });
   const s = (k, v) => setF(p => ({ ...p, [k]: v }));
@@ -781,7 +372,6 @@ function ClientModal({ client, onClose, onSave }) {
   );
 }
 
-// ─── Contract Modal ───────────────────────────────────────────────
 const EC = { clientId: "", clientName: "", clientAddress: "", clientPhone: "", videoCount: "", videoDone: 0, totalAmount: "", videoAmount: "", presenterAmount: "", currency: "LYD", startDate: "", endDate: "", deposit50Date: "", deposit50Paid: false, final50Date: "", final50Paid: false, status: "pending", notes: "", statusHistory: [], fileUrl: "", fileName: "" };
 
 function ContractModal({ contract, clients, onClose, onSave }) {
@@ -789,15 +379,12 @@ function ContractModal({ contract, clients, onClose, onSave }) {
   const [drop, setDrop] = useState(false);
   const [dur, setDur] = useState(null);
   const s = (k, v) => setF(p => ({ ...p, [k]: v }));
-
   useEffect(() => { const v = Number(f.videoAmount || 0), p = Number(f.presenterAmount || 0); if (v || p) s("totalAmount", String(v + p)); }, [f.videoAmount, f.presenterAmount]);
   useEffect(() => { if (f.startDate) s("deposit50Date", f.startDate); }, [f.startDate]);
   useEffect(() => { if (f.endDate) s("final50Date", f.endDate); }, [f.endDate]);
-
   const handleDur = m => { setDur(m); if (f.startDate) s("endDate", addMonths(f.startDate, m)); };
   const handleStart = v => { s("startDate", v); if (dur && v) s("endDate", addMonths(v, dur)); };
   const pick = c => { setF(p => ({ ...p, clientId: c.id, clientName: c.name, clientPhone: c.phone || "", clientAddress: c.address || "" })); setDrop(false); };
-
   return (
     <div className="mov" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="mod">
@@ -842,7 +429,6 @@ function ContractModal({ contract, clients, onClose, onSave }) {
   );
 }
 
-// ─── Contract View Modal ──────────────────────────────────────────
 function ContractViewModal({ c, onClose, onPdfExported }) {
   const ref = useRef();
   const dParts = d => { if (!d) return { d: "", m: "", y: "" }; const dt = new Date(d); return { d: String(dt.getDate()).padStart(2, "0"), m: String(dt.getMonth() + 1).padStart(2, "0"), y: String(dt.getFullYear()) }; };
@@ -852,14 +438,12 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
   const pAmt = c.presenterAmount ? Number(c.presenterAmount).toLocaleString("en-US", { minimumFractionDigits: 2 }) : "__________";
   const pct = Math.round(((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)) * 100);
   const vc = Number(c.videoCount || 0), vd = Number(c.videoDone || 0);
-
   const exportPDF = () => {
     const w = window.open("", "_blank");
     w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"/><title>عقد - ${c.clientName || ""}</title><style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Tajawal',sans-serif;direction:rtl;color:#111;background:#fff;padding:32px 44px;font-size:14px;line-height:1.9;}.sec{font-weight:800;font-size:14px;margin:13px 0 5px;border-right:3px solid #111;padding-right:8px;}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:11px 0;}.bx{border:1px solid #ddd;border-radius:7px;padding:10px 12px;}.bl{font-weight:800;font-size:10px;color:#555;margin-bottom:5px;border-right:3px solid #111;padding-right:6px;}hr{border:none;border-top:2px solid #111;margin:12px 0;}hr.t{border-top:1px solid #ddd;margin:16px 0;}.sg{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:22px;}.s{text-align:center;}.sl{margin-top:34px;border-bottom:1.5px dashed #bbb;}</style></head><body>${ref.current.innerHTML}</body></html>`);
     w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 500);
     onPdfExported(c.id);
   };
-
   return (
     <div className="mov" style={{ alignItems: "flex-start", overflowY: "auto" }}>
       <div style={{ background: "var(--surface)", border: "1px solid var(--card-border)", borderRadius: 22, width: "100%", maxWidth: 740, margin: "12px 0", overflow: "hidden", boxShadow: "var(--shadow-float)" }}>
@@ -906,16 +490,9 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
           )}
           {c.notes && <div style={{ marginTop: 10, fontSize: 12, color: "var(--text2)", padding: "9px 12px", background: "var(--surface2)", borderRadius: 10, border: "1px solid var(--card-border)" }}>📝 {c.notes}</div>}
         </div>
-
-        {/* ── Hidden PDF content ── */}
         <div ref={ref} style={{ display: "none" }}>
-          {/* Logo header — black bg removed via invert filter in PDF context */}
           <div style={{ textAlign: "center", marginBottom: 16 }}>
-            <img
-              src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG"
-              alt="فارق"
-              style={{ width: 70, height: 70, objectFit: "contain", filter: "invert(1)", display: "inline-block", marginBottom: 7 }}
-            />
+            <img src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG" alt="فارق" style={{ width: 70, height: 70, objectFit: "contain", filter: "invert(1)", display: "inline-block", marginBottom: 7 }} />
             <div style={{ fontWeight: 800, fontSize: 16, fontFamily: "'Tajawal',sans-serif" }}>شركة فارق للإنتاج</div>
             <div style={{ color: "#555", fontSize: 11, fontFamily: "'Tajawal',sans-serif" }}>FAREQ Productions — 0920953918</div>
           </div>
@@ -950,55 +527,36 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36, fontFamily: "'Tajawal',sans-serif" }}>
             {["الطرف الأول — شركة فارق للإنتاج", `الطرف الثاني — ${c.clientName || "___________"}`].map((p, i) => <div key={i} style={{ textAlign: "center" }}><div style={{ fontSize: 11, color: "#555", marginBottom: 3 }}>{p}</div><div style={{ fontWeight: 700 }}>التوقيع</div><div style={{ marginTop: 34, borderBottom: "1.5px dashed #bbb" }} /></div>)}
           </div>
-          {/* No app link footer */}
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Contract Card (compact + expandable) ─────────────────────────
 function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, onCancel }) {
   const [expanded, setExpanded] = useState(false);
   const pct = Math.round(((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)) * 100);
   const f50d = c.final50Date ? daysDiff(c.final50Date) : null;
   const vc = Number(c.videoCount || 0), vd = Number(c.videoDone || 0);
   const vpct = vc > 0 ? Math.round((vd / vc) * 100) : 0;
-
   return (
     <div className="cc">
-      {/* ── Compact summary row ── */}
       <div className="cc-compact">
-        <div className="cc-compact-icon" onClick={() => onView(c)} style={{ cursor: "pointer" }}>
-          <Icon name="contracts" size={15} color="var(--ac)" />
-        </div>
+        <div className="cc-compact-icon" onClick={() => onView(c)} style={{ cursor: "pointer" }}><Icon name="contracts" size={15} color="var(--ac)" /></div>
         <div className="cc-compact-body" onClick={() => onView(c)} style={{ cursor: "pointer" }}>
           <div className="cc-compact-name">{c.clientName || "عميل"}</div>
-          <div className="cc-compact-sub">
-            {vc > 0 ? `${vd}/${vc} فيديو` : ""}
-            {vc > 0 && c.startDate ? " · " : ""}
-            {fmtDate(c.startDate)}
-            {c.endDate ? ` · حتى ${fmtDate(c.endDate)}` : ""}
-          </div>
+          <div className="cc-compact-sub">{vc > 0 ? `${vd}/${vc} فيديو` : ""}{vc > 0 && c.startDate ? " · " : ""}{fmtDate(c.startDate)}{c.endDate ? ` · حتى ${fmtDate(c.endDate)}` : ""}</div>
         </div>
         <div className="cc-compact-right">
           <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
           <div className="cc-compact-amt">{fmt(c.videoAmount || c.totalAmount, c.currency)}</div>
         </div>
-        {/* Expand arrow */}
-        <button
-          className={`cc-expand-btn${expanded ? " open" : ""}`}
-          onClick={e => { e.stopPropagation(); setExpanded(p => !p); }}
-          title={expanded ? "طي" : "توسيع"}
-        >
+        <button className={`cc-expand-btn${expanded ? " open" : ""}`} onClick={e => { e.stopPropagation(); setExpanded(p => !p); }} title={expanded ? "طي" : "توسيع"}>
           <Icon name="chevron_down" size={14} color="currentColor" />
         </button>
       </div>
-
-      {/* ── Expanded detail section ── */}
       {expanded && (
         <div className="cc-expanded">
-          {/* Action buttons row */}
           <div className="cc-actions">
             <div style={{ display: "flex", gap: 5 }}>
               <button className="ico-btn" onClick={() => onEdit(c)} title="تعديل"><Icon name="edit" size={12} color="var(--text2)" /></button>
@@ -1008,12 +566,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
               <button className="ico-btn red" onClick={() => onDelete(c.id)} title="حذف"><Icon name="trash" size={12} color="var(--danger)" /></button>
             </div>
           </div>
-
-          <div className="amt-box">
-            <div className="amt-lbl">الإجمالي</div>
-            <div className="amt-val">{fmt(c.totalAmount, c.currency)}</div>
-          </div>
-
+          <div className="amt-box"><div className="amt-lbl">الإجمالي</div><div className="amt-val">{fmt(c.totalAmount, c.currency)}</div></div>
           <div className="psec">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700 }}>الدفع</span>
@@ -1036,7 +589,6 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
               ))}
             </div>
           </div>
-
           {vc > 0 && (
             <div className="vpsec">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1046,13 +598,13 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
               <div className="vpbar"><div className="vpfill" style={{ width: `${vpct}%` }} /></div>
               <div style={{ display: "flex", gap: 6 }}>
                 <button className="vp-btn" onClick={() => onVideoUpdate(c.id, Math.min(vc, vd + 1))}>+1 فيديو</button>
+                {vd > 0 && <button className="vp-btn" onClick={() => onVideoUpdate(c.id, vd - 1)}>-1 فيديو</button>}
               </div>
             </div>
           )}
-
           {c.notes && (
             <div style={{ marginTop: 8, fontSize: 10, color: "var(--muted)", padding: "7px 10px", background: "var(--surface2)", borderRadius: 8, border: "1px solid var(--card-border)", display: "flex", gap: 5 }}>
-              <Icon name="doc" size={10} />{ c.notes}
+              <Icon name="doc" size={10} />{c.notes}
             </div>
           )}
         </div>
@@ -1061,8 +613,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
   );
 }
 
-// ─── Wallet Modal ─────────────────────────────────────────────────
-function WalletModal({ type, walletType, onClose, onSave }) {
+function WalletModal({ type, onClose, onSave }) {
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
   const labels = {
@@ -1072,7 +623,6 @@ function WalletModal({ type, walletType, onClose, onSave }) {
     savings_withdraw: { title: "سحب من الادخار", color: "var(--warn)", icon: "arrow_down" },
   };
   const lbl = labels[type] || labels.income;
-
   return (
     <div className="mov" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="mod" style={{ maxWidth: 380 }}>
@@ -1085,16 +635,10 @@ function WalletModal({ type, walletType, onClose, onSave }) {
             <label className="flbl">المبلغ (LYD)</label>
             <input className="finp" type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" autoFocus style={{ fontSize: 22, fontWeight: 800, color: lbl.color, textAlign: "center" }} />
           </div>
-          {type === "expense" && (
+          {(type === "expense" || type === "savings_withdraw") && (
             <div className="fg">
-              <label className="flbl">البند / الوصف</label>
-              <input className="finp" value={desc} onChange={e => setDesc(e.target.value)} placeholder="مثل: بنزين، طعام، إيجار..." />
-            </div>
-          )}
-          {type === "savings_withdraw" && (
-            <div className="fg">
-              <label className="flbl">سبب السحب</label>
-              <input className="finp" value={desc} onChange={e => setDesc(e.target.value)} placeholder="وصف اختياري..." />
+              <label className="flbl">{type === "expense" ? "البند / الوصف" : "سبب السحب"}</label>
+              <input className="finp" value={desc} onChange={e => setDesc(e.target.value)} placeholder={type === "expense" ? "مثل: بنزين، طعام، إيجار..." : "وصف اختياري..."} />
             </div>
           )}
         </div>
@@ -1113,33 +657,19 @@ function WalletModal({ type, walletType, onClose, onSave }) {
   );
 }
 
-// ─── Wallet Screen ────────────────────────────────────────────────
 function WalletScreen() {
   const [walletTab, setWalletTab] = useState("expense");
   const [modal, setModal] = useState(null);
-  const [txns, setTxns] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("wallet_txns") || "[]"); } catch { return []; }
-  });
-
-  const save = (newTxns) => {
-    setTxns(newTxns);
-    try { localStorage.setItem("wallet_txns", JSON.stringify(newTxns)); } catch {}
-  };
-
+  const [txns, setTxns] = useState(() => { try { return JSON.parse(localStorage.getItem("wallet_txns") || "[]"); } catch { return []; } });
+  const save = (newTxns) => { setTxns(newTxns); try { localStorage.setItem("wallet_txns", JSON.stringify(newTxns)); } catch {} };
   const expenseTxns = txns.filter(t => t.type === "income" || t.type === "expense");
   const savingsTxns = txns.filter(t => t.type === "savings_add" || t.type === "savings_withdraw");
   const expenseBalance = expenseTxns.reduce((s, t) => t.type === "income" ? s + t.amount : s - t.amount, 0);
   const savingsBalance = savingsTxns.reduce((s, t) => t.type === "savings_add" ? s + t.amount : s - t.amount, 0);
   const balance = walletTab === "expense" ? expenseBalance : savingsBalance;
   const currentTxns = walletTab === "expense" ? [...expenseTxns].reverse() : [...savingsTxns].reverse();
-
   const handleAdd = (data) => { save([...txns, data]); setModal(null); };
-  const deleteTx = (idx) => {
-    const all = walletTab === "expense" ? expenseTxns : savingsTxns;
-    const item = [...all].reverse()[idx];
-    save(txns.filter(t => t !== item));
-  };
-
+  const deleteTx = (idx) => { const all = walletTab === "expense" ? expenseTxns : savingsTxns; const item = [...all].reverse()[idx]; save(txns.filter(t => t !== item)); };
   return (
     <div className="screen" style={{ paddingTop: 0 }}>
       <div className="wallet-hero">
@@ -1148,33 +678,17 @@ function WalletScreen() {
           <button className={`wallet-tab-btn${walletTab === "savings" ? " on" : ""}`} onClick={() => setWalletTab("savings")}>🏦 الادخار</button>
         </div>
         <div className="wallet-balance-lbl">{walletTab === "expense" ? "رصيد المحفظة" : "رصيد الادخار"}</div>
-        <div className="wallet-balance-amt" style={{ color: balance < 0 ? "#ff4d6d" : "#fff" }}>
-          {balance.toLocaleString("en-US", { minimumFractionDigits: 2 })} <span style={{ fontSize: 16, fontWeight: 500, color: "rgba(255,255,255,0.5)" }}>LYD</span>
-        </div>
+        <div className="wallet-balance-amt" style={{ color: balance < 0 ? "#ff4d6d" : "#fff" }}>{balance.toLocaleString("en-US", { minimumFractionDigits: 2 })} <span style={{ fontSize: 16, fontWeight: 500, color: "rgba(255,255,255,0.5)" }}>LYD</span></div>
         <div className="wallet-actions">
           {walletTab === "expense" ? (
-            <>
-              <button className="wa-btn income-btn" onClick={() => setModal("income")}><Icon name="plus" size={14} color="var(--ac)" /> إضافة رصيد</button>
-              <button className="wa-btn expense-btn" onClick={() => setModal("expense")}><Icon name="minus" size={14} color="#ff4d6d" /> إضافة مصروف</button>
-            </>
+            <><button className="wa-btn income-btn" onClick={() => setModal("income")}><Icon name="plus" size={14} color="var(--ac)" /> إضافة رصيد</button><button className="wa-btn expense-btn" onClick={() => setModal("expense")}><Icon name="minus" size={14} color="#ff4d6d" /> إضافة مصروف</button></>
           ) : (
-            <>
-              <button className="wa-btn savings-btn" onClick={() => setModal("savings_add")}><Icon name="plus" size={14} color="#a78bfa" /> إضافة للادخار</button>
-              <button className="wa-btn expense-btn" onClick={() => setModal("savings_withdraw")}><Icon name="minus" size={14} color="#ff4d6d" /> سحب</button>
-            </>
+            <><button className="wa-btn savings-btn" onClick={() => setModal("savings_add")}><Icon name="plus" size={14} color="#a78bfa" /> إضافة للادخار</button><button className="wa-btn expense-btn" onClick={() => setModal("savings_withdraw")}><Icon name="minus" size={14} color="#ff4d6d" /> سحب</button></>
           )}
         </div>
       </div>
-      <div className="sec-hdr">
-        <span className="sec-title">آخر العمليات</span>
-        <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>{currentTxns.length} عملية</span>
-      </div>
-      {currentTxns.length === 0 && (
-        <div className="empty">
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="wallet" size={40} color="var(--muted)" /></div>
-          <div style={{ fontWeight: 500, color: "var(--muted)", fontSize: 13 }}>لا توجد عمليات بعد</div>
-        </div>
-      )}
+      <div className="sec-hdr"><span className="sec-title">آخر العمليات</span><span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>{currentTxns.length} عملية</span></div>
+      {currentTxns.length === 0 && <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="wallet" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 500, color: "var(--muted)", fontSize: 13 }}>لا توجد عمليات بعد</div></div>}
       {currentTxns.map((t, i) => {
         const isPos = t.type === "income" || t.type === "savings_add";
         const iconColor = isPos ? "green" : t.type === "savings_withdraw" ? "purple" : "red";
@@ -1183,10 +697,7 @@ function WalletScreen() {
           <div key={i} className="wallet-tx-card" style={{ justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div className={`wtx-icon ${iconColor}`}><Icon name={isPos ? "arrow_up" : "arrow_down"} size={18} color={isPos ? "var(--ac)" : t.type === "savings_withdraw" ? "#a78bfa" : "var(--danger)"} /></div>
-              <div>
-                <div className="wtx-name">{t.desc}</div>
-                <div className="wtx-sub">{new Date(t.date).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
-              </div>
+              <div><div className="wtx-name">{t.desc}</div><div className="wtx-sub">{new Date(t.date).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div></div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div className={`wtx-amt ${amtColor}`}>{isPos ? "+" : "-"}{t.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} LYD</div>
@@ -1195,33 +706,22 @@ function WalletScreen() {
           </div>
         );
       })}
-      {modal && <WalletModal type={modal} walletType={walletTab} onClose={() => setModal(null)} onSave={handleAdd} />}
+      {modal && <WalletModal type={modal} onClose={() => setModal(null)} onSave={handleAdd} />}
     </div>
   );
 }
 
-// ─── Dashboard ────────────────────────────────────────────────────
 function Dashboard({ contracts, clients, goTo, onViewContract }) {
   const collected = contracts.reduce((s, c) => s + Number(c.videoAmount || 0) * ((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)), 0);
   const recent = [...contracts].sort((a, b) => Number(b.id) - Number(a.id)).slice(0, 4);
-
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
       <div className="hero-card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8, position: "relative", zIndex: 1 }}>
-          <div>
-            <div className="hero-lbl">إجمالي المحصّل</div>
-            <div className="hero-amount">{collected.toLocaleString("en-US", { minimumFractionDigits: 2 })} <span style={{ fontSize: 16, fontWeight: 400, color: "rgba(255,255,255,0.4)" }}>LYD</span></div>
-          </div>
-          <div style={{ textAlign: "left" }}>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>العقود</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: "#fff" }}>{contracts.length}</div>
-          </div>
+          <div><div className="hero-lbl">إجمالي المحصّل</div><div className="hero-amount">{collected.toLocaleString("en-US", { minimumFractionDigits: 2 })} <span style={{ fontSize: 16, fontWeight: 400, color: "rgba(255,255,255,0.4)" }}>LYD</span></div></div>
+          <div style={{ textAlign: "left" }}><div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>العقود</div><div style={{ fontSize: 22, fontWeight: 900, color: "#fff" }}>{contracts.length}</div></div>
         </div>
-        <div className="hero-change" style={{ position: "relative", zIndex: 1 }}>
-          <Icon name="check" size={12} color="var(--ac)" />
-          {contracts.filter(c => c.status === "active").length} نشط · {contracts.filter(c => c.status === "pending").length} معلق
-        </div>
+        <div className="hero-change" style={{ position: "relative", zIndex: 1 }}><Icon name="check" size={12} color="var(--ac)" />{contracts.filter(c => c.status === "active").length} نشط · {contracts.filter(c => c.status === "pending").length} معلق</div>
         <div className="quick-actions">
           {[
             { label: "عقد جديد", icon: "contract_plus", action: () => goTo("contracts_new") },
@@ -1236,9 +736,7 @@ function Dashboard({ contracts, clients, goTo, onViewContract }) {
           ))}
         </div>
       </div>
-
       <Alerts contracts={contracts} />
-
       <div className="stat-grid">
         {[
           { l: "نشطة", v: contracts.filter(c => c.status === "active").length, icon: "check", ac: true },
@@ -1252,19 +750,12 @@ function Dashboard({ contracts, clients, goTo, onViewContract }) {
           </div>
         ))}
       </div>
-
       {recent.length > 0 && <>
-        <div className="sec-hdr">
-          <span className="sec-title">آخر العقود</span>
-          <span className="sec-link" onClick={() => goTo("contracts")}>عرض الكل ←</span>
-        </div>
+        <div className="sec-hdr"><span className="sec-title">آخر العقود</span><span className="sec-link" onClick={() => goTo("contracts")}>عرض الكل ←</span></div>
         {recent.map(c => (
           <div key={c.id} className="tx-card" onClick={() => onViewContract(c)}>
             <div className="tx-icon"><Icon name="contracts" size={18} color="var(--ac)" /></div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="tx-name">{c.clientName}</div>
-              <div className="tx-sub">{c.videoCount ? `${c.videoCount} فيديو · ` : ""}{fmtDate(c.startDate)}</div>
-            </div>
+            <div style={{ flex: 1, minWidth: 0 }}><div className="tx-name">{c.clientName}</div><div className="tx-sub">{c.videoCount ? `${c.videoCount} فيديو · ` : ""}{fmtDate(c.startDate)}</div></div>
             <div style={{ textAlign: "left" }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ac)" }}>{fmt(c.videoAmount || c.totalAmount, c.currency)}</div>
               <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
@@ -1272,13 +763,11 @@ function Dashboard({ contracts, clients, goTo, onViewContract }) {
           </div>
         ))}
       </>}
-
       {contracts.length === 0 && <div className="empty"><div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="contracts" size={40} color="var(--muted)" /></div><div style={{ fontWeight: 500, color: "var(--muted)", fontSize: 13 }}>ابدأ بإضافة أول عقد</div></div>}
     </div>
   );
 }
 
-// ─── Contracts Screen ─────────────────────────────────────────────
 function ContractsScreen({ contracts, clients, onAdd, onEdit, onDelete, onToggle, onView, onVideoUpdate, onCancel }) {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -1287,19 +776,16 @@ function ContractsScreen({ contracts, clients, onAdd, onEdit, onDelete, onToggle
     { key: "active", label: "جارٍ", count: contracts.filter(c => c.status === "active").length },
     { key: "pending", label: "معلق", count: contracts.filter(c => c.status === "pending").length },
     { key: "completed", label: "مكتمل", count: contracts.filter(c => c.status === "completed").length },
-    { key: "cancelled", label: "ملغي", count: contracts.filter(c => c.status === "cancelled").length }
+    { key: "cancelled", label: "ملغي", count: contracts.filter(c => c.status === "cancelled").length },
   ];
   const filtered = [...contracts].sort((a, b) => Number(b.id) - Number(a.id))
     .filter(c => { if (filter === "all") return c.status !== "completed" && c.status !== "cancelled"; return c.status === filter; })
     .filter(c => !search || c.clientName?.includes(search));
-
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div><div className="pt">العقود</div><div className="ps">{contracts.length} عقد</div></div>
-        <button className="btn bngf" onClick={onAdd} style={{ padding: "8px 16px", fontSize: 13 }}>
-          <Icon name="contract_plus" size={14} color="#000" />جديد
-        </button>
+        <button className="btn bngf" onClick={onAdd} style={{ padding: "8px 16px", fontSize: 13 }}><Icon name="contract_plus" size={14} color="#000" />جديد</button>
       </div>
       <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)" /></span><input className="sb" value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight: 36 }} /></div>
       <div className="tabs">{tabs.map(t => <button key={t.key} className={`tab${filter === t.key ? " on" : ""}`} onClick={() => setFilter(t.key)}>{t.label}{t.count > 0 && <span style={{ marginRight: 5, background: filter === t.key ? "rgba(0,0,0,0.2)" : "var(--surface2)", color: filter === t.key ? "#000" : "var(--muted)", borderRadius: 20, padding: "0 6px", fontSize: 9, fontWeight: 800 }}>{t.count}</span>}</button>)}</div>
@@ -1310,13 +796,11 @@ function ContractsScreen({ contracts, clients, onAdd, onEdit, onDelete, onToggle
   );
 }
 
-// ─── Clients Screen ───────────────────────────────────────────────
 function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel }) {
   const [search, setSearch] = useState("");
   const [sel, setSel] = useState(initialSel || null);
   useEffect(() => { if (initialSel) setSel(initialSel); }, [initialSel]);
   const filtered = clients.filter(c => !search || c.name.includes(search) || c.phone?.includes(search));
-
   if (sel) {
     const cl = clients.find(c => c.id === sel);
     if (!cl) { setSel(null); return null; }
@@ -1344,27 +828,18 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
         {clc.map(c => (
           <div key={c.id} className="tx-card">
             <div className="tx-icon"><Icon name="contracts" size={16} color="var(--ac)" /></div>
-            <div style={{ flex: 1 }}>
-              <div className="tx-name">{c.videoCount ? `${c.videoCount} فيديو` : "عقد"}</div>
-              <div className="tx-sub">{fmtDate(c.startDate)}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ac)" }}>{fmt(c.videoAmount || c.totalAmount, c.currency)}</div>
-              <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
-            </div>
+            <div style={{ flex: 1 }}><div className="tx-name">{c.videoCount ? `${c.videoCount} فيديو` : "عقد"}</div><div className="tx-sub">{fmtDate(c.startDate)}</div></div>
+            <div><div style={{ fontSize: 13, fontWeight: 800, color: "var(--ac)" }}>{fmt(c.videoAmount || c.totalAmount, c.currency)}</div><span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span></div>
           </div>
         ))}
       </div>
     );
   }
-
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div><div className="pt">العملاء</div><div className="ps">{clients.length} عميل</div></div>
-        <button className="btn bngf" onClick={onAdd} style={{ padding: "8px 16px", fontSize: 13 }}>
-          <Icon name="user_plus" size={14} color="#000" />عميل
-        </button>
+        <button className="btn bngf" onClick={onAdd} style={{ padding: "8px 16px", fontSize: 13 }}><Icon name="user_plus" size={14} color="#000" />عميل</button>
       </div>
       <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)" /></span><input className="sb" value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight: 36 }} /></div>
       {filtered.length === 0
@@ -1372,10 +847,7 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
         : filtered.map(cl => (
           <div key={cl.id} className="clic" onClick={() => setSel(cl.id)}>
             <div className="cav"><Icon name="person" size={18} color="var(--ac)" /></div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="clic-name">{cl.name}</div>
-              <div className="clic-sub">{[cl.phone, `${contracts.filter(c => c.clientId === cl.id).length} عقد`].filter(Boolean).join(" · ")}</div>
-            </div>
+            <div style={{ flex: 1, minWidth: 0 }}><div className="clic-name">{cl.name}</div><div className="clic-sub">{[cl.phone, `${contracts.filter(c => c.clientId === cl.id).length} عقد`].filter(Boolean).join(" · ")}</div></div>
             <WABtn phone={cl.phone} sm />
           </div>
         ))}
@@ -1383,7 +855,6 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
   );
 }
 
-// ─── Income Screen ────────────────────────────────────────────────
 function IncomeScreen({ contracts }) {
   const videoOnly = c => Number(c.videoAmount || 0);
   const thirtyAgo = new Date(); thirtyAgo.setDate(thirtyAgo.getDate() - 30);
@@ -1393,7 +864,6 @@ function IncomeScreen({ contracts }) {
   const pend = contracts.filter(c => c.status !== "cancelled").reduce((s, c) => s + videoOnly(c) * ((!c.deposit50Paid ? 0.5 : 0) + (!c.final50Paid ? 0.5 : 0)), 0);
   const totalC = contracts.reduce((s, c) => s + videoOnly(c), 0);
   const activeT = contracts.filter(c => c.status === "active").reduce((s, c) => s + videoOnly(c), 0);
-
   const stats = [
     { l: "آخر 30 يوم", v: fmt(last30), icon: "clock" },
     { l: String(NOW.getFullYear()), v: fmt(yearT), icon: "income" },
@@ -1402,7 +872,6 @@ function IncomeScreen({ contracts }) {
     { l: "إجمالي العقود", v: fmt(totalC), icon: "contracts" },
     { l: "العقود النشطة", v: fmt(activeT), icon: "check" },
   ];
-
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
       <div className="hero-card">
@@ -1424,10 +893,7 @@ function IncomeScreen({ contracts }) {
       {contracts.filter(c => c.deposit50Paid || c.final50Paid).slice(0, 6).map(c => (
         <div key={c.id} className="tx-card">
           <div className="tx-icon"><Icon name="income" size={16} color="var(--ac)" /></div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="tx-name">{c.clientName}</div>
-            <div className="tx-sub">{c.deposit50Paid && c.final50Paid ? "مدفوع بالكامل" : c.deposit50Paid ? "الدفعة الأولى" : "الدفعة الثانية"}</div>
-          </div>
+          <div style={{ flex: 1, minWidth: 0 }}><div className="tx-name">{c.clientName}</div><div className="tx-sub">{c.deposit50Paid && c.final50Paid ? "مدفوع بالكامل" : c.deposit50Paid ? "الدفعة الأولى" : "الدفعة الثانية"}</div></div>
           <div className="tx-amt pos">{fmt(videoOnly(c) * ((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)), c.currency)}</div>
         </div>
       ))}
@@ -1437,7 +903,6 @@ function IncomeScreen({ contracts }) {
 
 // ─── App ──────────────────────────────────────────────────────────
 export default function App() {
- export default function App() {
   const [contracts, setContracts] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1455,9 +920,7 @@ export default function App() {
   const [auth, setAuth] = useState(() => sessionStorage.getItem("auth") === "ok");
   const [loginF, setLoginF] = useState({ u: "", p: "", err: "" });
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
+  useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
 
   useEffect(() => {
     if (!auth) return;
@@ -1521,8 +984,7 @@ export default function App() {
   const togglePay = async (id, field) => {
     const c = contracts.find(x => x.id === id); if (!c) return;
     const updated = { ...c, [field]: !c[field] };
-    const vc = Number(updated.videoCount || 0);
-    const vd = Number(updated.videoDone || 0);
+    const vc = Number(updated.videoCount || 0), vd = Number(updated.videoDone || 0);
     const videosDone = vc === 0 || vd >= vc;
     if (updated.deposit50Paid && updated.final50Paid && videosDone) {
       updated.status = "completed";
@@ -1558,13 +1020,8 @@ export default function App() {
     setClm(null);
   };
 
-  const delClient = async id => {
-    await supabase.from("clients").delete().eq("id", id);
-    setClients(p => p.filter(c => c.id !== id));
-  };
-
+  const delClient = async id => { await supabase.from("clients").delete().eq("id", id); setClients(p => p.filter(c => c.id !== id)); };
   const goToClient = id => { setSelClient(id); setTab("clients"); };
-
   const goTo = t => {
     if (t === "contracts_new") { setTab("contracts"); setTimeout(() => setCm("new"), 100); }
     else if (t === "clients_new") { setTab("clients"); setTimeout(() => setClm("new"), 100); }
@@ -1579,7 +1036,6 @@ export default function App() {
     { key: "wallet", label: "المحفظة", icon: "wallet" },
   ];
 
-  // ── Always render CSS first ──
   const cssEl = <style dangerouslySetInnerHTML={{ __html: CSS }} />;
 
   if (!auth) return (
