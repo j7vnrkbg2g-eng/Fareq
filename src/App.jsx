@@ -1446,7 +1446,11 @@ export default function App() {
   const [vm, setVm] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
   // ── Default dark mode ──
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState(() => {
+  const t = "dark";
+  document.documentElement.setAttribute("data-theme", t);
+  return t;
+});
   const [confirm, setConfirm] = useState(null);
   const [selClient, setSelClient] = useState(null);
   const [auth, setAuth] = useState(() => sessionStorage.getItem("auth") === "ok");
@@ -1459,6 +1463,7 @@ const doLogin = () => {
     setLoginF(f => ({ ...f, err: "اسم المستخدم أو كلمة المرور غلط" }));
   }
 };
+document.documentElement.setAttribute("data-theme", theme);
 if (!auth) return (
   <>
     <style dangerouslySetInnerHTML={{ __html: CSS }} />
