@@ -1437,6 +1437,7 @@ function IncomeScreen({ contracts }) {
 
 // ─── App ──────────────────────────────────────────────────────────
 export default function App() {
+ export default function App() {
   const [contracts, setContracts] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1445,50 +1446,21 @@ export default function App() {
   const [clm, setClm] = useState(null);
   const [vm, setVm] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
-  // ── Default dark mode ──
   const [theme, setTheme] = useState(() => {
-  const t = "dark";
-  document.documentElement.setAttribute("data-theme", t);
-  return t;
-});
+    document.documentElement.setAttribute("data-theme", "dark");
+    return "dark";
+  });
   const [confirm, setConfirm] = useState(null);
   const [selClient, setSelClient] = useState(null);
   const [auth, setAuth] = useState(() => sessionStorage.getItem("auth") === "ok");
-const [loginF, setLoginF] = useState({ u: "", p: "", err: "" });
-const doLogin = () => {
-  if (loginF.u === CREDENTIALS.user && loginF.p === CREDENTIALS.pass) {
-    sessionStorage.setItem("auth", "ok");
-    setAuth(true);
-  } else {
-    setLoginF(f => ({ ...f, err: "اسم المستخدم أو كلمة المرور غلط" }));
-  }
-};
-document.documentElement.setAttribute("data-theme", theme);
-if (!auth) return (
-  <>
-    <style dangerouslySetInnerHTML={{ __html: CSS }} />
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100dvh", background: "var(--bg)", padding: 24 }}>
-      <div style={{ background: "var(--surface)", border: "1px solid var(--card-border)", borderRadius: 24, padding: 32, width: "100%", maxWidth: 360, boxShadow: "var(--shadow-float)" }}>
-        <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <div className="lmark" style={{ width: 52, height: 52, borderRadius: 16, fontSize: 22, margin: "0 auto 12px" }}>F</div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: "var(--text)" }}>فارق للإنتاج</div>
-          <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>تسجيل الدخول</div>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <input className="finp" placeholder="اسم المستخدم" value={loginF.u} onChange={e => setLoginF(f => ({ ...f, u: e.target.value }))} />
-          <input className="finp" type="password" placeholder="كلمة المرور" value={loginF.p} onChange={e => setLoginF(f => ({ ...f, p: e.target.value }))}
-            onKeyDown={e => e.key === "Enter" && doLogin()} />
-          {loginF.err && <div style={{ color: "var(--danger)", fontSize: 12, textAlign: "center" }}>{loginF.err}</div>}
-          <button className="btn bngf" style={{ width: "100%", marginTop: 4 }} onClick={doLogin}>دخول</button>
-        </div>
-      </div>
-    </div>
-  </>
-);
-
-  useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
+  const [loginF, setLoginF] = useState({ u: "", p: "", err: "" });
 
   useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (!auth) return;
     const load = async () => {
       const [{ data: c }, { data: cl }] = await Promise.all([
         supabase.from("contracts").select("*").order("id", { ascending: false }),
@@ -1499,19 +1471,44 @@ if (!auth) return (
       setLoading(false);
     };
     load();
-  }, []);
+  }, [auth]);
 
-  const addHist = (c, newStatus) => { if (c.status === newStatus) return c.statusHistory || []; return [...(c.statusHistory || []), { status: newStatus, date: new Date().toISOString() }]; };
+  const doLogin = () => {
+    if (loginF.u === CREDENTIALS.user && loginF.p === CREDENTIALS.pass) {
+      sessionStorage.setItem("auth", "ok");
+      setAuth(true);
+    } else {
+      setLoginF(f => ({ ...f, err: "اسم المستخدم أو كلمة المرور غلط" }));
+    }
+  };
+
+  const addHist = (c, newStatus) => {
+    if (c.status === newStatus) return c.statusHistory || [];
+    return [...(c.statusHistory || []), { status: newStatus, date: new Date().toISOString() }];
+  };
 
   const saveContract = async (c) => {
     const hist = addHist(c, c.status);
     const d2s = { ...c, statusHistory: hist };
-    if (c.id) { const { data } = await supabase.from("contracts").update(toDB(d2s)).eq("id", c.id).select().single(); if (data) setContracts(p => p.map(x => x.id === c.id ? toApp(data) : x)); }
-    else { const ih = [{ status: c.status, date: new Date().toISOString() }]; const { data } = await supabase.from("contracts").insert(toDB({ ...c, statusHistory: ih })).select().single(); if (data) setContracts(p => [toApp(data), ...p]); }
+    if (c.id) {
+      const { data } = await supabase.from("contracts").update(toDB(d2s)).eq("id", c.id).select().single();
+      if (data) setContracts(p => p.map(x => x.id === c.id ? toApp(data) : x));
+    } else {
+      const ih = [{ status: c.status, date: new Date().toISOString() }];
+      const { data } = await supabase.from("contracts").insert(toDB({ ...c, statusHistory: ih })).select().single();
+      if (data) setContracts(p => [toApp(data), ...p]);
+    }
     setCm(null);
   };
 
-  const delContract = id => setConfirm({ msg: "هل تريد حذف هذا العقد نهائياً؟", onConfirm: async () => { await supabase.from("contracts").delete().eq("id", id); setContracts(p => p.filter(c => c.id !== id)); setConfirm(null); } });
+  const delContract = id => setConfirm({
+    msg: "هل تريد حذف هذا العقد نهائياً؟",
+    onConfirm: async () => {
+      await supabase.from("contracts").delete().eq("id", id);
+      setContracts(p => p.filter(c => c.id !== id));
+      setConfirm(null);
+    }
+  });
 
   const cancelContract = async id => {
     const c = contracts.find(x => x.id === id); if (!c) return;
@@ -1524,7 +1521,6 @@ if (!auth) return (
   const togglePay = async (id, field) => {
     const c = contracts.find(x => x.id === id); if (!c) return;
     const updated = { ...c, [field]: !c[field] };
-    // ── Only mark completed if BOTH payments done AND videos fully done (or no video count set) ──
     const vc = Number(updated.videoCount || 0);
     const vd = Number(updated.videoDone || 0);
     const videosDone = vc === 0 || vd >= vc;
@@ -1536,11 +1532,9 @@ if (!auth) return (
     if (data) setContracts(p => p.map(x => x.id === id ? toApp(data) : x));
   };
 
-  // ── Video update: no auto-complete on video count, no auto-complete on date ──
   const updateVideoDone = async (id, count) => {
     const c = contracts.find(x => x.id === id); if (!c) return;
     const updated = { ...c, videoDone: count };
-    // Do NOT auto-set status — user controls status manually
     const { data } = await supabase.from("contracts").update(toDB(updated)).eq("id", id).select().single();
     if (data) setContracts(p => p.map(x => x.id === id ? toApp(data) : x));
   };
@@ -1554,12 +1548,21 @@ if (!auth) return (
   };
 
   const saveClient = async c => {
-    if (c.id) { const { data } = await supabase.from("clients").update(toDBCl(c)).eq("id", c.id).select().single(); if (data) setClients(p => p.map(x => x.id === c.id ? toAppCl(data) : x)); }
-    else { const { data } = await supabase.from("clients").insert(toDBCl(c)).select().single(); if (data) setClients(p => [toAppCl(data), ...p]); }
+    if (c.id) {
+      const { data } = await supabase.from("clients").update(toDBCl(c)).eq("id", c.id).select().single();
+      if (data) setClients(p => p.map(x => x.id === c.id ? toAppCl(data) : x));
+    } else {
+      const { data } = await supabase.from("clients").insert(toDBCl(c)).select().single();
+      if (data) setClients(p => [toAppCl(data), ...p]);
+    }
     setClm(null);
   };
 
-  const delClient = async id => { await supabase.from("clients").delete().eq("id", id); setClients(p => p.filter(c => c.id !== id)); };
+  const delClient = async id => {
+    await supabase.from("clients").delete().eq("id", id);
+    setClients(p => p.filter(c => c.id !== id));
+  };
+
   const goToClient = id => { setSelClient(id); setTab("clients"); };
 
   const goTo = t => {
@@ -1576,11 +1579,36 @@ if (!auth) return (
     { key: "wallet", label: "المحفظة", icon: "wallet" },
   ];
 
+  // ── Always render CSS first ──
+  const cssEl = <style dangerouslySetInnerHTML={{ __html: CSS }} />;
+
+  if (!auth) return (
+    <>
+      {cssEl}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100dvh", background: "var(--bg)", padding: 24 }}>
+        <div style={{ background: "var(--surface)", border: "1px solid var(--card-border)", borderRadius: 24, padding: 32, width: "100%", maxWidth: 360, boxShadow: "var(--shadow-float)" }}>
+          <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <div className="lmark" style={{ width: 52, height: 52, borderRadius: 16, fontSize: 22, margin: "0 auto 12px" }}>F</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "var(--text)" }}>فارق للإنتاج</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>تسجيل الدخول</div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <input className="finp" placeholder="اسم المستخدم" value={loginF.u} onChange={e => setLoginF(f => ({ ...f, u: e.target.value }))} />
+            <input className="finp" type="password" placeholder="كلمة المرور" value={loginF.p}
+              onChange={e => setLoginF(f => ({ ...f, p: e.target.value }))}
+              onKeyDown={e => e.key === "Enter" && doLogin()} />
+            {loginF.err && <div style={{ color: "var(--danger)", fontSize: 12, textAlign: "center" }}>{loginF.err}</div>}
+            <button className="btn bngf" style={{ width: "100%", marginTop: 4 }} onClick={doLogin}>دخول</button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
   if (loading) return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      {cssEl}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100dvh", background: "var(--bg)", flexDirection: "column", gap: 14 }}>
-        {/* Logo in loading screen */}
         <div style={{ width: 60, height: 60, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <FareqLogo size={56} />
         </div>
@@ -1591,19 +1619,11 @@ if (!auth) return (
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      {cssEl}
       <div className="app">
-        {/* Top bar — real logo instead of "F" */}
         <div className="topbar">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: 11,
-              background: "#000",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              overflow: "hidden",
-              flexShrink: 0,
-              border: "1px solid rgba(0,255,136,0.2)",
-            }}>
+            <div style={{ width: 36, height: 36, borderRadius: 11, background: "#000", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0, border: "1px solid rgba(0,255,136,0.2)" }}>
               <FareqLogo size={30} />
             </div>
             <div>
@@ -1623,15 +1643,12 @@ if (!auth) return (
         {tab === "income" && <IncomeScreen contracts={contracts} />}
         {tab === "wallet" && <WalletScreen />}
 
-        {/* Bottom Nav */}
         <nav className="bnav">
           {nav.map(n => (
             <div key={n.key} className={`bni${tab === n.key ? " on" : ""}`}
               onClick={() => { setTab(n.key); if (n.key !== "clients") setSelClient(null); }}>
               {n.key === "contracts" ? (
-                <div className="bni-fab">
-                  <Icon name={n.icon} size={20} color="#000" />
-                </div>
+                <div className="bni-fab"><Icon name={n.icon} size={20} color="#000" /></div>
               ) : (
                 <Icon name={n.icon} size={20} color={tab === n.key ? "var(--ac)" : "var(--muted)"} />
               )}
