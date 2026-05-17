@@ -10,7 +10,39 @@ const NOW = new Date();
 const SL = { active:"جارٍ", pending:"معلق", completed:"مكتمل", cancelled:"ملغي" };
 const SC = { active:"#00ff88", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4d4d" };
 
-const FAREQ_LOGO_B64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+// Logo component – renders the uploaded image with black background removed via mix-blend-mode
+const FareqLogo = ({ size = 36, style = {} }) => (
+  <img
+    src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG"
+    alt="فارق"
+    style={{
+      width: size,
+      height: size,
+      objectFit: "contain",
+      mixBlendMode: "screen",   // removes the black background in dark contexts
+      filter: "brightness(1.1)",
+      display: "block",
+      ...style,
+    }}
+  />
+);
+
+// For light backgrounds (PDF, light modals) – use luminosity inversion trick
+const FareqLogoLight = ({ size = 70, style = {} }) => (
+  <img
+    src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG"
+    alt="فارق"
+    style={{
+      width: size,
+      height: size,
+      objectFit: "contain",
+      filter: "invert(1)",      // white logo on light PDF bg becomes black mark
+      display: "block",
+      margin: "0 auto",
+      ...style,
+    }}
+  />
+);
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
@@ -97,6 +129,7 @@ html,body {
 
 @keyframes fu { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 20px var(--ac-glow); } 50% { box-shadow: 0 0 40px var(--ac-glow), 0 0 60px var(--ac-glow); } }
+@keyframes expandCard { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: none; } }
 
 /* ── HERO BALANCE CARD ── */
 .hero-card {
@@ -275,13 +308,50 @@ html,body {
 .cc {
   background: var(--surface);
   border: 1px solid var(--card-border);
-  border-radius: 18px;
+  border-radius: 16px;
   overflow: hidden;
-  margin-bottom: var(--card-gap);
+  margin-bottom: 8px;
   box-shadow: var(--shadow-card);
   transition: all .25s;
 }
-.cc:hover { box-shadow: var(--shadow-float); border-color: var(--ac-border); transform: translateY(-1px); }
+.cc:hover { box-shadow: var(--shadow-float); border-color: var(--ac-border); }
+
+/* Compact (collapsed) contract card */
+.cc-compact {
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cc-compact-icon {
+  width: 38px; height: 38px; border-radius: 11px;
+  background: var(--surface2); display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--card-border); flex-shrink: 0;
+}
+.cc-compact-body { flex: 1; min-width: 0; }
+.cc-compact-name { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-compact-sub { font-size: 10px; color: var(--muted); margin-top: 1px; font-weight: 500; }
+.cc-compact-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.cc-compact-amt { font-size: 12px; font-weight: 800; color: var(--ac); }
+.cc-expand-btn {
+  width: 26px; height: 26px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--card-border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .2s; flex-shrink: 0;
+  color: var(--muted);
+}
+.cc-expand-btn:hover { border-color: var(--ac-border); color: var(--ac); }
+.cc-expand-btn svg { transition: transform .25s cubic-bezier(.4,0,.2,1); }
+.cc-expand-btn.open svg { transform: rotate(180deg); }
+
+/* Expanded body */
+.cc-expanded {
+  animation: expandCard .22s cubic-bezier(.4,0,.2,1);
+  border-top: 1px solid var(--muted2);
+  padding: 10px 14px 14px;
+}
+.cc-actions { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+
 .cc-h { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .cc-b { padding: 4px 14px 12px; }
 .cc-n { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -529,6 +599,7 @@ const Icon = ({ name, size = 20, color = "currentColor" }) => {
     piggy: <><path d="M19 11a2 2 0 00-2-2h-1.5"/><path d="M12 7a5 5 0 00-5 5c0 2.8 2.2 5 5 5s5-2.2 5-5"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/></>,
     arrow_up: <><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5,12 12,5 19,12"/></>,
     arrow_down: <><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19,12 12,19 5,12"/></>,
+    chevron_down: <><polyline points="6,9 12,15 18,9"/></>,
   };
   return <svg style={s} viewBox="0 0 24 24">{p[name] || null}</svg>;
 };
@@ -640,9 +711,36 @@ function Alerts({ contracts }) {
   const a = [];
   contracts.forEach(c => {
     if (c.status === "cancelled" || c.status === "completed") return;
-    if (!c.final50Paid && c.final50Date) { const d = daysDiff(c.final50Date); if (d !== null && d >= 0 && d <= 7) a.push({ id: c.id, msg: `${d === 0 ? "اليوم" : d + " أيام"} — الدفعة الثانية لـ ${c.clientName}`, type: d <= 2 ? "u" : "w" }); }
-    if (!c.deposit50Paid && c.deposit50Date && daysDiff(c.deposit50Date) <= 0) a.push({ id: c.id + "d", msg: `المقدم غير مدفوع — ${c.clientName}`, type: "u" });
-    if (c.endDate) { const d = daysDiff(c.endDate); if (d !== null && d >= 0 && d <= 2) a.push({ id: c.id + "e", msg: `ينتهي ${d === 0 ? "اليوم" : "خلال " + d + " أيام"} — ${c.clientName}`, type: "u" }); }
+    const vc = Number(c.videoCount || 0);
+    const vd = Number(c.videoDone || 0);
+
+    // Payment alerts
+    if (!c.final50Paid && c.final50Date) {
+      const d = daysDiff(c.final50Date);
+      if (d !== null && d >= 0 && d <= 7)
+        a.push({ id: c.id, msg: `${d === 0 ? "اليوم" : d + " أيام"} — الدفعة الثانية لـ ${c.clientName}`, type: d <= 2 ? "u" : "w" });
+    }
+    if (!c.deposit50Paid && c.deposit50Date && daysDiff(c.deposit50Date) <= 0)
+      a.push({ id: c.id + "d", msg: `المقدم غير مدفوع — ${c.clientName}`, type: "u" });
+
+    // Contract end date expired but videos not done
+    if (c.endDate && daysDiff(c.endDate) !== null && daysDiff(c.endDate) < 0) {
+      if (vc > 0 && vd < vc) {
+        a.push({ id: c.id + "exp", msg: `انتهى العقد ولم تكتمل الفيديوهات (${vd}/${vc}) — ${c.clientName}`, type: "u" });
+      }
+    }
+
+    // Videos done but contract date not expired yet
+    if (vc > 0 && vd >= vc && c.endDate && daysDiff(c.endDate) !== null && daysDiff(c.endDate) > 0) {
+      a.push({ id: c.id + "vdone", msg: `اكتملت الفيديوهات قبل موعد انتهاء العقد — ${c.clientName}`, type: "w" });
+    }
+
+    // End date within 2 days
+    if (c.endDate) {
+      const d = daysDiff(c.endDate);
+      if (d !== null && d >= 0 && d <= 2)
+        a.push({ id: c.id + "e", msg: `ينتهي ${d === 0 ? "اليوم" : "خلال " + d + " أيام"} — ${c.clientName}`, type: "u" });
+    }
   });
   if (!a.length) return null;
   return <div style={{ marginBottom: 14 }}>{a.map(x => <div key={x.id} className={`alr ${x.type === "u" ? "au" : "aw"}`}><Icon name="alert" size={13} color="currentColor" />{x.msg}</div>)}</div>;
@@ -807,10 +905,16 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
           )}
           {c.notes && <div style={{ marginTop: 10, fontSize: 12, color: "var(--text2)", padding: "9px 12px", background: "var(--surface2)", borderRadius: 10, border: "1px solid var(--card-border)" }}>📝 {c.notes}</div>}
         </div>
-        {/* Hidden PDF content */}
+
+        {/* ── Hidden PDF content ── */}
         <div ref={ref} style={{ display: "none" }}>
+          {/* Logo header — black bg removed via invert filter in PDF context */}
           <div style={{ textAlign: "center", marginBottom: 16 }}>
-            <img src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG" alt="فارق" style={{ width: 70, height: 70, objectFit: "contain", marginBottom: 7 }} />
+            <img
+              src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG"
+              alt="فارق"
+              style={{ width: 70, height: 70, objectFit: "contain", filter: "invert(1)", display: "inline-block", marginBottom: 7 }}
+            />
             <div style={{ fontWeight: 800, fontSize: 16, fontFamily: "'Tajawal',sans-serif" }}>شركة فارق للإنتاج</div>
             <div style={{ color: "#555", fontSize: 11, fontFamily: "'Tajawal',sans-serif" }}>FAREQ Productions — 0920953918</div>
           </div>
@@ -845,14 +949,16 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36, fontFamily: "'Tajawal',sans-serif" }}>
             {["الطرف الأول — شركة فارق للإنتاج", `الطرف الثاني — ${c.clientName || "___________"}`].map((p, i) => <div key={i} style={{ textAlign: "center" }}><div style={{ fontSize: 11, color: "#555", marginBottom: 3 }}>{p}</div><div style={{ fontWeight: 700 }}>التوقيع</div><div style={{ marginTop: 34, borderBottom: "1.5px dashed #bbb" }} /></div>)}
           </div>
+          {/* No app link footer */}
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Contract Card ────────────────────────────────────────────────
+// ─── Contract Card (compact + expandable) ─────────────────────────
 function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, onCancel }) {
+  const [expanded, setExpanded] = useState(false);
   const pct = Math.round(((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)) * 100);
   const f50d = c.final50Date ? daysDiff(c.final50Date) : null;
   const vc = Number(c.videoCount || 0), vd = Number(c.videoDone || 0);
@@ -860,71 +966,96 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
 
   return (
     <div className="cc">
-      <div className="cc-h">
-        <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => onView(c)}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 11, background: "var(--surface2)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--card-border)", flexShrink: 0 }}>
-              <Icon name="contracts" size={14} color="var(--ac)" />
-            </div>
-            <div>
-              <div className="cc-n">{c.clientName || "عميل"}</div>
-              <div className="cc-sub">{vc > 0 ? `${vd}/${vc} فيديو` : ""}{vc > 0 && c.startDate ? " · " : ""}{fmtDate(c.startDate)}</div>
-            </div>
+      {/* ── Compact summary row ── */}
+      <div className="cc-compact">
+        <div className="cc-compact-icon" onClick={() => onView(c)} style={{ cursor: "pointer" }}>
+          <Icon name="contracts" size={15} color="var(--ac)" />
+        </div>
+        <div className="cc-compact-body" onClick={() => onView(c)} style={{ cursor: "pointer" }}>
+          <div className="cc-compact-name">{c.clientName || "عميل"}</div>
+          <div className="cc-compact-sub">
+            {vc > 0 ? `${vd}/${vc} فيديو` : ""}
+            {vc > 0 && c.startDate ? " · " : ""}
+            {fmtDate(c.startDate)}
+            {c.endDate ? ` · حتى ${fmtDate(c.endDate)}` : ""}
           </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, flexShrink: 0, alignItems: "flex-end" }}>
+        <div className="cc-compact-right">
           <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
-          <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
-            <button className="ico-btn" onClick={() => onEdit(c)} title="تعديل"><Icon name="edit" size={12} color="var(--text2)" /></button>
-            <button className="ico-btn" onClick={() => onView(c)} title="عرض"><Icon name="doc" size={12} color="var(--text2)" /></button>
-            <WABtn phone={c.clientPhone} sm />
-            <button className="ico-btn red" onClick={() => onCancel(c.id)} title="إلغاء"><Icon name="cancel" size={12} color="var(--danger)" /></button>
-            <button className="ico-btn red" onClick={() => onDelete(c.id)} title="حذف"><Icon name="trash" size={12} color="var(--danger)" /></button>
-          </div>
+          <div className="cc-compact-amt">{fmt(c.videoAmount || c.totalAmount, c.currency)}</div>
         </div>
+        {/* Expand arrow */}
+        <button
+          className={`cc-expand-btn${expanded ? " open" : ""}`}
+          onClick={e => { e.stopPropagation(); setExpanded(p => !p); }}
+          title={expanded ? "طي" : "توسيع"}
+        >
+          <Icon name="chevron_down" size={14} color="currentColor" />
+        </button>
       </div>
-      <div className="cc-b">
-        <div className="amt-box">
-          <div className="amt-lbl">الإجمالي</div>
-          <div className="amt-val">{fmt(c.totalAmount, c.currency)}</div>
-        </div>
-        <div className="psec">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700 }}>الدفع</span>
-            <span style={{ fontSize: 10, fontWeight: 800, color: pct === 100 ? "var(--ac)" : "var(--warn)" }}>{pct}%</span>
+
+      {/* ── Expanded detail section ── */}
+      {expanded && (
+        <div className="cc-expanded">
+          {/* Action buttons row */}
+          <div className="cc-actions">
+            <div style={{ display: "flex", gap: 5 }}>
+              <button className="ico-btn" onClick={() => onEdit(c)} title="تعديل"><Icon name="edit" size={12} color="var(--text2)" /></button>
+              <button className="ico-btn" onClick={() => onView(c)} title="عرض PDF"><Icon name="doc" size={12} color="var(--text2)" /></button>
+              <WABtn phone={c.clientPhone} sm />
+              <button className="ico-btn red" onClick={() => onCancel(c.id)} title="إلغاء"><Icon name="cancel" size={12} color="var(--danger)" /></button>
+              <button className="ico-btn red" onClick={() => onDelete(c.id)} title="حذف"><Icon name="trash" size={12} color="var(--danger)" /></button>
+            </div>
           </div>
-          <div className="pbar"><div className="pfill" style={{ width: `${pct}%` }} /></div>
-          <div className="pgrid">
-            {[
-              { label: "الأولى 50%", paid: c.deposit50Paid, date: c.deposit50Date, field: "deposit50Paid", diff: null },
-              { label: "الثانية 50%", paid: c.final50Paid, date: c.final50Date, field: "final50Paid", diff: f50d }
-            ].map(p => (
-              <div key={p.field} className="pitem">
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>{p.label}</div>
-                  <div style={{ fontSize: 11, fontWeight: 700 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>
-                  {p.date && <div style={{ fontSize: 9, color: !p.paid && p.diff !== null && p.diff <= 7 && p.diff >= 0 ? "var(--warn)" : "var(--muted)" }}>{fmtDate(p.date)}</div>}
-                </div>
-                <button className={`ptog ${p.paid ? "ok" : "no"}`} onClick={() => onToggle(c.id, p.field)}>{p.paid ? "✓ مدفوع" : "تحديد"}</button>
-              </div>
-            ))}
+
+          <div className="amt-box">
+            <div className="amt-lbl">الإجمالي</div>
+            <div className="amt-val">{fmt(c.totalAmount, c.currency)}</div>
           </div>
-        </div>
-        {vc > 0 && (
-          <div className="vpsec">
+
+          <div className="psec">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700 }}>الفيديوهات</span>
-              <span style={{ fontSize: 10, fontWeight: 800, color: "var(--ac)" }}>{vd}/{vc}</span>
+              <span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700 }}>الدفع</span>
+              <span style={{ fontSize: 10, fontWeight: 800, color: pct === 100 ? "var(--ac)" : "var(--warn)" }}>{pct}%</span>
             </div>
-            <div className="vpbar"><div className="vpfill" style={{ width: `${vpct}%` }} /></div>
-            <div style={{ display: "flex", gap: 6 }}>
-              <button className="vp-btn" onClick={() => onVideoUpdate(c.id, Math.min(vc, vd + 2))}>+2 فيديو</button>
-              <button className="vp-btn" style={{ color: "var(--danger)" }} onClick={() => onVideoUpdate(c.id, 0)}>صفر</button>
+            <div className="pbar"><div className="pfill" style={{ width: `${pct}%` }} /></div>
+            <div className="pgrid">
+              {[
+                { label: "الأولى 50%", paid: c.deposit50Paid, date: c.deposit50Date, field: "deposit50Paid", diff: null },
+                { label: "الثانية 50%", paid: c.final50Paid, date: c.final50Date, field: "final50Paid", diff: f50d }
+              ].map(p => (
+                <div key={p.field} className="pitem">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>{p.label}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>
+                    {p.date && <div style={{ fontSize: 9, color: !p.paid && p.diff !== null && p.diff <= 7 && p.diff >= 0 ? "var(--warn)" : "var(--muted)" }}>{fmtDate(p.date)}</div>}
+                  </div>
+                  <button className={`ptog ${p.paid ? "ok" : "no"}`} onClick={() => onToggle(c.id, p.field)}>{p.paid ? "✓ مدفوع" : "تحديد"}</button>
+                </div>
+              ))}
             </div>
           </div>
-        )}
-      </div>
-      {c.notes && <div style={{ fontSize: 10, color: "var(--muted)", padding: "4px 14px 10px", borderTop: "1px solid var(--muted2)", display: "flex", gap: 5 }}><Icon name="doc" size={10} />{ c.notes}</div>}
+
+          {vc > 0 && (
+            <div className="vpsec">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700 }}>الفيديوهات</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: "var(--ac)" }}>{vd}/{vc}</span>
+              </div>
+              <div className="vpbar"><div className="vpfill" style={{ width: `${vpct}%` }} /></div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button className="vp-btn" onClick={() => onVideoUpdate(c.id, Math.min(vc, vd + 1))}>+1 فيديو</button>
+              </div>
+            </div>
+          )}
+
+          {c.notes && (
+            <div style={{ marginTop: 8, fontSize: 10, color: "var(--muted)", padding: "7px 10px", background: "var(--surface2)", borderRadius: 8, border: "1px solid var(--card-border)", display: "flex", gap: 5 }}>
+              <Icon name="doc" size={10} />{ c.notes}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -984,7 +1115,7 @@ function WalletModal({ type, walletType, onClose, onSave }) {
 // ─── Wallet Screen ────────────────────────────────────────────────
 function WalletScreen() {
   const [walletTab, setWalletTab] = useState("expense");
-  const [modal, setModal] = useState(null); // 'income' | 'expense' | 'savings_add' | 'savings_withdraw'
+  const [modal, setModal] = useState(null);
   const [txns, setTxns] = useState(() => {
     try { return JSON.parse(localStorage.getItem("wallet_txns") || "[]"); } catch { return []; }
   });
@@ -996,30 +1127,20 @@ function WalletScreen() {
 
   const expenseTxns = txns.filter(t => t.type === "income" || t.type === "expense");
   const savingsTxns = txns.filter(t => t.type === "savings_add" || t.type === "savings_withdraw");
-
   const expenseBalance = expenseTxns.reduce((s, t) => t.type === "income" ? s + t.amount : s - t.amount, 0);
   const savingsBalance = savingsTxns.reduce((s, t) => t.type === "savings_add" ? s + t.amount : s - t.amount, 0);
-
   const balance = walletTab === "expense" ? expenseBalance : savingsBalance;
   const currentTxns = walletTab === "expense" ? [...expenseTxns].reverse() : [...savingsTxns].reverse();
 
-  const handleAdd = (data) => {
-    save([...txns, data]);
-    setModal(null);
-  };
-
+  const handleAdd = (data) => { save([...txns, data]); setModal(null); };
   const deleteTx = (idx) => {
-    const actualIdx = txns.length - 1 - (currentTxns.length - 1 - idx);
     const all = walletTab === "expense" ? expenseTxns : savingsTxns;
-    const reversed = [...all].reverse();
-    const item = reversed[idx];
-    const newTxns = txns.filter(t => t !== item);
-    save(newTxns);
+    const item = [...all].reverse()[idx];
+    save(txns.filter(t => t !== item));
   };
 
   return (
     <div className="screen" style={{ paddingTop: 0 }}>
-      {/* Hero wallet card */}
       <div className="wallet-hero">
         <div className="wallet-tabs">
           <button className={`wallet-tab-btn${walletTab === "expense" ? " on" : ""}`} onClick={() => setWalletTab("expense")}>💳 المصروف</button>
@@ -1032,51 +1153,35 @@ function WalletScreen() {
         <div className="wallet-actions">
           {walletTab === "expense" ? (
             <>
-              <button className="wa-btn income-btn" onClick={() => setModal("income")}>
-                <Icon name="plus" size={14} color="var(--ac)" /> إضافة رصيد
-              </button>
-              <button className="wa-btn expense-btn" onClick={() => setModal("expense")}>
-                <Icon name="minus" size={14} color="#ff4d6d" /> إضافة مصروف
-              </button>
+              <button className="wa-btn income-btn" onClick={() => setModal("income")}><Icon name="plus" size={14} color="var(--ac)" /> إضافة رصيد</button>
+              <button className="wa-btn expense-btn" onClick={() => setModal("expense")}><Icon name="minus" size={14} color="#ff4d6d" /> إضافة مصروف</button>
             </>
           ) : (
             <>
-              <button className="wa-btn savings-btn" onClick={() => setModal("savings_add")}>
-                <Icon name="plus" size={14} color="#a78bfa" /> إضافة للادخار
-              </button>
-              <button className="wa-btn expense-btn" onClick={() => setModal("savings_withdraw")}>
-                <Icon name="minus" size={14} color="#ff4d6d" /> سحب
-              </button>
+              <button className="wa-btn savings-btn" onClick={() => setModal("savings_add")}><Icon name="plus" size={14} color="#a78bfa" /> إضافة للادخار</button>
+              <button className="wa-btn expense-btn" onClick={() => setModal("savings_withdraw")}><Icon name="minus" size={14} color="#ff4d6d" /> سحب</button>
             </>
           )}
         </div>
       </div>
-
-      {/* Transactions */}
       <div className="sec-hdr">
         <span className="sec-title">آخر العمليات</span>
         <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>{currentTxns.length} عملية</span>
       </div>
-
       {currentTxns.length === 0 && (
         <div className="empty">
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 10, opacity: .3 }}><Icon name="wallet" size={40} color="var(--muted)" /></div>
           <div style={{ fontWeight: 500, color: "var(--muted)", fontSize: 13 }}>لا توجد عمليات بعد</div>
         </div>
       )}
-
       {currentTxns.map((t, i) => {
         const isPos = t.type === "income" || t.type === "savings_add";
         const iconColor = isPos ? "green" : t.type === "savings_withdraw" ? "purple" : "red";
         const amtColor = isPos ? "pos" : t.type === "savings_withdraw" ? "purple" : "neg";
-        const iconName = isPos ? "arrow_up" : "arrow_down";
-        const iconSvgColor = isPos ? "var(--ac)" : t.type === "savings_withdraw" ? "#a78bfa" : "var(--danger)";
         return (
           <div key={i} className="wallet-tx-card" style={{ justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div className={`wtx-icon ${iconColor}`}>
-                <Icon name={iconName} size={18} color={iconSvgColor} />
-              </div>
+              <div className={`wtx-icon ${iconColor}`}><Icon name={isPos ? "arrow_up" : "arrow_down"} size={18} color={isPos ? "var(--ac)" : t.type === "savings_withdraw" ? "#a78bfa" : "var(--danger)"} /></div>
               <div>
                 <div className="wtx-name">{t.desc}</div>
                 <div className="wtx-sub">{new Date(t.date).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
@@ -1089,7 +1194,6 @@ function WalletScreen() {
           </div>
         );
       })}
-
       {modal && <WalletModal type={modal} walletType={walletTab} onClose={() => setModal(null)} onSave={handleAdd} />}
     </div>
   );
@@ -1102,7 +1206,6 @@ function Dashboard({ contracts, clients, goTo, onViewContract }) {
 
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
-      {/* Hero balance card */}
       <div className="hero-card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8, position: "relative", zIndex: 1 }}>
           <div>
@@ -1135,7 +1238,6 @@ function Dashboard({ contracts, clients, goTo, onViewContract }) {
 
       <Alerts contracts={contracts} />
 
-      {/* Stats */}
       <div className="stat-grid">
         {[
           { l: "نشطة", v: contracts.filter(c => c.status === "active").length, icon: "check", ac: true },
@@ -1302,7 +1404,6 @@ function IncomeScreen({ contracts }) {
 
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
-      {/* Hero */}
       <div className="hero-card">
         <div style={{ position: "relative", zIndex: 1 }}>
           <div className="hero-lbl">إجمالي المحصّل</div>
@@ -1318,7 +1419,6 @@ function IncomeScreen({ contracts }) {
           </div>
         ))}
       </div>
-      {/* Recent paid contracts */}
       <div className="sec-hdr"><span className="sec-title">المحصّل حديثاً</span></div>
       {contracts.filter(c => c.deposit50Paid || c.final50Paid).slice(0, 6).map(c => (
         <div key={c.id} className="tx-card">
@@ -1344,7 +1444,8 @@ export default function App() {
   const [clm, setClm] = useState(null);
   const [vm, setVm] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
-  const [theme, setTheme] = useState("light");
+  // ── Default dark mode ──
+  const [theme, setTheme] = useState("dark");
   const [confirm, setConfirm] = useState(null);
   const [selClient, setSelClient] = useState(null);
 
@@ -1374,6 +1475,7 @@ export default function App() {
   };
 
   const delContract = id => setConfirm({ msg: "هل تريد حذف هذا العقد نهائياً؟", onConfirm: async () => { await supabase.from("contracts").delete().eq("id", id); setContracts(p => p.filter(c => c.id !== id)); setConfirm(null); } });
+
   const cancelContract = async id => {
     const c = contracts.find(x => x.id === id); if (!c) return;
     const hist = addHist(c, "cancelled");
@@ -1385,15 +1487,23 @@ export default function App() {
   const togglePay = async (id, field) => {
     const c = contracts.find(x => x.id === id); if (!c) return;
     const updated = { ...c, [field]: !c[field] };
-    if (updated.deposit50Paid && updated.final50Paid) { updated.status = "completed"; updated.statusHistory = addHist(c, "completed"); }
+    // ── Only mark completed if BOTH payments done AND videos fully done (or no video count set) ──
+    const vc = Number(updated.videoCount || 0);
+    const vd = Number(updated.videoDone || 0);
+    const videosDone = vc === 0 || vd >= vc;
+    if (updated.deposit50Paid && updated.final50Paid && videosDone) {
+      updated.status = "completed";
+      updated.statusHistory = addHist(c, "completed");
+    }
     const { data } = await supabase.from("contracts").update(toDB(updated)).eq("id", id).select().single();
     if (data) setContracts(p => p.map(x => x.id === id ? toApp(data) : x));
   };
 
+  // ── Video update: no auto-complete on video count, no auto-complete on date ──
   const updateVideoDone = async (id, count) => {
     const c = contracts.find(x => x.id === id); if (!c) return;
     const updated = { ...c, videoDone: count };
-    if (count >= Number(c.videoCount) && Number(c.videoCount) > 0) { updated.status = "completed"; updated.statusHistory = addHist(c, "completed"); }
+    // Do NOT auto-set status — user controls status manually
     const { data } = await supabase.from("contracts").update(toDB(updated)).eq("id", id).select().single();
     if (data) setContracts(p => p.map(x => x.id === id ? toApp(data) : x));
   };
@@ -1433,7 +1543,10 @@ export default function App() {
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100dvh", background: "var(--bg)", flexDirection: "column", gap: 14 }}>
-        <div className="lmark" style={{ width: 52, height: 52, borderRadius: 16, fontSize: 22 }}>F</div>
+        {/* Logo in loading screen */}
+        <div style={{ width: 60, height: 60, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <FareqLogo size={56} />
+        </div>
         <div style={{ color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>جارٍ التحميل...</div>
       </div>
     </>
@@ -1443,10 +1556,19 @@ export default function App() {
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="app">
-        {/* Top bar */}
+        {/* Top bar — real logo instead of "F" */}
         <div className="topbar">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div className="lmark" style={{ width: 34, height: 34, borderRadius: 11, fontSize: 15 }}>F</div>
+            <div style={{
+              width: 36, height: 36, borderRadius: 11,
+              background: "#000",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden",
+              flexShrink: 0,
+              border: "1px solid rgba(0,255,136,0.2)",
+            }}>
+              <FareqLogo size={30} />
+            </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text)", lineHeight: 1.1 }}>فارق</div>
               <div style={{ fontSize: 10, color: "var(--muted)", fontWeight: 500 }}>للإنتاج</div>
