@@ -1452,7 +1452,7 @@ export default function App() {
   const [auth, setAuth] = useState(() => sessionStorage.getItem("auth") === "ok");
 const [loginF, setLoginF] = useState({ u: "", p: "", err: "" });
 const doLogin = () => {
-  if (loginF.u === fahed.user && loginF.p === 771997.pass) {
+  if (loginF.u === CREDENTIALS.user && loginF.p === CREDENTIALS.pass) {
     sessionStorage.setItem("auth", "ok");
     setAuth(true);
   } else {
