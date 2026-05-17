@@ -6,6 +6,7 @@ const fmtDate = d => d ? new Date(d).toLocaleDateString("ar-LY", { year: "numeri
 const daysDiff = d => { if (!d) return null; const t = new Date(); t.setHours(0,0,0,0); return Math.round((new Date(d)-t)/86400000); };
 const addMonths = (dateStr, months) => { const d = new Date(dateStr); d.setMonth(d.getMonth()+months); return d.toISOString().split("T")[0]; };
 const NOW = new Date();
+const CREDENTIALS = { user: "fahed", pass: "771997" };
 
 const SL = { active:"جارٍ", pending:"معلق", completed:"مكتمل", cancelled:"ملغي" };
 const SC = { active:"#00ff88", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4d4d" };
@@ -1448,6 +1449,37 @@ export default function App() {
   const [theme, setTheme] = useState("dark");
   const [confirm, setConfirm] = useState(null);
   const [selClient, setSelClient] = useState(null);
+  const [auth, setAuth] = useState(() => sessionStorage.getItem("auth") === "ok");
+const [loginF, setLoginF] = useState({ u: "", p: "", err: "" });
+const doLogin = () => {
+  if (loginF.u === fahed.user && loginF.p === 771997.pass) {
+    sessionStorage.setItem("auth", "ok");
+    setAuth(true);
+  } else {
+    setLoginF(f => ({ ...f, err: "اسم المستخدم أو كلمة المرور غلط" }));
+  }
+};
+if (!auth) return (
+  <>
+    <style dangerouslySetInnerHTML={{ __html: CSS }} />
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100dvh", background: "var(--bg)", padding: 24 }}>
+      <div style={{ background: "var(--surface)", border: "1px solid var(--card-border)", borderRadius: 24, padding: 32, width: "100%", maxWidth: 360, boxShadow: "var(--shadow-float)" }}>
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div className="lmark" style={{ width: 52, height: 52, borderRadius: 16, fontSize: 22, margin: "0 auto 12px" }}>F</div>
+          <div style={{ fontSize: 20, fontWeight: 900, color: "var(--text)" }}>فارق للإنتاج</div>
+          <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>تسجيل الدخول</div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <input className="finp" placeholder="اسم المستخدم" value={loginF.u} onChange={e => setLoginF(f => ({ ...f, u: e.target.value }))} />
+          <input className="finp" type="password" placeholder="كلمة المرور" value={loginF.p} onChange={e => setLoginF(f => ({ ...f, p: e.target.value }))}
+            onKeyDown={e => e.key === "Enter" && doLogin()} />
+          {loginF.err && <div style={{ color: "var(--danger)", fontSize: 12, textAlign: "center" }}>{loginF.err}</div>}
+          <button className="btn bngf" style={{ width: "100%", marginTop: 4 }} onClick={doLogin}>دخول</button>
+        </div>
+      </div>
+    </div>
+  </>
+);
 
   useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
 
