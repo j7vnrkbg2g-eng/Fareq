@@ -11,14 +11,6 @@ const CREDENTIALS = { user: "fahed", pass: "771997" };
 const SL = { active:"جارٍ", pending:"معلق", completed:"مكتمل", cancelled:"ملغي" };
 const SC = { active:"#00ff88", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4d4d" };
 
-const FareqLogo = ({ size = 36, style = {} }) => (
-  <img src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG" alt="فارق" style={{ width: size, height: size, objectFit: "contain", mixBlendMode: "screen", filter: "brightness(1.1)", display: "block", ...style }} />
-);
-
-const FareqLogoLight = ({ size = 70, style = {} }) => (
-  <img src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG" alt="فارق" style={{ width: size, height: size, objectFit: "contain", filter: "invert(1)", display: "block", margin: "0 auto", ...style }} />
-);
-
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -56,7 +48,7 @@ html,body { background: var(--bg); color: var(--text); font-family: var(--font);
 .hero-lbl { font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 500; margin-bottom: 6px; letter-spacing: 0.5px; }
 .hero-amount { font-size: 34px; font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 4px; }
 .hero-change { font-size: 11px; color: var(--ac); font-weight: 600; display: flex; align-items: center; gap: 4px; }
-.quick-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 20px; position: relative; z-index: 1; }
+.quick-actions { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-top: 20px; position: relative; z-index: 1; }
 .qa-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 12px 6px; cursor: pointer; transition: all .2s; backdrop-filter: blur(10px); }
 .qa-btn:hover { background: rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.3); transform: translateY(-2px); }
 .qa-btn:active { transform: scale(.96); }
@@ -117,14 +109,15 @@ html,body { background: var(--bg); color: var(--text); font-family: var(--font);
 .pbar { height: 4px; background: var(--muted2); border-radius: 4px; margin: 6px 0 8px; overflow: hidden; }
 .pfill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--ac), #00ffcc); transition: width .5s cubic-bezier(.4,0,.2,1); box-shadow: 0 0 8px var(--ac-glow); }
 .pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.pgrid-full { display: grid; grid-template-columns: 1fr; gap: 7px; }
 .pitem { background: var(--surface); border-radius: 10px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; gap: 6px; border: 1px solid var(--card-border); box-shadow: var(--shadow-card); }
 .ptog { padding: 4px 10px; border-radius: 7px; border: none; font-size: 9px; font-weight: 800; cursor: pointer; font-family: var(--font); transition: all .2s; white-space: nowrap; }
 .ptog.ok { background: rgba(0,255,136,0.15); color: var(--ac); } .ptog.no { background: var(--surface2); color: var(--muted); }
 .vpsec { background: var(--surface2); border-radius: 12px; padding: 10px 12px; border: 1px solid var(--card-border); margin-top: 8px; }
 .vpbar { height: 4px; background: var(--muted2); border-radius: 4px; margin: 6px 0 8px; overflow: hidden; }
 .vpfill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--ac), #00ffcc); transition: width .5s cubic-bezier(.4,0,.2,1); }
-.vp-btn { padding: 5px 13px; border-radius: 8px; border: none; background: var(--surface); color: var(--ac); font-size: 10px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all .2s; border: 1px solid var(--card-border); box-shadow: var(--shadow-card); }
-.vp-btn:hover { border-color: var(--ac-border); }
+.vp-btn { padding: 6px 18px; border-radius: 8px; border: none; background: linear-gradient(135deg, var(--ac), var(--ac2)); color: #000; font-size: 11px; font-weight: 800; cursor: pointer; font-family: var(--font); transition: all .2s; box-shadow: 0 3px 12px var(--ac-glow); }
+.vp-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 18px var(--ac-glow); } .vp-btn:active { transform: scale(.96); }
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 9px; font-weight: 800; border: 1px solid; }
 .badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 16px; border-radius: 12px; border: none; cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 700; transition: all .2s; }
@@ -207,7 +200,10 @@ html,body { background: var(--bg); color: var(--text); font-family: var(--font);
 .sh { font-size: 10px; font-weight: 800; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin: 18px 0 8px; }
 .lmark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--ac), var(--ac2)); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #000; box-shadow: 0 4px 14px var(--ac-glow); }
 .empty { text-align: center; padding: 50px 16px; color: var(--muted); }
-@media(max-width:500px) { .fgrid { grid-template-columns: 1fr; } .ffl { grid-column: 1; } .pgrid { grid-template-columns: 1fr; } }
+.client-info-row { display: flex; gap: 10px; padding: 10px 0; border-top: 1px solid var(--muted2); align-items: center; }
+.client-info-icon { width: 32px; height: 32px; border-radius: 9px; background: var(--surface2); border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.client-info-text { font-size: 13px; color: var(--text2); flex: 1; }
+@media(max-width:500px) { .fgrid { grid-template-columns: 1fr; } .ffl { grid-column: 1; } .pgrid { grid-template-columns: 1fr; } .pgrid-full { grid-template-columns: 1fr; } }
 `;
 
 const Icon = ({ name, size = 20, color = "currentColor" }) => {
@@ -241,6 +237,9 @@ const Icon = ({ name, size = 20, color = "currentColor" }) => {
     arrow_up: <><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5,12 12,5 19,12"/></>,
     arrow_down: <><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19,12 12,19 5,12"/></>,
     chevron_down: <><polyline points="6,9 12,15 18,9"/></>,
+    phone: <><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.82a19.79 19.79 0 01-3-8.59A2 2 0 012.27 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></>,
+    map_pin: <><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></>,
+    notes: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="13" y1="17" x2="8" y2="17"/></>,
   };
   return <svg style={s} viewBox="0 0 24 24">{p[name] || null}</svg>;
 };
@@ -255,6 +254,9 @@ const toApp = r => ({
   final50Date: r.final50_date || "", final50Paid: r.final50_paid || false,
   status: r.status || "pending", notes: r.notes || "", statusHistory: r.status_history || [],
   fileUrl: r.file_url || "", fileName: r.file_name || "",
+  noDuration: r.no_duration || false,
+  fullPayment: r.full_payment || false,
+  fullPaymentPaid: r.full_payment_paid || false,
 });
 
 const toDB = c => ({
@@ -263,11 +265,16 @@ const toDB = c => ({
   video_done: Number(c.videoDone || 0), total_amount: c.totalAmount ? Number(c.totalAmount) : null,
   video_amount: c.videoAmount ? Number(c.videoAmount) : null,
   presenter_amount: c.presenterAmount ? Number(c.presenterAmount) : null,
-  currency: c.currency, start_date: c.startDate || null, end_date: c.endDate || null,
-  deposit50_date: c.deposit50Date || null, deposit50_paid: c.deposit50Paid,
-  final50_date: c.final50Date || null, final50_paid: c.final50Paid,
+  currency: c.currency, start_date: c.startDate || null, end_date: c.noDuration ? null : (c.endDate || null),
+  deposit50_date: c.noDuration ? null : (c.deposit50Date || null),
+  deposit50_paid: c.noDuration ? false : c.deposit50Paid,
+  final50_date: c.noDuration ? null : (c.final50Date || null),
+  final50_paid: c.noDuration ? false : c.final50Paid,
   status: c.status, notes: c.notes, status_history: c.statusHistory || [],
   file_url: c.fileUrl || "", file_name: c.fileName || "",
+  no_duration: c.noDuration || false,
+  full_payment: c.noDuration ? true : false,
+  full_payment_paid: c.noDuration ? (c.fullPaymentPaid || false) : false,
 });
 
 const toAppCl = r => ({ id: String(r.id), name: r.name || "", phone: r.phone || "", address: r.address || "", notes: r.notes || "" });
@@ -275,7 +282,7 @@ const toDBCl = c => ({ name: c.name, phone: c.phone || "", address: c.address ||
 
 function ConfirmDialog({ msg, onConfirm, onCancel }) {
   return (
-    <div className="conf-ov">
+    <div className="conf-ov" onClick={e => e.target === e.currentTarget && onCancel()}>
       <div className="conf-box">
         <Icon name="alert" size={36} color="var(--danger)" />
         <div style={{ fontWeight: 700, fontSize: 15, margin: "14px 0 6px", color: "var(--text)" }}>{msg}</div>
@@ -325,17 +332,22 @@ function Alerts({ contracts }) {
   contracts.forEach(c => {
     if (c.status === "cancelled" || c.status === "completed") return;
     const vc = Number(c.videoCount || 0), vd = Number(c.videoDone || 0);
-    if (!c.final50Paid && c.final50Date) {
-      const d = daysDiff(c.final50Date);
-      if (d !== null && d >= 0 && d <= 7) a.push({ id: c.id, msg: `${d === 0 ? "اليوم" : d + " أيام"} — الدفعة الثانية لـ ${c.clientName}`, type: d <= 2 ? "u" : "w" });
+    if (c.noDuration) {
+      if (!c.fullPaymentPaid)
+        a.push({ id: c.id + "fp", msg: `الدفعة الكاملة غير مستلمة — ${c.clientName}`, type: "w" });
+    } else {
+      if (!c.final50Paid && c.final50Date) {
+        const d = daysDiff(c.final50Date);
+        if (d !== null && d >= 0 && d <= 7) a.push({ id: c.id, msg: `${d === 0 ? "اليوم" : d + " أيام"} — الدفعة الثانية لـ ${c.clientName}`, type: d <= 2 ? "u" : "w" });
+      }
+      if (!c.deposit50Paid && c.deposit50Date && daysDiff(c.deposit50Date) <= 0)
+        a.push({ id: c.id + "d", msg: `المقدم غير مدفوع — ${c.clientName}`, type: "u" });
+      if (c.endDate && daysDiff(c.endDate) !== null && daysDiff(c.endDate) < 0 && vc > 0 && vd < vc)
+        a.push({ id: c.id + "exp", msg: `انتهى العقد ولم تكتمل الفيديوهات (${vd}/${vc}) — ${c.clientName}`, type: "u" });
+      if (c.endDate) { const d = daysDiff(c.endDate); if (d !== null && d >= 0 && d <= 2) a.push({ id: c.id + "e", msg: `ينتهي ${d === 0 ? "اليوم" : "خلال " + d + " أيام"} — ${c.clientName}`, type: "u" }); }
     }
-    if (!c.deposit50Paid && c.deposit50Date && daysDiff(c.deposit50Date) <= 0)
-      a.push({ id: c.id + "d", msg: `المقدم غير مدفوع — ${c.clientName}`, type: "u" });
-    if (c.endDate && daysDiff(c.endDate) !== null && daysDiff(c.endDate) < 0 && vc > 0 && vd < vc)
-      a.push({ id: c.id + "exp", msg: `انتهى العقد ولم تكتمل الفيديوهات (${vd}/${vc}) — ${c.clientName}`, type: "u" });
-    if (vc > 0 && vd >= vc && c.endDate && daysDiff(c.endDate) !== null && daysDiff(c.endDate) > 0)
+    if (vc > 0 && vd >= vc && !c.noDuration && c.endDate && daysDiff(c.endDate) !== null && daysDiff(c.endDate) > 0)
       a.push({ id: c.id + "vdone", msg: `اكتملت الفيديوهات قبل موعد انتهاء العقد — ${c.clientName}`, type: "w" });
-    if (c.endDate) { const d = daysDiff(c.endDate); if (d !== null && d >= 0 && d <= 2) a.push({ id: c.id + "e", msg: `ينتهي ${d === 0 ? "اليوم" : "خلال " + d + " أيام"} — ${c.clientName}`, type: "u" }); }
   });
   if (!a.length) return null;
   return <div style={{ marginBottom: 14 }}>{a.map(x => <div key={x.id} className={`alr ${x.type === "u" ? "au" : "aw"}`}><Icon name="alert" size={13} color="currentColor" />{x.msg}</div>)}</div>;
@@ -372,7 +384,7 @@ function ClientModal({ client, onClose, onSave }) {
   );
 }
 
-const EC = { clientId: "", clientName: "", clientAddress: "", clientPhone: "", videoCount: "", videoDone: 0, totalAmount: "", videoAmount: "", presenterAmount: "", currency: "LYD", startDate: "", endDate: "", deposit50Date: "", deposit50Paid: false, final50Date: "", final50Paid: false, status: "pending", notes: "", statusHistory: [], fileUrl: "", fileName: "" };
+const EC = { clientId: "", clientName: "", clientAddress: "", clientPhone: "", videoCount: "", videoDone: 0, totalAmount: "", videoAmount: "", presenterAmount: "", currency: "LYD", startDate: "", endDate: "", deposit50Date: "", deposit50Paid: false, final50Date: "", final50Paid: false, status: "pending", notes: "", statusHistory: [], fileUrl: "", fileName: "", noDuration: false, fullPaymentPaid: false };
 
 function ContractModal({ contract, clients, onClose, onSave }) {
   const [f, setF] = useState(contract ? { ...contract } : { ...EC });
@@ -380,10 +392,13 @@ function ContractModal({ contract, clients, onClose, onSave }) {
   const [dur, setDur] = useState(null);
   const s = (k, v) => setF(p => ({ ...p, [k]: v }));
   useEffect(() => { const v = Number(f.videoAmount || 0), p = Number(f.presenterAmount || 0); if (v || p) s("totalAmount", String(v + p)); }, [f.videoAmount, f.presenterAmount]);
-  useEffect(() => { if (f.startDate) s("deposit50Date", f.startDate); }, [f.startDate]);
-  useEffect(() => { if (f.endDate) s("final50Date", f.endDate); }, [f.endDate]);
-  const handleDur = m => { setDur(m); if (f.startDate) s("endDate", addMonths(f.startDate, m)); };
-  const handleStart = v => { s("startDate", v); if (dur && v) s("endDate", addMonths(v, dur)); };
+  useEffect(() => { if (f.startDate && !f.noDuration) s("deposit50Date", f.startDate); }, [f.startDate]);
+  useEffect(() => { if (f.endDate && !f.noDuration) s("final50Date", f.endDate); }, [f.endDate]);
+  const handleDur = m => {
+    if (m === "none") { setDur("none"); s("noDuration", true); s("endDate", ""); s("deposit50Date", ""); s("final50Date", ""); }
+    else { setDur(m); s("noDuration", false); if (f.startDate) s("endDate", addMonths(f.startDate, m)); }
+  };
+  const handleStart = v => { s("startDate", v); if (dur && dur !== "none" && v) s("endDate", addMonths(v, dur)); };
   const pick = c => { setF(p => ({ ...p, clientId: c.id, clientName: c.name, clientPhone: c.phone || "", clientAddress: c.address || "" })); setDrop(false); };
   return (
     <div className="mov" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -414,12 +429,25 @@ function ContractModal({ contract, clients, onClose, onSave }) {
           <div className="fg"><label className="flbl">قيمة الوجه الإعلامي</label><input className="finp" type="number" value={f.presenterAmount} onChange={e => s("presenterAmount", e.target.value)} /></div>
           <div className="fg ffl"><label className="flbl">الإجمالي (تلقائي)</label><input className="finp" type="number" value={f.totalAmount} readOnly style={{ color: "var(--ac)", fontWeight: 800 }} /></div>
           <div className="fg"><label className="flbl">تاريخ البدء</label><input className="finp" type="date" value={f.startDate} onChange={e => handleStart(e.target.value)} /></div>
-          <div className="fg"><label className="flbl">المدة</label><div className="dur-btns"><button className={`dur-btn${dur === 1 ? " on" : ""}`} onClick={() => handleDur(1)}>شهر</button><button className={`dur-btn${dur === 3 ? " on" : ""}`} onClick={() => handleDur(3)}>3 أشهر</button></div></div>
-          <div className="fg"><label className="flbl">تاريخ الانتهاء</label><input className="finp" type="date" value={f.endDate} onChange={e => s("endDate", e.target.value)} /></div>
-          <div className="fg"><label className="flbl">موعد الدفعة الأولى</label><input className="finp" type="date" value={f.deposit50Date} readOnly style={{ color: "var(--muted)" }} /></div>
-          <div className="fg"><label className="flbl">موعد الدفعة الثانية</label><input className="finp" type="date" value={f.final50Date} readOnly style={{ color: "var(--muted)" }} /></div>
-          <div className="fck"><input type="checkbox" id="d1" checked={f.deposit50Paid} onChange={e => s("deposit50Paid", e.target.checked)} /><label htmlFor="d1">تم استلام الدفعة الأولى</label></div>
-          <div className="fck"><input type="checkbox" id="d2" checked={f.final50Paid} onChange={e => s("final50Paid", e.target.checked)} /><label htmlFor="d2">تم استلام الدفعة الثانية</label></div>
+          <div className="fg"><label className="flbl">المدة</label>
+            <div className="dur-btns">
+              <button className={`dur-btn${dur === 1 ? " on" : ""}`} onClick={() => handleDur(1)}>شهر</button>
+              <button className={`dur-btn${dur === 3 ? " on" : ""}`} onClick={() => handleDur(3)}>3 أشهر</button>
+              <button className={`dur-btn${dur === "none" ? " on" : ""}`} onClick={() => handleDur("none")}>بدون</button>
+            </div>
+          </div>
+          {!f.noDuration && <>
+            <div className="fg"><label className="flbl">تاريخ الانتهاء</label><input className="finp" type="date" value={f.endDate} onChange={e => s("endDate", e.target.value)} /></div>
+            <div className="fg"><label className="flbl">موعد الدفعة الأولى</label><input className="finp" type="date" value={f.deposit50Date} readOnly style={{ color: "var(--muted)" }} /></div>
+            <div className="fg"><label className="flbl">موعد الدفعة الثانية</label><input className="finp" type="date" value={f.final50Date} readOnly style={{ color: "var(--muted)" }} /></div>
+            <div className="fck"><input type="checkbox" id="d1" checked={f.deposit50Paid} onChange={e => s("deposit50Paid", e.target.checked)} /><label htmlFor="d1">تم استلام الدفعة الأولى</label></div>
+            <div className="fck"><input type="checkbox" id="d2" checked={f.final50Paid} onChange={e => s("final50Paid", e.target.checked)} /><label htmlFor="d2">تم استلام الدفعة الثانية</label></div>
+          </>}
+          {f.noDuration && (
+            <div className="fg ffl" style={{ marginTop: 2 }}>
+              <div className="fck"><input type="checkbox" id="fp" checked={f.fullPaymentPaid || false} onChange={e => s("fullPaymentPaid", e.target.checked)} /><label htmlFor="fp">تم استلام الدفعة الكاملة</label></div>
+            </div>
+          )}
           <div className="fg ffl"><label className="flbl">الحالة</label><select className="fsel" value={f.status} onChange={e => s("status", e.target.value)}><option value="pending">معلق</option><option value="active">جارٍ</option><option value="completed">مكتمل</option><option value="cancelled">ملغي</option></select></div>
           <div className="fg ffl"><label className="flbl">ملاحظات</label><textarea className="fta" value={f.notes} onChange={e => s("notes", e.target.value)} /></div>
         </div>
@@ -436,7 +464,9 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
   const cur = c.currency || "LYD";
   const vAmt = c.videoAmount ? Number(c.videoAmount).toLocaleString("en-US", { minimumFractionDigits: 2 }) : "__________";
   const pAmt = c.presenterAmount ? Number(c.presenterAmount).toLocaleString("en-US", { minimumFractionDigits: 2 }) : "__________";
-  const pct = Math.round(((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)) * 100);
+  const pct = c.noDuration
+    ? (c.fullPaymentPaid ? 100 : 0)
+    : Math.round(((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)) * 100);
   const vc = Number(c.videoCount || 0), vd = Number(c.videoDone || 0);
   const exportPDF = () => {
     const w = window.open("", "_blank");
@@ -445,7 +475,7 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
     onPdfExported(c.id);
   };
   return (
-    <div className="mov" style={{ alignItems: "flex-start", overflowY: "auto" }}>
+    <div className="mov" style={{ alignItems: "flex-start", overflowY: "auto" }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{ background: "var(--surface)", border: "1px solid var(--card-border)", borderRadius: 22, width: "100%", maxWidth: 740, margin: "12px 0", overflow: "hidden", boxShadow: "var(--shadow-float)" }}>
         <div style={{ background: "var(--surface2)", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--muted2)" }}>
           <span style={{ color: "var(--text)", fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 7 }}><Icon name="doc" size={14} color="var(--ac)" />تفاصيل العقد</span>
@@ -464,14 +494,23 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
           <div className="psec">
             <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700 }}>الدفع</span><span style={{ fontSize: 11, fontWeight: 800, color: pct === 100 ? "var(--ac)" : "var(--warn)" }}>{pct}%</span></div>
             <div className="pbar"><div className="pfill" style={{ width: `${pct}%` }} /></div>
-            <div className="pgrid">
-              {[{ l: "الأولى 50%", paid: c.deposit50Paid, date: c.deposit50Date }, { l: "الثانية 50%", paid: c.final50Paid, date: c.final50Date }].map(p => (
-                <div key={p.l} className="pitem">
-                  <div><div style={{ fontSize: 10, color: "var(--muted)", fontWeight: 600 }}>{p.l}</div><div style={{ fontSize: 12, fontWeight: 700 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>{p.date && <div style={{ fontSize: 9, color: "var(--muted)" }}>{fmtDate(p.date)}</div>}</div>
-                  <div style={{ fontSize: 11, color: p.paid ? "var(--ac)" : "var(--muted)", fontWeight: 800 }}>{p.paid ? "✓" : "—"}</div>
+            {c.noDuration ? (
+              <div className="pgrid-full">
+                <div className="pitem">
+                  <div><div style={{ fontSize: 10, color: "var(--muted)", fontWeight: 600 }}>دفعة كاملة 100%</div><div style={{ fontSize: 12, fontWeight: 700 }}>{fmt(Number(c.totalAmount || 0), c.currency)}</div></div>
+                  <div style={{ fontSize: 11, color: c.fullPaymentPaid ? "var(--ac)" : "var(--muted)", fontWeight: 800 }}>{c.fullPaymentPaid ? "✓" : "—"}</div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="pgrid">
+                {[{ l: "الأولى 50%", paid: c.deposit50Paid, date: c.deposit50Date }, { l: "الثانية 50%", paid: c.final50Paid, date: c.final50Date }].map(p => (
+                  <div key={p.l} className="pitem">
+                    <div><div style={{ fontSize: 10, color: "var(--muted)", fontWeight: 600 }}>{p.l}</div><div style={{ fontSize: 12, fontWeight: 700 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>{p.date && <div style={{ fontSize: 9, color: "var(--muted)" }}>{fmtDate(p.date)}</div>}</div>
+                    <div style={{ fontSize: 11, color: p.paid ? "var(--ac)" : "var(--muted)", fontWeight: 800 }}>{p.paid ? "✓" : "—"}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           {vc > 0 && <div className="vpsec" style={{ marginTop: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700 }}>الفيديوهات</span><span style={{ fontSize: 11, fontWeight: 800, color: "var(--ac)" }}>{vd}/{vc}</span></div>
@@ -490,9 +529,10 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
           )}
           {c.notes && <div style={{ marginTop: 10, fontSize: 12, color: "var(--text2)", padding: "9px 12px", background: "var(--surface2)", borderRadius: 10, border: "1px solid var(--card-border)" }}>📝 {c.notes}</div>}
         </div>
+        {/* Hidden PDF content */}
         <div ref={ref} style={{ display: "none" }}>
           <div style={{ textAlign: "center", marginBottom: 16 }}>
-            <img src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG" alt="فارق" style={{ width: 70, height: 70, objectFit: "contain", filter: "invert(1)", display: "inline-block", marginBottom: 7 }} />
+            <div style={{ fontWeight: 900, fontSize: 22, fontFamily: "'Tajawal',sans-serif", letterSpacing: 1 }}>FAREQ</div>
             <div style={{ fontWeight: 800, fontSize: 16, fontFamily: "'Tajawal',sans-serif" }}>شركة فارق للإنتاج</div>
             <div style={{ color: "#555", fontSize: 11, fontFamily: "'Tajawal',sans-serif" }}>FAREQ Productions — 0920953918</div>
           </div>
@@ -508,13 +548,21 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
             <div>يلتزم الطرف الثاني بتوفير المعلومات/ المنتجات</div>
           </div>
           <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7, fontFamily: "'Tajawal',sans-serif" }}>مدة العقد:</div>
-          <div style={{ fontFamily: "'Tajawal',sans-serif" }}>مدة العقد تبدأ من تاريخ {sd.d} / {sd.m} / {sd.y} وتنتهي في {ed.d} / {ed.m} / {ed.y}</div>
+          {c.noDuration ? (
+            <div style={{ fontFamily: "'Tajawal',sans-serif" }}>تاريخ البدء: {sd.d} / {sd.m} / {sd.y} — بدون تاريخ انتهاء محدد</div>
+          ) : (
+            <div style={{ fontFamily: "'Tajawal',sans-serif" }}>مدة العقد تبدأ من تاريخ {sd.d} / {sd.m} / {sd.y} وتنتهي في {ed.d} / {ed.m} / {ed.y}</div>
+          )}
           <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7, fontFamily: "'Tajawal',sans-serif" }}>القيمة المالية وطريقة الدفع:</div>
           <div style={{ fontFamily: "'Tajawal',sans-serif" }}>
             <div>- القيمة الخاصة بالفيديوهات: {vAmt} {cur}</div>
             <div>- القيمة الخاصة بالوجه الإعلامي: {pAmt} {cur}</div>
             <div style={{ margin: "9px 0 3px", fontWeight: 700 }}>طريقة الدفع:</div>
-            <div>  - 50% مقدماً</div><div>  - 50% عند تسليم آخر فيديو</div>
+            {c.noDuration ? (
+              <div>  - دفعة كاملة 100% عند الاستحقاق</div>
+            ) : (
+              <><div>  - 50% مقدماً</div><div>  - 50% عند تسليم آخر فيديو</div></>
+            )}
           </div>
           <div style={{ fontWeight: 800, fontSize: 13, margin: "13px 0 5px", borderRight: "3px solid #111", paddingRight: 7, fontFamily: "'Tajawal',sans-serif" }}>التعديلات:</div>
           <div style={{ fontFamily: "'Tajawal',sans-serif" }}><div>- يحق للعميل طلب تعديل فقط لكل فيديو</div><div>- أي تعديلات إضافية يتم احتسابها بتكلفة إضافية</div></div>
@@ -535,7 +583,9 @@ function ContractViewModal({ c, onClose, onPdfExported }) {
 
 function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, onCancel }) {
   const [expanded, setExpanded] = useState(false);
-  const pct = Math.round(((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)) * 100);
+  const pct = c.noDuration
+    ? (c.fullPaymentPaid ? 100 : 0)
+    : Math.round(((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)) * 100);
   const f50d = c.final50Date ? daysDiff(c.final50Date) : null;
   const vc = Number(c.videoCount || 0), vd = Number(c.videoDone || 0);
   const vpct = vc > 0 ? Math.round((vd / vc) * 100) : 0;
@@ -545,7 +595,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
         <div className="cc-compact-icon" onClick={() => onView(c)} style={{ cursor: "pointer" }}><Icon name="contracts" size={15} color="var(--ac)" /></div>
         <div className="cc-compact-body" onClick={() => onView(c)} style={{ cursor: "pointer" }}>
           <div className="cc-compact-name">{c.clientName || "عميل"}</div>
-          <div className="cc-compact-sub">{vc > 0 ? `${vd}/${vc} فيديو` : ""}{vc > 0 && c.startDate ? " · " : ""}{fmtDate(c.startDate)}{c.endDate ? ` · حتى ${fmtDate(c.endDate)}` : ""}</div>
+          <div className="cc-compact-sub">{vc > 0 ? `${vd}/${vc} فيديو` : ""}{vc > 0 && c.startDate ? " · " : ""}{fmtDate(c.startDate)}{!c.noDuration && c.endDate ? ` · حتى ${fmtDate(c.endDate)}` : ""}{c.noDuration ? " · بدون مدة" : ""}</div>
         </div>
         <div className="cc-compact-right">
           <span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span>
@@ -573,21 +623,33 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
               <span style={{ fontSize: 10, fontWeight: 800, color: pct === 100 ? "var(--ac)" : "var(--warn)" }}>{pct}%</span>
             </div>
             <div className="pbar"><div className="pfill" style={{ width: `${pct}%` }} /></div>
-            <div className="pgrid">
-              {[
-                { label: "الأولى 50%", paid: c.deposit50Paid, date: c.deposit50Date, field: "deposit50Paid", diff: null },
-                { label: "الثانية 50%", paid: c.final50Paid, date: c.final50Date, field: "final50Paid", diff: f50d }
-              ].map(p => (
-                <div key={p.field} className="pitem">
+            {c.noDuration ? (
+              <div className="pgrid-full">
+                <div className="pitem">
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>{p.label}</div>
-                    <div style={{ fontSize: 11, fontWeight: 700 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>
-                    {p.date && <div style={{ fontSize: 9, color: !p.paid && p.diff !== null && p.diff <= 7 && p.diff >= 0 ? "var(--warn)" : "var(--muted)" }}>{fmtDate(p.date)}</div>}
+                    <div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>دفعة كاملة 100%</div>
+                    <div style={{ fontSize: 11, fontWeight: 700 }}>{fmt(Number(c.totalAmount || 0), c.currency)}</div>
                   </div>
-                  <button className={`ptog ${p.paid ? "ok" : "no"}`} onClick={() => onToggle(c.id, p.field)}>{p.paid ? "✓ مدفوع" : "تحديد"}</button>
+                  <button className={`ptog ${c.fullPaymentPaid ? "ok" : "no"}`} onClick={() => onToggle(c.id, "fullPaymentPaid")}>{c.fullPaymentPaid ? "✓ مدفوع" : "تحديد"}</button>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="pgrid">
+                {[
+                  { label: "الأولى 50%", paid: c.deposit50Paid, date: c.deposit50Date, field: "deposit50Paid", diff: null },
+                  { label: "الثانية 50%", paid: c.final50Paid, date: c.final50Date, field: "final50Paid", diff: f50d }
+                ].map(p => (
+                  <div key={p.field} className="pitem">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 9, color: "var(--muted)", fontWeight: 700 }}>{p.label}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700 }}>{fmt(Number(c.totalAmount || 0) * 0.5, c.currency)}</div>
+                      {p.date && <div style={{ fontSize: 9, color: !p.paid && p.diff !== null && p.diff <= 7 && p.diff >= 0 ? "var(--warn)" : "var(--muted)" }}>{fmtDate(p.date)}</div>}
+                    </div>
+                    <button className={`ptog ${p.paid ? "ok" : "no"}`} onClick={() => onToggle(c.id, p.field)}>{p.paid ? "✓ مدفوع" : "تحديد"}</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           {vc > 0 && (
             <div className="vpsec">
@@ -598,7 +660,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
               <div className="vpbar"><div className="vpfill" style={{ width: `${vpct}%` }} /></div>
               <div style={{ display: "flex", gap: 6 }}>
                 <button className="vp-btn" onClick={() => onVideoUpdate(c.id, Math.min(vc, vd + 1))}>+1 فيديو</button>
-                {vd > 0 && <button className="vp-btn" onClick={() => onVideoUpdate(c.id, vd - 1)}>-1 فيديو</button>}
+                <button className="vp-btn" onClick={() => onVideoUpdate(c.id, Math.min(vc, vd + 2))}>+2 فيديو</button>
               </div>
             </div>
           )}
@@ -712,7 +774,10 @@ function WalletScreen() {
 }
 
 function Dashboard({ contracts, clients, goTo, onViewContract }) {
-  const collected = contracts.reduce((s, c) => s + Number(c.videoAmount || 0) * ((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)), 0);
+  const collected = contracts.reduce((s, c) => {
+    if (c.noDuration) return s + Number(c.videoAmount || 0) * (c.fullPaymentPaid ? 1 : 0);
+    return s + Number(c.videoAmount || 0) * ((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0));
+  }, 0);
   const recent = [...contracts].sort((a, b) => Number(b.id) - Number(a.id)).slice(0, 4);
   return (
     <div className="screen" style={{ paddingTop: 8 }}>
@@ -725,9 +790,7 @@ function Dashboard({ contracts, clients, goTo, onViewContract }) {
         <div className="quick-actions">
           {[
             { label: "عقد جديد", icon: "contract_plus", action: () => goTo("contracts_new") },
-            { label: "عميل", icon: "user_plus", action: () => goTo("clients_new") },
-            { label: "العقود", icon: "contracts", action: () => goTo("contracts") },
-            { label: "الدخل", icon: "income", action: () => goTo("income") },
+            { label: "عميل جديد", icon: "user_plus", action: () => goTo("clients_new") },
           ].map(q => (
             <button key={q.label} className="qa-btn" onClick={q.action}>
               <div className="qa-icon"><Icon name={q.icon} size={16} color="rgba(255,255,255,0.85)" /></div>
@@ -815,13 +878,30 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
             <div className="cav" style={{ width: 50, height: 50 }}><Icon name="person" size={22} color="var(--ac)" /></div>
             <div style={{ flex: 1 }}><div style={{ fontSize: 17, fontWeight: 700 }}>{cl.name}</div></div>
-            <WABtn phone={cl.phone} />
+            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <WABtn phone={cl.phone} />
+              <button className="ico-btn" onClick={() => onEdit(cl)} title="تعديل"><Icon name="edit" size={14} color="var(--text2)" /></button>
+              <button className="ico-btn red" onClick={() => { if (confirm("حذف العميل؟")) { onDelete(cl.id); setSel(null); } }} title="حذف"><Icon name="trash" size={14} color="var(--danger)" /></button>
+            </div>
           </div>
-          {[["📞", cl.phone], ["📍", cl.address], ["📝", cl.notes]].filter(([, v]) => v).map(([i, v]) => <div key={i} style={{ display: "flex", gap: 10, padding: "8px 0", borderTop: "1px solid var(--muted2)", fontSize: 13 }}><span>{i}</span><span style={{ color: "var(--text2)", flex: 1 }}>{v}</span></div>)}
-          <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-            <button className="btn bng" style={{ flex: 1, fontSize: 13 }} onClick={() => onEdit(cl)}><Icon name="edit" size={13} color="var(--ac)" />تعديل</button>
-            <button className="btn btn-danger" style={{ fontSize: 13 }} onClick={() => { if (confirm("حذف العميل؟")) { onDelete(cl.id); setSel(null); } }}><Icon name="trash" size={13} color="var(--danger)" /></button>
-          </div>
+          {cl.phone && (
+            <div className="client-info-row">
+              <div className="client-info-icon"><Icon name="phone" size={14} color="var(--ac)" /></div>
+              <span className="client-info-text">{cl.phone}</span>
+            </div>
+          )}
+          {cl.address && (
+            <div className="client-info-row">
+              <div className="client-info-icon"><Icon name="map_pin" size={14} color="var(--ac)" /></div>
+              <span className="client-info-text">{cl.address}</span>
+            </div>
+          )}
+          {cl.notes && (
+            <div className="client-info-row">
+              <div className="client-info-icon"><Icon name="notes" size={14} color="var(--ac)" /></div>
+              <span className="client-info-text">{cl.notes}</span>
+            </div>
+          )}
         </div>
         <div className="sec-hdr"><span className="sec-title">عقوده ({clc.length})</span></div>
         {clc.length === 0 && <div style={{ color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "16px 0" }}>لا توجد عقود</div>}
@@ -860,8 +940,14 @@ function IncomeScreen({ contracts }) {
   const thirtyAgo = new Date(); thirtyAgo.setDate(thirtyAgo.getDate() - 30);
   const last30 = contracts.filter(c => c.startDate && new Date(c.startDate) >= thirtyAgo).reduce((s, c) => s + videoOnly(c), 0);
   const yearT = contracts.filter(c => c.startDate && new Date(c.startDate).getFullYear() === NOW.getFullYear()).reduce((s, c) => s + videoOnly(c), 0);
-  const allCollected = contracts.reduce((s, c) => s + videoOnly(c) * ((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)), 0);
-  const pend = contracts.filter(c => c.status !== "cancelled").reduce((s, c) => s + videoOnly(c) * ((!c.deposit50Paid ? 0.5 : 0) + (!c.final50Paid ? 0.5 : 0)), 0);
+  const allCollected = contracts.reduce((s, c) => {
+    if (c.noDuration) return s + videoOnly(c) * (c.fullPaymentPaid ? 1 : 0);
+    return s + videoOnly(c) * ((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0));
+  }, 0);
+  const pend = contracts.filter(c => c.status !== "cancelled").reduce((s, c) => {
+    if (c.noDuration) return s + videoOnly(c) * (c.fullPaymentPaid ? 0 : 1);
+    return s + videoOnly(c) * ((!c.deposit50Paid ? 0.5 : 0) + (!c.final50Paid ? 0.5 : 0));
+  }, 0);
   const totalC = contracts.reduce((s, c) => s + videoOnly(c), 0);
   const activeT = contracts.filter(c => c.status === "active").reduce((s, c) => s + videoOnly(c), 0);
   const stats = [
@@ -890,11 +976,19 @@ function IncomeScreen({ contracts }) {
         ))}
       </div>
       <div className="sec-hdr"><span className="sec-title">المحصّل حديثاً</span></div>
-      {contracts.filter(c => c.deposit50Paid || c.final50Paid).slice(0, 6).map(c => (
+      {contracts.filter(c => c.deposit50Paid || c.final50Paid || c.fullPaymentPaid).slice(0, 6).map(c => (
         <div key={c.id} className="tx-card">
           <div className="tx-icon"><Icon name="income" size={16} color="var(--ac)" /></div>
-          <div style={{ flex: 1, minWidth: 0 }}><div className="tx-name">{c.clientName}</div><div className="tx-sub">{c.deposit50Paid && c.final50Paid ? "مدفوع بالكامل" : c.deposit50Paid ? "الدفعة الأولى" : "الدفعة الثانية"}</div></div>
-          <div className="tx-amt pos">{fmt(videoOnly(c) * ((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)), c.currency)}</div>
+          <div style={{ flex: 1, minWidth: 0 }}><div className="tx-name">{c.clientName}</div>
+            <div className="tx-sub">
+              {c.noDuration ? "دفعة كاملة" : (c.deposit50Paid && c.final50Paid ? "مدفوع بالكامل" : c.deposit50Paid ? "الدفعة الأولى" : "الدفعة الثانية")}
+            </div>
+          </div>
+          <div className="tx-amt pos">
+            {fmt(c.noDuration
+              ? videoOnly(c) * (c.fullPaymentPaid ? 1 : 0)
+              : videoOnly(c) * ((c.deposit50Paid ? 0.5 : 0) + (c.final50Paid ? 0.5 : 0)), c.currency)}
+          </div>
         </div>
       ))}
     </div>
@@ -984,11 +1078,15 @@ export default function App() {
   const togglePay = async (id, field) => {
     const c = contracts.find(x => x.id === id); if (!c) return;
     const updated = { ...c, [field]: !c[field] };
-    const vc = Number(updated.videoCount || 0), vd = Number(updated.videoDone || 0);
-    const videosDone = vc === 0 || vd >= vc;
-    if (updated.deposit50Paid && updated.final50Paid && videosDone) {
-      updated.status = "completed";
-      updated.statusHistory = addHist(c, "completed");
+    if (c.noDuration) {
+      if (updated.fullPaymentPaid) { updated.status = "completed"; updated.statusHistory = addHist(c, "completed"); }
+    } else {
+      const vc = Number(updated.videoCount || 0), vd = Number(updated.videoDone || 0);
+      const videosDone = vc === 0 || vd >= vc;
+      if (updated.deposit50Paid && updated.final50Paid && videosDone) {
+        updated.status = "completed";
+        updated.statusHistory = addHist(c, "completed");
+      }
     }
     const { data } = await supabase.from("contracts").update(toDB(updated)).eq("id", id).select().single();
     if (data) setContracts(p => p.map(x => x.id === id ? toApp(data) : x));
@@ -1004,7 +1102,7 @@ export default function App() {
   const handlePdfExported = async id => {
     const c = contracts.find(x => x.id === id); if (!c) return;
     const hist = addHist(c, "active");
-    const updated = { ...c, deposit50Paid: true, status: "active", statusHistory: hist };
+    const updated = { ...c, deposit50Paid: c.noDuration ? false : true, status: "active", statusHistory: hist };
     const { data } = await supabase.from("contracts").update(toDB(updated)).eq("id", id).select().single();
     if (data) setContracts(p => p.map(x => x.id === id ? toApp(data) : x));
   };
@@ -1065,9 +1163,7 @@ export default function App() {
     <>
       {cssEl}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100dvh", background: "var(--bg)", flexDirection: "column", gap: 14 }}>
-        <div style={{ width: 60, height: 60, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <FareqLogo size={56} />
-        </div>
+        <div className="lmark" style={{ width: 60, height: 60, borderRadius: 18, fontSize: 26 }}>F</div>
         <div style={{ color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>جارٍ التحميل...</div>
       </div>
     </>
@@ -1079,9 +1175,7 @@ export default function App() {
       <div className="app">
         <div className="topbar">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 11, background: "#000", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0, border: "1px solid rgba(0,255,136,0.2)" }}>
-              <FareqLogo size={30} />
-            </div>
+            <div className="lmark" style={{ width: 36, height: 36, borderRadius: 11, fontSize: 15 }}>F</div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text)", lineHeight: 1.1 }}>فارق</div>
               <div style={{ fontSize: 10, color: "var(--muted)", fontWeight: 500 }}>للإنتاج</div>
