@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { supabase } from "./supabaseclient";
 
 // ─── Utilities ────────────────────────────────────────────────────
@@ -9,22 +9,31 @@ const addMonths = (dateStr, months) => { const d = new Date(dateStr); d.setMonth
 const NOW = new Date();
 const DEFAULT_CREDENTIALS = { user: "fahed", pass: "771997" };
 
-// ─── Settings helpers ─────────────────────────────────────────────
-const getSettings = () => {
-  try { return JSON.parse(localStorage.getItem("fareq_settings") || "{}"); } catch { return {}; }
+const getGreeting = () => {
+  const h = NOW.getHours();
+  if (h < 12) return "صباح الخير";
+  if (h < 17) return "مساء الخير";
+  if (h < 20) return "مساء النور";
+  return "مساء الخير";
 };
+
+// ─── Settings helpers ─────────────────────────────────────────────
+const getSettings = () => { try { return JSON.parse(localStorage.getItem("fareq_settings") || "{}"); } catch { return {}; } };
 const saveSettings = s => { try { localStorage.setItem("fareq_settings", JSON.stringify(s)); } catch {} };
+
+// ─── Notification helpers ─────────────────────────────────────────
+const getStoredNotifs = () => { try { return JSON.parse(localStorage.getItem("fareq_notifs") || "[]"); } catch { return []; } };
+const saveNotifs = n => { try { localStorage.setItem("fareq_notifs", JSON.stringify(n)); } catch {} };
 
 const SL = { active:"جارٍ", pending:"معلق", completed:"مكتمل", cancelled:"ملغي" };
 const SC = { active:"#00ff88", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4d4d" };
 const CARD_ACCENT = {
-  active:    { border:"rgba(0,255,136,0.25)",  glow:"rgba(0,255,136,0.08)",  bar:"#00ff88" },
-  pending:   { border:"rgba(255,214,0,0.25)",  glow:"rgba(255,214,0,0.06)",  bar:"#ffd600" },
-  completed: { border:"rgba(167,139,250,0.25)",glow:"rgba(167,139,250,0.08)",bar:"#a78bfa" },
-  cancelled: { border:"rgba(255,77,77,0.20)",  glow:"rgba(255,77,77,0.05)",  bar:"#ff4d4d" },
+  active:    { border:"rgba(0,255,136,0.35)",  glow:"rgba(0,255,136,0.10)",  bar:"#00ff88",  shadow:"rgba(0,255,136,0.20)" },
+  pending:   { border:"rgba(255,214,0,0.35)",  glow:"rgba(255,214,0,0.08)",  bar:"#ffd600",  shadow:"rgba(255,214,0,0.18)" },
+  completed: { border:"rgba(167,139,250,0.35)",glow:"rgba(167,139,250,0.10)",bar:"#a78bfa",  shadow:"rgba(167,139,250,0.18)" },
+  cancelled: { border:"rgba(255,77,77,0.25)",  glow:"rgba(255,77,77,0.06)",  bar:"#ff4d4d",  shadow:"rgba(255,77,77,0.12)" },
 };
 
-// Generate gradient avatar color from name
 const nameToGradient = name => {
   if (!name) return ["#00ff88","#00c96e"];
   let h = 0;
@@ -212,9 +221,9 @@ function TiltCard({ children, style={}, className="" }) {
     const rect = el.getBoundingClientRect();
     const x = (e.clientX - rect.left)/rect.width - 0.5;
     const y = (e.clientY - rect.top)/rect.height - 0.5;
-    el.style.transform = `perspective(600px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateZ(4px)`;
+    el.style.transform = `perspective(600px) rotateY(${x*6}deg) rotateX(${-y*6}deg) translateZ(4px)`;
   };
-  const onLeave = e => { const el = ref.current; if(el) el.style.transform = "perspective(600px) rotateY(0deg) rotateX(0deg) translateZ(0px)"; };
+  const onLeave = () => { const el = ref.current; if(el) el.style.transform = "perspective(600px) rotateY(0deg) rotateX(0deg) translateZ(0px)"; };
   return <div ref={ref} className={className} style={{ transition:"transform .25s cubic-bezier(.4,0,.2,1)", willChange:"transform", ...style }} onMouseMove={onMove} onMouseLeave={onLeave}>{children}</div>;
 }
 
@@ -244,7 +253,7 @@ function SwipeableCard({ onDelete, onCancel, onEdit, onLongPress, children }) {
   };
   const close = () => { setOffset(0); setSwiped(false); };
   return (
-    <div style={{ position:"relative", overflow:"hidden", borderRadius:16, marginBottom:8 }}>
+    <div style={{ position:"relative", overflow:"hidden", borderRadius:16, marginBottom:10 }}>
       <div style={{ position:"absolute", left:0, top:0, bottom:0, width:SNAP, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
         <button onClick={()=>{ onEdit(); close(); }} style={{ width:34,height:34,borderRadius:10,background:"rgba(96,165,250,0.18)",border:"1px solid rgba(96,165,250,0.3)",color:"#60a5fa",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}><Icon name="edit" size={13} color="#60a5fa" /></button>
         <button onClick={()=>{ onCancel(); close(); }} style={{ width:34,height:34,borderRadius:10,background:"rgba(255,214,0,0.15)",border:"1px solid rgba(255,214,0,0.3)",color:"#ffd600",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}><Icon name="cancel" size={13} color="#ffd600" /></button>
@@ -258,33 +267,133 @@ function SwipeableCard({ onDelete, onCancel, onEdit, onLongPress, children }) {
   );
 }
 
-// ─── Notification Bell ────────────────────────────────────────────
-function NotifBell({ alerts }) {
-  const [open, setOpen] = useState(false);
-  const count = alerts.length;
+// ─── Notification Center ──────────────────────────────────────────
+function NotificationCenter({ notifications, onClose, onMarkAllRead, onDismiss }) {
+  const grouped = useMemo(() => {
+    const groups = { payments:[], deadlines:[], completions:[], smart:[] };
+    notifications.forEach(n => {
+      if (n.group) groups[n.group]?.push(n) || (groups.smart.push(n));
+      else groups.smart.push(n);
+    });
+    return groups;
+  }, [notifications]);
+
+  const groupLabels = { payments:"💳 الدفعات", deadlines:"⏰ المواعيد النهائية", completions:"✅ المكتملة", smart:"🧠 تنبيهات ذكية" };
+  const unread = notifications.filter(n => !n.read).length;
+
+  return (
+    <div className="mov" style={{ alignItems:"flex-start", padding:"0" }} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div style={{ background:"var(--glass-bg)", backdropFilter:"blur(28px)", WebkitBackdropFilter:"blur(28px)", border:"1px solid var(--card-border)", borderRadius:"0 0 24px 24px", width:"100%", maxWidth:480, margin:"0 auto", maxHeight:"85vh", overflow:"hidden", display:"flex", flexDirection:"column", boxShadow:"var(--shadow-float)" }}>
+        <div style={{ padding:"18px 18px 12px", borderBottom:"1px solid var(--muted2)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div>
+            <div style={{ fontSize:17, fontWeight:900, color:"var(--text)", display:"flex", alignItems:"center", gap:8 }}>
+              <Icon name="alert" size={16} color="var(--ac)"/> الإشعارات
+              {unread > 0 && <span style={{ background:"var(--danger)", color:"#fff", fontSize:10, fontWeight:800, padding:"2px 7px", borderRadius:20 }}>{unread}</span>}
+            </div>
+            <div style={{ fontSize:10, color:"var(--muted)", marginTop:2 }}>{notifications.length} إشعار</div>
+          </div>
+          <div style={{ display:"flex", gap:8 }}>
+            {unread > 0 && <button className="btn bng" style={{ fontSize:11, padding:"5px 12px" }} onClick={onMarkAllRead}>قراءة الكل</button>}
+            <button className="mclose" onClick={onClose}>×</button>
+          </div>
+        </div>
+        <div style={{ overflowY:"auto", flex:1, padding:"12px 14px" }}>
+          {notifications.length === 0 && (
+            <div style={{ textAlign:"center", padding:"40px 16px", color:"var(--muted)" }}>
+              <div style={{ fontSize:40, marginBottom:12 }}>🔕</div>
+              <div style={{ fontWeight:700, fontSize:14 }}>لا توجد إشعارات</div>
+            </div>
+          )}
+          {Object.entries(grouped).map(([key, items]) => {
+            if (!items.length) return null;
+            return (
+              <div key={key} style={{ marginBottom:16 }}>
+                <div style={{ fontSize:10, fontWeight:800, color:"var(--muted)", letterSpacing:1, textTransform:"uppercase", marginBottom:8 }}>{groupLabels[key]}</div>
+                {items.map((n, i) => (
+                  <NotifRow key={n.id} n={n} onDismiss={()=>onDismiss(n.id)} delay={i*30}/>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NotifRow({ n, onDismiss, delay=0 }) {
+  const [offset, setOffset] = useState(0);
+  const startX = useRef(null);
+  const [dismissed, setDismissed] = useState(false);
+
+  const onTStart = e => { startX.current = e.touches[0].clientX; };
+  const onTMove = e => {
+    if (startX.current === null) return;
+    const dx = e.touches[0].clientX - startX.current;
+    setOffset(dx);
+  };
+  const onTEnd = () => {
+    if (Math.abs(offset) > 100) {
+      setDismissed(true);
+      setTimeout(onDismiss, 250);
+    } else setOffset(0);
+    startX.current = null;
+  };
+
+  if (dismissed) return null;
+  return (
+    <div style={{
+      transform:`translateX(${offset}px)`,
+      transition:startX.current?"none":"transform .25s, opacity .25s",
+      opacity:dismissed?0:1,
+      background: n.read ? "var(--surface2)" : "var(--glass-bg)",
+      border:`1px solid ${n.read?"var(--card-border)":"var(--ac-border)"}`,
+      borderRadius:14, padding:"10px 12px", marginBottom:7, display:"flex", gap:10, alignItems:"flex-start",
+      boxShadow: n.read ? "none" : "0 2px 12px var(--ac-glow)",
+      animation:`fu .3s ${delay}ms both`,
+    }} onTouchStart={onTStart} onTouchMove={onTMove} onTouchEnd={onTEnd}>
+      <div style={{ width:8, height:8, borderRadius:"50%", background:n.type==="u"?"var(--danger)":n.type==="w"?"var(--warn)":"var(--ac)", flexShrink:0, marginTop:4, boxShadow:`0 0 6px ${n.type==="u"?"var(--danger)":n.type==="w"?"var(--warn)":"var(--ac)"}` }}/>
+      <div style={{ flex:1 }}>
+        <div style={{ fontSize:12, color:n.read?"var(--text2)":"var(--text)", fontWeight:n.read?500:700 }}>{n.msg}</div>
+        {n.time && <div style={{ fontSize:9, color:"var(--muted)", marginTop:3 }}>{n.time}</div>}
+      </div>
+      <button onClick={onDismiss} style={{ background:"none", border:"none", color:"var(--muted)", cursor:"pointer", fontSize:16, padding:"0 2px", lineHeight:1 }}>×</button>
+    </div>
+  );
+}
+
+// ─── Notification Bell (top bar) ──────────────────────────────────
+function NotifBell({ count, onClick }) {
   return (
     <div style={{ position:"relative" }}>
-      <button className="tb-btn" onClick={()=>setOpen(p=>!p)} style={{ position:"relative" }}>
+      <button className="tb-btn" onClick={onClick} style={{ position:"relative" }}>
         <Icon name="alert" size={16} color={count>0?"var(--warn)":"var(--text2)"} />
-        {count>0 && <span style={{ position:"absolute",top:-4,right:-4,width:16,height:16,borderRadius:"50%",background:"var(--danger)",color:"#fff",fontSize:8,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid var(--bg)" }}>{count>9?"9+":count}</span>}
+        {count>0 && <span style={{ position:"absolute",top:-4,right:-4,width:16,height:16,borderRadius:"50%",background:"var(--danger)",color:"#fff",fontSize:8,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid var(--bg)",animation:"pulse-glow 2s infinite" }}>{count>9?"9+":count}</span>}
       </button>
-      {open && (
-        <div style={{ position:"absolute",top:"calc(100% + 8px)",left:0,width:280,background:"var(--glass-bg)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",border:"1px solid var(--card-border)",borderRadius:18,boxShadow:"var(--shadow-float)",zIndex:300,overflow:"hidden",animation:"fu .2s cubic-bezier(.4,0,.2,1)" }}>
-          <div style={{ padding:"10px 14px",borderBottom:"1px solid var(--muted2)",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-            <span style={{ fontSize:12,fontWeight:800,color:"var(--text)" }}>الإشعارات</span>
-            <button onClick={()=>setOpen(false)} style={{ background:"none",border:"none",color:"var(--muted)",cursor:"pointer",fontSize:14 }}>×</button>
+    </div>
+  );
+}
+
+// ─── Activity Feed ────────────────────────────────────────────────
+function ActivityFeed({ activities }) {
+  if (!activities.length) return null;
+  const icons = { payment:"💳", contract:"📄", complete:"✅", cancel:"❌", video:"🎬", client:"👤" };
+  return (
+    <div className="card" style={{ marginBottom:10 }}>
+      <div style={{ fontSize:13, fontWeight:800, color:"var(--text)", marginBottom:12, display:"flex", alignItems:"center", gap:7 }}>
+        <Icon name="history" size={14} color="var(--ac)"/> آخر النشاطات
+      </div>
+      {activities.slice(0,6).map((a, i) => (
+        <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"7px 0", borderBottom: i < activities.length-1 ? "1px solid var(--muted2)" : "none", animation:`stagger-in .4s ${i*50}ms both` }}>
+          <div style={{ width:32, height:32, borderRadius:10, background:"var(--surface2)", border:"1px solid var(--card-border)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>
+            {icons[a.type] || "📝"}
           </div>
-          {alerts.length===0
-            ? <div style={{ padding:"20px 14px",textAlign:"center",color:"var(--muted)",fontSize:12 }}>لا توجد إشعارات</div>
-            : alerts.slice(0,8).map((a,i)=>(
-              <div key={i} style={{ padding:"9px 14px",borderBottom:"1px solid var(--muted2)",display:"flex",gap:9,alignItems:"flex-start" }}>
-                <div style={{ width:6,height:6,borderRadius:"50%",background:a.type==="u"?"var(--danger)":"var(--warn)",flexShrink:0,marginTop:4 }} />
-                <div style={{ fontSize:11,color:"var(--text2)",lineHeight:1.5 }}>{a.msg}</div>
-              </div>
-            ))
-          }
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:12, fontWeight:600, color:"var(--text)", lineHeight:1.4 }}>{a.msg}</div>
+            <div style={{ fontSize:9, color:"var(--muted)", marginTop:2 }}>{a.time}</div>
+          </div>
         </div>
-      )}
+      ))}
     </div>
   );
 }
@@ -342,37 +451,40 @@ const CSS = `
 @keyframes skel { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 @keyframes fu { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
 @keyframes fu-fast { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:none} }
-@keyframes pulse-glow { 0%,100%{box-shadow:0 0 20px var(--ac-glow),0 4px 20px rgba(0,201,110,0.5),0 0 0 4px rgba(0,201,110,0.15)} 50%{box-shadow:0 0 40px var(--ac-glow),0 4px 28px rgba(0,201,110,0.6),0 0 0 6px rgba(0,201,110,0.2)} }
-@keyframes expandCard { from{opacity:0;max-height:0;transform:translateY(-6px)} to{opacity:1;max-height:600px;transform:none} }
+@keyframes pulse-glow { 0%,100%{box-shadow:0 0 0 0 rgba(255,77,109,0.4)} 50%{box-shadow:0 0 0 5px rgba(255,77,109,0)} }
+@keyframes expandCard { from{opacity:0;max-height:0;transform:translateY(-6px)} to{opacity:1;max-height:700px;transform:none} }
 @keyframes spinIn { from{opacity:0;transform:scale(.85)} to{opacity:1;transform:scale(1)} }
-@keyframes checkDraw { 0%{stroke-dashoffset:30} 100%{stroke-dashoffset:0} }
 @keyframes stagger-in { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
 @keyframes neon-pulse { 0%,100%{text-shadow:0 0 8px var(--ac),0 0 20px var(--ac)} 50%{text-shadow:0 0 16px var(--ac),0 0 40px var(--ac),0 0 60px var(--ac)} }
-@keyframes fab-rotate-in { from{transform:rotate(-90deg) scale(.7)} to{transform:rotate(0deg) scale(1)} }
-@keyframes fab-rotate-out { from{transform:rotate(0deg) scale(1)} to{transform:rotate(90deg) scale(.7)} }
-@keyframes dots-bg { 0%{background-position:0 0} 100%{background-position:40px 40px} }
 @keyframes shimmer-text { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+@keyframes urgent-border { 0%{opacity:0.4} 50%{opacity:1} 100%{opacity:0.4} }
+@keyframes wave-shift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+@keyframes float-in { from{opacity:0;transform:translateY(-16px) scale(.96)} to{opacity:1;transform:none} }
+@keyframes slide-up { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:none} }
+@keyframes dot-appear { from{transform:scale(0)} to{transform:scale(1)} }
 
 /* ── Base ── */
 html,body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rtl;height:100%;transition:background .3s,color .3s;}
 ::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--ac-border);border-radius:4px}
 .app{display:flex;flex-direction:column;height:100dvh;background:var(--bg);overflow:hidden;}
-.screen{flex:1;overflow-y:auto;padding:0 14px 90px;}
+.screen{flex:1;overflow-y:auto;padding:0 14px 100px;}
 
 /* ── Topbar frosted ── */
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 14px 0;gap:10px;position:sticky;top:0;z-index:50;
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 14px 10px;gap:10px;position:sticky;top:0;z-index:50;
   background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  border-bottom:1px solid var(--card-border);margin:0 -14px;padding-left:14px;padding-right:14px;padding-bottom:10px;}
+  border-bottom:1px solid var(--card-border);margin:0 -14px;padding-left:14px;padding-right:14px;}
+.tb-btn{width:36px;height:36px;border-radius:10px;background:var(--surface2);border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .2s;flex-shrink:0;}
+.tb-btn:hover{border-color:var(--ac-border);color:var(--ac);}
 
-/* ── Hero card ── */
-.hero-card{background:linear-gradient(135deg,#0f1e3a 0%,#0a1428 50%,#060e1f 100%);border-radius:24px;padding:24px 20px 20px;margin:14px 0 16px;position:relative;overflow:hidden;box-shadow:var(--shadow-float),0 0 40px rgba(0,201,110,0.15);border:1px solid rgba(0,255,136,0.12);}
-.hero-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(0,255,136,0.15) 0%,transparent 70%);border-radius:50%;}
-.hero-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(0,150,255,0.08) 0%,transparent 70%);border-radius:50%;}
-
-/* Dot-pattern overlay on hero */
-.hero-dots{position:absolute;inset:0;opacity:0.12;background-image:radial-gradient(circle,rgba(0,255,136,0.6) 1px,transparent 1px);background-size:20px 20px;pointer-events:none;z-index:0;}
-
+/* ── Hero card with animated wave ── */
+.hero-card{background:linear-gradient(135deg,#0f1e3a 0%,#0a1428 50%,#060e1f 100%);border-radius:24px;padding:24px 20px 20px;margin:14px 0 16px;position:relative;overflow:hidden;border:1px solid rgba(0,255,136,0.12);}
+/* Colored shadow for hero */
+.hero-card-shadow{box-shadow:0 20px 60px rgba(0,255,136,0.12),0 8px 24px rgba(0,0,0,0.5),0 0 0 1px rgba(0,255,136,0.08);}
+.hero-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,255,136,0.15) 0%,rgba(0,100,255,0.08) 50%,rgba(0,255,136,0.05) 100%);background-size:400% 400%;animation:wave-shift 8s ease infinite;z-index:0;}
+.hero-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(0,150,255,0.08) 0%,transparent 70%);border-radius:50%;z-index:0;}
+.hero-dots{position:absolute;inset:0;opacity:0.1;background-image:radial-gradient(circle,rgba(0,255,136,0.6) 1px,transparent 1px);background-size:20px 20px;pointer-events:none;z-index:0;}
 .hero-lbl{font-size:12px;color:rgba(255,255,255,0.55);font-weight:500;margin-bottom:6px;letter-spacing:0.5px;position:relative;z-index:1;}
+.hero-greeting{font-size:11px;color:rgba(255,255,255,0.45);font-weight:400;margin-bottom:8px;position:relative;z-index:1;}
 .hero-amount{font-size:34px;font-weight:900;line-height:1.1;margin-bottom:4px;position:relative;z-index:1;
   background:linear-gradient(135deg,#ffffff 0%,#00ff88 50%,#00ffcc 100%);background-size:200% 200%;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
@@ -385,13 +497,92 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .qa-icon{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;}
 .qa-lbl{font-size:10px;color:rgba(255,255,255,0.7);font-weight:600;}
 
+/* ── Contract Card — redesigned ── */
+.cc{border-radius:16px;overflow:hidden;transition:all .25s;position:relative;}
+.cc-compact{padding:13px 14px;display:flex;align-items:center;gap:11px;}
+.cc-compact-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;border:1px solid;flex-shrink:0;position:relative;}
+.cc-compact-body{flex:1;min-width:0;}
+.cc-compact-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cc-compact-sub{font-size:10px;color:var(--muted);margin-top:1px;font-weight:500;}
+.cc-compact-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.cc-compact-amt{font-size:12px;font-weight:800;}
+.cc-expand-btn{width:26px;height:26px;border-radius:8px;background:var(--surface2);border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;color:var(--muted);}
+.cc-expand-btn:hover{border-color:var(--ac-border);color:var(--ac);}
+.cc-expand-btn svg{transition:transform .25s cubic-bezier(.4,0,.2,1);}
+.cc-expand-btn.open svg{transform:rotate(180deg);}
+.cc-expanded{border-top:1px solid var(--muted2);padding:10px 14px 14px;overflow:hidden;animation:expandCard .32s cubic-bezier(.34,1.2,.64,1) both;}
+.cc-actions{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
+
+/* Urgent animated border */
+@keyframes border-draw { from{stroke-dashoffset:1000} to{stroke-dashoffset:0} }
+.urgent-ring{position:absolute;inset:0;border-radius:16px;pointer-events:none;z-index:0;overflow:hidden;}
+.urgent-ring svg{position:absolute;inset:0;width:100%;height:100%;}
+.urgent-stroke{fill:none;stroke:#ff4d4d;stroke-width:2;animation:urgent-border 1.5s ease-in-out infinite;stroke-dasharray:8 4;}
+
+/* Days remaining watermark */
+.days-watermark{position:absolute;bottom:6px;left:10px;font-size:52px;font-weight:900;opacity:0.04;line-height:1;pointer-events:none;color:var(--text);font-family:var(--font);z-index:0;user-select:none;}
+
+/* Video dots progress */
+.vdots{display:flex;gap:3px;flex-wrap:wrap;max-width:120px;}
+.vdot{width:7px;height:7px;border-radius:50%;transition:all .3s;flex-shrink:0;}
+.vdot.done{animation:dot-appear .3s ease both;}
+
+/* Urgency bar */
+.urgency-bar{height:3px;border-radius:4px;overflow:hidden;margin-top:4px;}
+.urgency-fill{height:100%;border-radius:4px;transition:width .6s ease;}
+
+/* ── Amount / payment boxes ── */
+.amt-box{background:var(--surface2);border-radius:10px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--card-border);}
+.amt-lbl{font-size:9px;color:var(--muted);font-weight:600;}
+.amt-val{font-size:14px;font-weight:800;color:var(--ac);}
+.payment-amt-shadow{box-shadow:0 4px 14px rgba(0,255,136,0.15);}
+
+/* Payment sections */
+.psec{background:var(--surface2);border-radius:12px;padding:10px 12px;border:1px solid var(--card-border);margin-top:6px;}
+.pbar{height:4px;background:var(--muted2);border-radius:4px;margin:6px 0 8px;overflow:hidden;}
+.pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);box-shadow:0 0 8px var(--ac-glow);transition:width .8s cubic-bezier(.34,1.56,.64,1);}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.pitem{background:var(--surface);border-radius:10px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:6px;border:1px solid var(--card-border);box-shadow:var(--shadow-card);}
+
+/* Payment toggle */
+.ptog{padding:4px 10px;border-radius:7px;border:none;font-size:9px;font-weight:800;cursor:pointer;font-family:var(--font);transition:all .25s;white-space:nowrap;position:relative;overflow:hidden;}
+.ptog.ok{background:rgba(0,255,136,0.15);color:var(--ac);box-shadow:0 2px 8px rgba(0,255,136,0.2);}
+.ptog.no{background:var(--surface2);color:var(--muted);}
+
+/* Video progress */
+.vpsec{background:var(--surface2);border-radius:12px;padding:10px 12px;border:1px solid var(--card-border);margin-top:8px;}
+.vpbar{height:4px;background:var(--muted2);border-radius:4px;margin:6px 0 8px;overflow:hidden;}
+.vpfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);transition:width .8s cubic-bezier(.34,1.56,.64,1);}
+.vp-btn{padding:5px 13px;border-radius:8px;border:none;background:var(--surface);color:var(--ac);font-size:10px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s;border:1px solid var(--card-border);box-shadow:var(--shadow-card);}
+.vp-btn:hover{border-color:var(--ac-border);}
+
 /* ── Glassmorphism card ── */
 .glass-card{background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--card-border);border-radius:18px;box-shadow:var(--shadow-card);}
 
+/* ── Stat cards ── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+.stat-card{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:18px;padding:16px;box-shadow:var(--shadow-card);transition:all .25s;}
+.stat-card:hover{transform:translateY(-2px);}
+.stat-card.wide{grid-column:1/-1;}
+.stat-lbl{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.stat-val{font-size:18px;font-weight:800;color:var(--text);} .stat-val.ac{color:var(--ac);} .stat-val.sm{font-size:14px;}
+
+/* ── Nav ── */
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:1px solid var(--card-border);display:flex;align-items:center;padding:6px 8px max(6px,env(safe-area-inset-bottom));box-shadow:0 -8px 32px rgba(0,0,0,0.12);gap:4px;}
+.bni{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:7px 6px;border-radius:14px;transition:all .2s;flex:1;position:relative;}
+.bni:hover{background:var(--ac-faint);}
+.bni-lbl{font-size:9px;color:var(--muted);font-weight:700;transition:color .2s;}
+.bni.on .bni-lbl{color:var(--ac);animation:neon-pulse 2s ease-in-out infinite;}
+.bni-fab{width:50px;height:50px;border-radius:16px;background:linear-gradient(135deg,#00ff88,#00c96e);display:flex;align-items:center;justify-content:center;margin-bottom:2px;transition:all .2s;cursor:pointer;box-shadow:0 0 20px rgba(0,255,136,0.4),0 4px 20px rgba(0,201,110,0.5);position:relative;overflow:hidden;}
+.bni-fab:hover{transform:scale(1.08);box-shadow:0 0 30px rgba(0,255,136,0.5),0 8px 28px rgba(0,201,110,0.6);}
+.bni-fab:active{transform:scale(.95);}
+
+/* ── Core card ── */
+.card{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:18px;padding:14px;box-shadow:var(--shadow-card);margin-bottom:var(--card-gap);transition:all .25s;}
+.card:hover{box-shadow:var(--shadow-float);border-color:var(--ac-border);}
+
 /* ── Transaction cards ── */
 .tx-card{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:16px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-card);transition:all .2s;cursor:pointer;position:relative;overflow:hidden;}
-.tx-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,255,136,0.02),transparent);opacity:0;transition:opacity .2s;}
-.tx-card:hover::before{opacity:1;}
 .tx-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-float);border-color:var(--ac-border);}
 .tx-icon{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--surface2),var(--surface3));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
 .tx-name{font-size:13px;font-weight:600;color:var(--text);}
@@ -402,80 +593,6 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .sec-hdr{display:flex;justify-content:space-between;align-items:center;margin:18px 0 10px;}
 .sec-title{font-size:15px;font-weight:800;color:var(--text);}
 .sec-link{font-size:11px;color:var(--ac);font-weight:700;cursor:pointer;}
-
-/* ── Stat cards ── */
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
-.stat-card{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:18px;padding:16px;box-shadow:var(--shadow-card);transition:all .25s;}
-.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-float);}
-.stat-card.wide{grid-column:1/-1;}
-.stat-lbl{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
-.stat-val{font-size:18px;font-weight:800;color:var(--text);} .stat-val.ac{color:var(--ac);} .stat-val.sm{font-size:14px;}
-
-/* ── Nav ── */
-.bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:1px solid var(--card-border);display:flex;align-items:center;padding:6px 8px max(6px,env(safe-area-inset-bottom));box-shadow:0 -8px 32px rgba(0,0,0,0.12);gap:4px;}
-.bni{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:7px 6px;border-radius:14px;transition:all .2s;flex:1;position:relative;}
-.bni:hover{background:var(--ac-faint);}
-.bni-lbl{font-size:9px;color:var(--muted);font-weight:700;transition:color .2s;}
-.bni.on .bni-lbl{color:var(--ac);}
-/* Neon glow on active nav item */
-.bni.on .bni-lbl{animation:neon-pulse 2s ease-in-out infinite;}
-
-/* FAB */
-.bni-fab{width:50px;height:50px;border-radius:16px;background:linear-gradient(135deg,#00ff88,#00c96e);display:flex;align-items:center;justify-content:center;margin-bottom:2px;transition:all .2s;cursor:pointer;animation:pulse-glow 3s ease-in-out infinite;position:relative;overflow:hidden;}
-.bni-fab:hover{transform:scale(1.08);}
-.bni-fab:active{transform:scale(.95);}
-.fab-icon{transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .2s;}
-.fab-icon.open{transform:rotate(45deg);}
-
-/* ── Core card ── */
-.card{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:18px;padding:14px;box-shadow:var(--shadow-card);margin-bottom:var(--card-gap);transition:all .25s;}
-.card:hover{box-shadow:var(--shadow-float);border-color:var(--ac-border);}
-
-/* ── Contract card ── */
-.cc{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card);transition:all .25s;position:relative;}
-.cc:hover{box-shadow:var(--shadow-float);}
-.cc-compact{padding:11px 14px;display:flex;align-items:center;gap:12px;}
-.cc-compact-icon{width:38px;height:38px;border-radius:11px;background:var(--surface2);display:flex;align-items:center;justify-content:center;border:1px solid var(--card-border);flex-shrink:0;}
-.cc-compact-body{flex:1;min-width:0;}
-.cc-compact-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cc-compact-sub{font-size:10px;color:var(--muted);margin-top:1px;font-weight:500;}
-.cc-compact-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
-.cc-compact-amt{font-size:12px;font-weight:800;color:var(--ac);}
-.cc-expand-btn{width:26px;height:26px;border-radius:8px;background:var(--surface2);border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;color:var(--muted);}
-.cc-expand-btn:hover{border-color:var(--ac-border);color:var(--ac);}
-.cc-expand-btn svg{transition:transform .25s cubic-bezier(.4,0,.2,1);}
-.cc-expand-btn.open svg{transform:rotate(180deg);}
-.cc-expanded{border-top:1px solid var(--muted2);padding:10px 14px 14px;overflow:hidden;}
-/* Smooth expand animation */
-.cc-expanded-enter{animation:expandCard .32s cubic-bezier(.34,1.2,.64,1) both;}
-.cc-actions{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
-
-/* ── Amount / payment boxes ── */
-.amt-box{background:var(--surface2);border-radius:10px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--card-border);}
-.amt-lbl{font-size:9px;color:var(--muted);font-weight:600;}
-.amt-val{font-size:14px;font-weight:800;color:var(--ac);}
-
-/* Payment sections */
-.psec{background:var(--surface2);border-radius:12px;padding:10px 12px;border:1px solid var(--card-border);margin-top:6px;}
-.pbar{height:4px;background:var(--muted2);border-radius:4px;margin:6px 0 8px;overflow:hidden;}
-.pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);box-shadow:0 0 8px var(--ac-glow);
-  transition:width .8s cubic-bezier(.34,1.56,.64,1);}
-.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-.pitem{background:var(--surface);border-radius:10px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:6px;border:1px solid var(--card-border);box-shadow:var(--shadow-card);}
-
-/* Payment toggle with animated checkmark */
-.ptog{padding:4px 10px;border-radius:7px;border:none;font-size:9px;font-weight:800;cursor:pointer;font-family:var(--font);transition:all .25s;white-space:nowrap;position:relative;overflow:hidden;}
-.ptog.ok{background:rgba(0,255,136,0.15);color:var(--ac);}
-.ptog.no{background:var(--surface2);color:var(--muted);}
-.ptog.ok::after{content:'';position:absolute;inset:0;background:radial-gradient(circle,rgba(0,255,136,0.3) 0%,transparent 70%);animation:ptog-flash .4s ease-out;}
-@keyframes ptog-flash{from{opacity:1;transform:scale(.5)}to{opacity:0;transform:scale(2)}}
-
-/* Video progress */
-.vpsec{background:var(--surface2);border-radius:12px;padding:10px 12px;border:1px solid var(--card-border);margin-top:8px;}
-.vpbar{height:4px;background:var(--muted2);border-radius:4px;margin:6px 0 8px;overflow:hidden;}
-.vpfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);transition:width .8s cubic-bezier(.34,1.56,.64,1);}
-.vp-btn{padding:5px 13px;border-radius:8px;border:none;background:var(--surface);color:var(--ac);font-size:10px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s;border:1px solid var(--card-border);box-shadow:var(--shadow-card);}
-.vp-btn:hover{border-color:var(--ac-border);}
 
 /* ── Badges ── */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:9px;font-weight:800;border:1px solid;}
@@ -555,23 +672,25 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .gresult:hover{box-shadow:var(--shadow-float);border-color:var(--ac-border);}
 
 /* ── Wallet ── */
-.wallet-hero{background:linear-gradient(135deg,#0f1e3a 0%,#0a1428 50%,#060e1f 100%);border-radius:24px;padding:22px 20px 20px;margin:14px 0 16px;position:relative;overflow:hidden;box-shadow:var(--shadow-float),0 0 40px rgba(0,201,110,0.15);border:1px solid rgba(0,255,136,0.12);}
-.wallet-hero::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(0,255,136,0.18) 0%,transparent 70%);border-radius:50%;}
+.wallet-hero{background:linear-gradient(135deg,#0f1e3a 0%,#0a1428 50%,#060e1f 100%);border-radius:24px;padding:22px 20px 20px;margin:14px 0 16px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(167,139,250,0.15),0 8px 24px rgba(0,0,0,0.5);border:1px solid rgba(167,139,250,0.15);}
+.wallet-hero::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(167,139,250,0.15) 0%,transparent 70%);border-radius:50%;}
 .wallet-tabs{display:flex;background:rgba(255,255,255,0.07);border-radius:12px;padding:3px;margin-bottom:18px;position:relative;z-index:1;border:1px solid rgba(255,255,255,0.1);}
 .wallet-tab-btn{flex:1;padding:8px;border:none;border-radius:9px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:700;transition:all .2s;background:transparent;color:rgba(255,255,255,0.5);}
-.wallet-tab-btn.on{background:rgba(0,255,136,0.2);color:var(--ac);box-shadow:0 0 12px rgba(0,255,136,0.2);}
+.wallet-tab-btn.on{background:rgba(167,139,250,0.2);color:#a78bfa;box-shadow:0 0 12px rgba(167,139,250,0.2);}
 .wallet-balance-lbl{font-size:12px;color:rgba(255,255,255,0.5);font-weight:500;margin-bottom:4px;position:relative;z-index:1;}
 .wallet-balance-amt{font-size:36px;font-weight:900;color:#fff;margin-bottom:16px;position:relative;z-index:1;line-height:1;}
 .wallet-actions{display:flex;gap:10px;position:relative;z-index:1;}
 .wa-btn{flex:1;padding:11px;border:none;border-radius:14px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}
 .wa-btn.income-btn{background:rgba(0,255,136,0.18);color:var(--ac);border:1px solid rgba(0,255,136,0.3);}
-.wa-btn.expense-btn{background:rgba(255,77,109,0.15);color:#ff4d6d;border:1px solid rgba(255,77,109,0.25);}
+.wa-btn.expense-btn{background:rgba(255,77,109,0.15);color:#ff4d6d;border:1px solid rgba(255,77,109,0.25);box-shadow:0 4px 12px rgba(255,77,109,0.15);}
 .wa-btn.savings-btn{background:rgba(167,139,250,0.15);color:#a78bfa;border:1px solid rgba(167,139,250,0.25);}
 .wa-btn:hover{transform:translateY(-1px);} .wa-btn:active{transform:scale(.97);}
 .wallet-tx-card{background:var(--glass-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:16px;padding:13px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-card);transition:all .2s;animation:fu .3s;}
 .wallet-tx-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-float);}
 .wtx-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.wtx-icon.green{background:rgba(0,255,136,0.12);} .wtx-icon.red{background:rgba(255,77,109,0.12);} .wtx-icon.purple{background:rgba(167,139,250,0.12);}
+.wtx-icon.green{background:rgba(0,255,136,0.12);box-shadow:0 4px 12px rgba(0,255,136,0.15);}
+.wtx-icon.red{background:rgba(255,77,109,0.12);box-shadow:0 4px 12px rgba(255,77,109,0.12);}
+.wtx-icon.purple{background:rgba(167,139,250,0.12);box-shadow:0 4px 12px rgba(167,139,250,0.12);}
 .wtx-name{font-size:13px;font-weight:700;color:var(--text);}
 .wtx-sub{font-size:10px;color:var(--muted);margin-top:2px;}
 .wtx-amt{font-size:14px;font-weight:800;} .wtx-amt.pos{color:var(--ac);} .wtx-amt.neg{color:var(--danger);} .wtx-amt.purple{color:#a78bfa;}
@@ -583,11 +702,10 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .lmark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#000;box-shadow:0 4px 14px var(--ac-glow);}
 
 /* ── Misc UI ── */
-.empty{text-align:center;padding:50px 16px;color:var(--muted);}
 .ptr-indicator{display:flex;justify-content:center;align-items:center;padding:8px 0;color:var(--ac);font-size:12px;font-weight:700;gap:8px;transition:all .2s;}
-.unpaid-banner{background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.25);border-radius:16px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.unpaid-banner{background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.25);border-radius:16px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 16px rgba(255,77,109,0.12);}
 .today-task{background:var(--glass-bg);backdrop-filter:blur(8px);border:1px solid var(--card-border);border-radius:14px;padding:10px 12px;margin-bottom:6px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow-card);}
-.countdown-box{background:rgba(255,214,0,0.08);border:1px solid rgba(255,214,0,0.2);border-radius:14px;padding:11px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.countdown-box{background:rgba(255,214,0,0.08);border:1px solid rgba(255,214,0,0.2);border-radius:14px;padding:11px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 16px rgba(255,214,0,0.1);}
 .unpaid-row{background:var(--glass-bg);backdrop-filter:blur(8px);border:1px solid var(--card-border);border-radius:14px;padding:11px 14px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-card);animation:fu .3s;}
 
 /* ── Selection mode ── */
@@ -601,21 +719,26 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .settings-lbl{font-size:13px;font-weight:600;color:var(--text);}
 .settings-sub{font-size:10px;color:var(--muted);margin-top:2px;}
 .toggle{width:42px;height:24px;border-radius:12px;background:var(--muted2);border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
-.toggle.on{background:var(--ac);}
+.toggle.on{background:var(--ac);box-shadow:0 2px 10px var(--ac-glow);}
 .toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:9px;background:#fff;top:3px;right:3px;transition:transform .2s cubic-bezier(.34,1.56,.64,1);box-shadow:0 2px 4px rgba(0,0,0,0.2);}
 .toggle.on::after{transform:translateX(-18px);}
 
-/* ── Cash flow projection card ── */
+/* ── Cash flow projection ── */
 .cashflow-card{border-radius:16px;padding:14px;margin-bottom:8px;border:1px solid;display:flex;justify-content:space-between;align-items:center;}
-.cashflow-30{background:rgba(0,255,136,0.06);border-color:rgba(0,255,136,0.2);}
-.cashflow-60{background:rgba(56,189,248,0.06);border-color:rgba(56,189,248,0.2);}
-.cashflow-90{background:rgba(167,139,250,0.06);border-color:rgba(167,139,250,0.2);}
+.cashflow-30{background:rgba(0,255,136,0.06);border-color:rgba(0,255,136,0.2);box-shadow:0 4px 16px rgba(0,255,136,0.08);}
+.cashflow-60{background:rgba(56,189,248,0.06);border-color:rgba(56,189,248,0.2);box-shadow:0 4px 16px rgba(56,189,248,0.08);}
+.cashflow-90{background:rgba(167,139,250,0.06);border-color:rgba(167,139,250,0.2);box-shadow:0 4px 16px rgba(167,139,250,0.08);}
 
 /* ── Status history timeline ── */
-.timeline-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;position:relative;}
+.timeline-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .timeline-line{width:2px;background:var(--muted2);flex:1;min-height:16px;margin:2px auto;}
 
-/* ── Staggered animation ── */
+/* ── Client swipe carousel ── */
+.client-carousel{overflow:hidden;position:relative;}
+.client-carousel-inner{display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1);}
+.client-slide{flex-shrink:0;width:100%;}
+
+/* ── Stagger ── */
 .stagger-item{animation:stagger-in .4s cubic-bezier(.4,0,.2,1) both;}
 
 /* ── Responsive ── */
@@ -655,6 +778,8 @@ const Icon = ({ name, size=20, color="currentColor" }) => {
     arrow_up:<><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5,12 12,5 19,12"/></>,
     arrow_down:<><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19,12 12,19 5,12"/></>,
     chevron_down:<><polyline points="6,9 12,15 18,9"/></>,
+    chevron_left:<><polyline points="15,18 9,12 15,6"/></>,
+    chevron_right:<><polyline points="9,18 15,12 9,6"/></>,
     refresh:<><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></>,
     download:<><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></>,
     pie:<><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></>,
@@ -667,6 +792,8 @@ const Icon = ({ name, size=20, color="currentColor" }) => {
     pen:<><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></>,
     palette:<><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 011.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></>,
     cash_flow:<><polyline points="1,12 5,12"/><polyline points="7,6 12,1 17,6"/><polyline points="12,1 12,15"/><path d="M22 12a10 10 0 01-10 10"/><path d="M14 19l-2 2-2-2"/></>,
+    bell:<><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></>,
+    zap:<><polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/></>,
   };
   return <svg style={s} viewBox="0 0 24 24">{p[name]||null}</svg>;
 };
@@ -682,6 +809,7 @@ const toApp = r => ({
   final50Date:r.final50_date||"", final50Paid:r.final50_paid||false,
   status:r.status||"pending", notes:r.notes||"", statusHistory:r.status_history||[],
   fileUrl:r.file_url||"", fileName:r.file_name||"",
+  updatedAt:r.updated_at||r.created_at||null,
 });
 const toDB = c => ({
   client_id:c.clientId?Number(c.clientId):null, client_name:c.clientName,
@@ -702,6 +830,71 @@ function detectDuration(startDate, endDate) {
   if (!startDate||!endDate) return null;
   const months=(new Date(endDate).getFullYear()-new Date(startDate).getFullYear())*12+(new Date(endDate).getMonth()-new Date(startDate).getMonth());
   if (months===1) return 1; if (months===3) return 3; return null;
+}
+
+// ─── Build notifications from contracts ───────────────────────────
+function buildNotifications(contracts, dismissed=[]) {
+  const notifs = [];
+  const now = new Date();
+  contracts.forEach(c => {
+    if (c.status === "cancelled") return;
+    const vc = Number(c.videoCount||0), vd = Number(c.videoDone||0);
+
+    // Payment deadlines
+    if (!c.final50Paid && c.final50Date) {
+      const d = daysDiff(c.final50Date);
+      if (d !== null && d >= 0 && d <= 7) {
+        notifs.push({ id:`pay2-${c.id}`, group:"payments", type:d<=2?"u":"w", msg:`الدفعة الثانية لـ ${c.clientName} ${d===0?"اليوم!":d===1?"غداً":"خلال "+d+" أيام"}`, time:fmtDate(c.final50Date), contractId:c.id });
+      }
+    }
+    if (!c.deposit50Paid && c.deposit50Date) {
+      const d = daysDiff(c.deposit50Date);
+      if (d !== null && d <= 0) {
+        notifs.push({ id:`pay1-${c.id}`, group:"payments", type:"u", msg:`المقدم لـ ${c.clientName} لم يُستلم بعد`, time:fmtDate(c.deposit50Date), contractId:c.id });
+      }
+    }
+
+    // Deadlines
+    if (c.endDate) {
+      const d = daysDiff(c.endDate);
+      if (d !== null && d >= 0 && d <= 3) {
+        notifs.push({ id:`end-${c.id}`, group:"deadlines", type:d===0?"u":"w", msg:`عقد ${c.clientName} ينتهي ${d===0?"اليوم!":d===1?"غداً":"خلال "+d+" أيام"}`, time:fmtDate(c.endDate), contractId:c.id });
+      }
+      if (d !== null && d < 0 && vc > 0 && vd < vc) {
+        notifs.push({ id:`expired-${c.id}`, group:"deadlines", type:"u", msg:`انتهى عقد ${c.clientName} ولم تكتمل الفيديوهات (${vd}/${vc})`, contractId:c.id });
+      }
+    }
+
+    // Completions
+    if (c.status === "completed") {
+      notifs.push({ id:`done-${c.id}`, group:"completions", type:"ok", msg:`تم إكمال عقد ${c.clientName} بنجاح`, contractId:c.id });
+    }
+
+    // Smart alerts — inactive contracts
+    if (c.updatedAt) {
+      const daysOld = Math.round((now - new Date(c.updatedAt)) / 86400000);
+      if (daysOld > 14 && (c.status === "active" || c.status === "pending")) {
+        notifs.push({ id:`stale-${c.id}`, group:"smart", type:"w", msg:`لم يتم تحديث عقد ${c.clientName} منذ ${daysOld} يوماً`, contractId:c.id });
+      }
+    }
+  });
+  return notifs.filter(n => !dismissed.includes(n.id));
+}
+
+// ─── Build activity feed ──────────────────────────────────────────
+function buildActivities(contracts) {
+  const acts = [];
+  contracts.forEach(c => {
+    if (c.statusHistory) {
+      c.statusHistory.forEach(h => {
+        const label = h.status === "active" ? "تم تفعيل" : h.status === "completed" ? "تم إكمال" : h.status === "cancelled" ? "تم إلغاء" : "تم تعديل";
+        acts.push({ type: h.status === "completed" ? "complete" : h.status === "cancelled" ? "cancel" : "contract", msg:`${label} عقد ${c.clientName}`, time: new Date(h.date).toLocaleString("ar-LY", { month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" }), ts: new Date(h.date).getTime() });
+      });
+    }
+    if (c.deposit50Paid) acts.push({ type:"payment", msg:`تم استلام الدفعة الأولى من ${c.clientName}`, time:"", ts: 0 });
+    if (c.final50Paid) acts.push({ type:"payment", msg:`تم استلام الدفعة الثانية من ${c.clientName}`, time:"", ts: 0 });
+  });
+  return acts.sort((a, b) => b.ts - a.ts).slice(0, 10);
 }
 
 // ─── Confirm Dialog ───────────────────────────────────────────────
@@ -764,7 +957,6 @@ function buildAlerts(contracts) {
     if (!c.deposit50Paid&&c.deposit50Date&&daysDiff(c.deposit50Date)<=0) a.push({id:c.id+"d",msg:`المقدم غير مدفوع — ${c.clientName}`,type:"u"});
     if (c.endDate&&daysDiff(c.endDate)!==null&&daysDiff(c.endDate)<0&&vc>0&&vd<vc) a.push({id:c.id+"exp",msg:`انتهى العقد ولم تكتمل الفيديوهات (${vd}/${vc}) — ${c.clientName}`,type:"u"});
     if (c.endDate) { const d=daysDiff(c.endDate); if(d!==null&&d>=0&&d<=2) a.push({id:c.id+"e",msg:`ينتهي ${d===0?"اليوم":"خلال "+d+" أيام"} — ${c.clientName}`,type:"u"}); }
-    if (c.status==="pending"&&c.startDate&&!c.deposit50Paid) { const started=daysDiff(c.startDate); if(started!==null&&started<-14) a.push({id:c.id+"plong",msg:`عقد معلق منذ أكثر من أسبوعين — ${c.clientName}`,type:"w"}); }
   });
   return a;
 }
@@ -792,7 +984,7 @@ function GradientAvatar({ name, size=42 }) {
   const [c1,c2] = nameToGradient(name||"");
   const initials = (name||"?").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
   return (
-    <div style={{ width:size,height:size,borderRadius:"50%",background:`linear-gradient(135deg,${c1},${c2})`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:size*0.38,color:"#000",flexShrink:0,boxShadow:`0 4px 12px ${c1}55`,userSelect:"none" }}>
+    <div style={{ width:size,height:size,borderRadius:"50%",background:`linear-gradient(135deg,${c1},${c2})`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:size*0.38,color:"#000",flexShrink:0,boxShadow:`0 4px 14px ${c1}66`,userSelect:"none" }}>
       {initials}
     </div>
   );
@@ -913,11 +1105,10 @@ function ContractModal({ contract, clients, onClose, onSave, defaultCurrency }) 
   );
 }
 
-// ─── Contract View Modal (PDF) ────────────────────────────────────
+// ─── Contract View Modal ──────────────────────────────────────────
 function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptions }) {
   const ref = useRef();
   const sigRef = useRef();
-  const [drawing, setDrawing] = useState(false);
   const [hasSig, setHasSig] = useState(false);
   const opts = pdfOptions || { includeTerms:true, includePayment:true, includeSignature:true, includeLogo:true };
 
@@ -932,7 +1123,6 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
   const compName = co.name||"شركة فارق للإنتاج";
   const compPhone = co.phone||"0920953918";
 
-  // Signature canvas
   useEffect(()=>{
     if (!sigRef.current) return;
     const canvas=sigRef.current;
@@ -953,16 +1143,16 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
   const exportPDF=()=>{
     const w=window.open("","_blank");
     const sigData=hasSig?sigRef.current.toDataURL():"";
-    w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"/><title>عقد - ${c.clientName||""}</title><style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Tajawal',sans-serif;direction:rtl;color:#111;background:#fff;padding:32px 44px;font-size:14px;line-height:1.9;}.sec{font-weight:800;font-size:14px;margin:13px 0 5px;border-right:3px solid #111;padding-right:8px;}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:11px 0;}.bx{border:1px solid #ddd;border-radius:7px;padding:10px 12px;}.bl{font-weight:800;font-size:10px;color:#555;margin-bottom:5px;border-right:3px solid #111;padding-right:6px;}hr{border:none;border-top:2px solid #111;margin:12px 0;}hr.t{border-top:1px solid #ddd;margin:16px 0;}.sg{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:22px;}.s{text-align:center;}.sl{margin-top:34px;border-bottom:1.5px dashed #bbb;}</style></head><body>${ref.current.innerHTML}${opts.includeSignature&&sigData?`<div style="margin-top:20px;"><div style="font-weight:700;font-size:12px;margin-bottom:6px;">توقيع العميل الرقمي:</div><img src="${sigData}" style="border:1px solid #ddd;border-radius:8px;max-height:80px;"/></div>`:"" }</body></html>`);
+    w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"/><title>عقد - ${c.clientName||""}</title><style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Tajawal',sans-serif;direction:rtl;color:#111;background:#fff;padding:32px 44px;font-size:14px;line-height:1.9;}.sec{font-weight:800;font-size:14px;margin:13px 0 5px;border-right:3px solid #111;padding-right:8px;}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:11px 0;}.bx{border:1px solid #ddd;border-radius:7px;padding:10px 12px;}.bl{font-weight:800;font-size:10px;color:#555;margin-bottom:5px;border-right:3px solid #111;padding-right:6px;}hr{border:none;border-top:2px solid #111;margin:12px 0;}hr.t{border-top:1px solid #ddd;margin:16px 0;}.sg{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:22px;}.s{text-align:center;}.sl{margin-top:34px;border-bottom:1.5px dashed #bbb;}</style></head><body>${ref.current.innerHTML}${opts.includeSignature&&sigData?`<div style="margin-top:20px;"><div style="font-weight:700;font-size:12px;margin-bottom:6px;">توقيع العميل الرقمي:</div><img src="${sigData}" style="border:1px solid #ddd;border-radius:8px;max-height:80px;"/></div>`:""}</body></html>`);
     w.document.close(); setTimeout(()=>{ w.focus(); w.print(); },500);
     onPdfExported(c.id);
   };
 
   return (
     <div className="mov" style={{ alignItems:"flex-start", overflowY:"auto" }}>
-      <div style={{ background:"var(--glass-bg)",backdropFilter:"blur(24px)",border:"1px solid var(--card-border)",borderRadius:22,width:"100%",maxWidth:740,margin:"12px 0",overflow:"hidden",boxShadow:"var(--shadow-float)" }}>
+      <div style={{ background:"var(--glass-bg)",backdropFilter:"blur(24px)",border:"1px solid var(--card-border)",borderRadius:22,width:"100%",maxWidth:740,margin:"12px 0",overflow:"hidden",boxShadow:`var(--shadow-float),0 0 40px ${SC[c.status]}22` }}>
         <div style={{ background:"var(--surface2)",padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"1px solid var(--muted2)" }}>
-          <span style={{ color:"var(--text)",fontWeight:700,fontSize:14,display:"flex",alignItems:"center",gap:7 }}><Icon name="doc" size={14} color="var(--ac)"/>تفاصيل العقد</span>
+          <span style={{ color:"var(--text)",fontWeight:700,fontSize:14,display:"flex",alignItems:"center",gap:7 }}><Icon name="doc" size={14} color={SC[c.status]}/>تفاصيل العقد</span>
           <div style={{ display:"flex", gap:7 }}>
             {c.fileUrl&&<a href={c.fileUrl} target="_blank" rel="noreferrer" style={{ textDecoration:"none" }}><button className="btn bng" style={{ fontSize:11,padding:"5px 11px" }}><Icon name="file" size={11} color="var(--ac)"/>نسخة العقد</button></a>}
             <button className="btn bngf" style={{ fontSize:11,padding:"6px 13px" }} onClick={exportPDF}><Icon name="doc" size={11} color="#000"/>تصدير PDF</button>
@@ -977,7 +1167,7 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
             </div>
             <span className="badge" style={{ color:SC[c.status],background:SC[c.status]+"18",borderColor:SC[c.status]+"44" }}>{SL[c.status]}</span>
           </div>
-          <div className="amt-box"><div className="amt-lbl">الإجمالي</div><div className="amt-val">{fmt(c.totalAmount,c.currency)}</div></div>
+          <div className="amt-box payment-amt-shadow"><div className="amt-lbl">الإجمالي</div><div className="amt-val">{fmt(c.totalAmount,c.currency)}</div></div>
           <div className="psec">
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8 }}>
               <span style={{ fontSize:10,color:"var(--muted)",fontWeight:700 }}>الدفع</span>
@@ -985,7 +1175,7 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
             </div>
             <div className="pgrid">
               {[{l:"الأولى 50%",paid:c.deposit50Paid,date:c.deposit50Date},{l:"الثانية 50%",paid:c.final50Paid,date:c.final50Date}].map(p=>(
-                <div key={p.l} className="pitem">
+                <div key={p.l} className="pitem" style={{ boxShadow:p.paid?"0 2px 12px rgba(0,255,136,0.12)":"var(--shadow-card)" }}>
                   <div><div style={{ fontSize:10,color:"var(--muted)",fontWeight:600 }}>{p.l}</div><div style={{ fontSize:12,fontWeight:700 }}>{fmt(Number(c.totalAmount||0)*0.5,c.currency)}</div>{p.date&&<div style={{ fontSize:9,color:"var(--muted)" }}>{fmtDate(p.date)}</div>}</div>
                   <div style={{ fontSize:11,color:p.paid?"var(--ac)":"var(--muted)",fontWeight:800 }}>{p.paid?"✓":"—"}</div>
                 </div>
@@ -993,16 +1183,14 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
             </div>
           </div>
           {vc>0&&<div className="vpsec" style={{ marginTop:8 }}><div style={{ display:"flex",justifyContent:"space-between" }}><span style={{ fontSize:10,color:"var(--muted)",fontWeight:700 }}>الفيديوهات</span><span style={{ fontSize:11,fontWeight:800,color:"var(--ac)" }}>{vd}/{vc}</span></div><div className="vpbar"><div className="vpfill" style={{ width:`${vc>0?(vd/vc)*100:0}%` }}/></div></div>}
-
-          {/* Status history with timeline */}
           {c.statusHistory&&c.statusHistory.length>0&&(
             <div style={{ marginTop:14 }}>
               <div style={{ fontSize:11,fontWeight:800,color:"var(--muted)",marginBottom:8,display:"flex",alignItems:"center",gap:6 }}><Icon name="history" size={11} color="var(--muted)"/>سجل الحالات</div>
               {c.statusHistory.map((h,i)=>(
                 <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:10,padding:"4px 0" }}>
                   <div style={{ display:"flex",flexDirection:"column",alignItems:"center" }}>
-                    <div className="timeline-dot" style={{ background:SC[h.status]||"var(--muted)",boxShadow:`0 0 8px ${SC[h.status]||"var(--muted)"}66` }}/>
-                    {i<c.statusHistory.length-1&&<div className="timeline-line"/>}
+                    <div style={{ width:10,height:10,borderRadius:"50%",background:SC[h.status]||"var(--muted)",boxShadow:`0 0 8px ${SC[h.status]||"var(--muted)"}66`,flexShrink:0 }}/>
+                    {i<c.statusHistory.length-1&&<div style={{ width:2,background:"var(--muted2)",flex:1,minHeight:16,margin:"2px auto" }}/>}
                   </div>
                   <div style={{ paddingBottom:i<c.statusHistory.length-1?12:0 }}>
                     <div style={{ fontSize:12,fontWeight:700,color:SC[h.status]||"var(--muted)" }}>{SL[h.status]||h.status}</div>
@@ -1012,8 +1200,6 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
               ))}
             </div>
           )}
-
-          {/* Digital Signature */}
           {opts.includeSignature&&(
             <div style={{ marginTop:14 }}>
               <div style={{ fontSize:11,fontWeight:800,color:"var(--muted)",marginBottom:6,display:"flex",alignItems:"center",justifyContent:"space-between" }}>
@@ -1024,10 +1210,8 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
               <div style={{ fontSize:9,color:"var(--muted)",marginTop:4 }}>امسح بإصبعك أو الماوس</div>
             </div>
           )}
-
           {c.notes&&<div style={{ marginTop:10,fontSize:12,color:"var(--text2)",padding:"9px 12px",background:"var(--surface2)",borderRadius:10,border:"1px solid var(--card-border)" }}>📝 {c.notes}</div>}
         </div>
-        {/* Hidden PDF content */}
         <div ref={ref} style={{ display:"none" }}>
           {opts.includeLogo&&<div style={{ textAlign:"center",marginBottom:16 }}>
             <img src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG" alt="فارق" style={{ width:70,height:70,objectFit:"contain",filter:"invert(1)",display:"inline-block",marginBottom:7 }}/>
@@ -1040,24 +1224,11 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
             <div style={{ border:"1px solid #ddd",borderRadius:7,padding:"9px 11px" }}><div style={{ fontWeight:800,fontSize:10,color:"#555",marginBottom:5,borderRight:"3px solid #111",paddingRight:6 }}>الطرف الثاني</div>{[["الاسم",c.clientName],["العنوان",c.clientAddress],["الهاتف",c.clientPhone]].map(([l,v])=><div key={l} style={{ display:"flex",gap:4,margin:"2px 0",fontSize:13 }}><span style={{ color:"#666",minWidth:45 }}>{l}:</span><span style={{ fontWeight:600,borderBottom:"1px solid #ddd",flex:1 }}>{v||""}</span></div>)}</div>
           </div>
           <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>موضوع العقد</div>
-          <div style={{ fontFamily:"'Tajawal',sans-serif",lineHeight:1.9 }}>
-            <div>يلتزم الطرف الأول بتقديم خدمات إنتاج محتوى فيديو تشمل:</div>
-            <div>- تصوير وإنتاج عدد ({c.videoCount||"          "}) فيديوهات</div>
-          </div>
+          <div style={{ fontFamily:"'Tajawal',sans-serif",lineHeight:1.9 }}><div>يلتزم الطرف الأول بتقديم خدمات إنتاج محتوى فيديو تشمل:</div><div>- تصوير وإنتاج عدد ({c.videoCount||"          "}) فيديوهات</div></div>
           <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>مدة العقد:</div>
           <div style={{ fontFamily:"'Tajawal',sans-serif" }}>من {sd.d}/{sd.m}/{sd.y} إلى {ed.d}/{ed.m}/{ed.y}</div>
-          {opts.includePayment&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>القيمة المالية:</div>
-          <div style={{ fontFamily:"'Tajawal',sans-serif" }}>
-            <div>- قيمة الفيديوهات: {vAmt} {cur}</div>
-            <div>- قيمة الوجه الإعلامي: {pAmt} {cur}</div>
-            <div style={{ margin:"9px 0 3px",fontWeight:700 }}>طريقة الدفع: 50% مقدماً · 50% عند التسليم</div>
-          </div></>}
-          {opts.includeTerms&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>الشروط والأحكام:</div>
-          <div style={{ fontFamily:"'Tajawal',sans-serif" }}>
-            <div>- يحق للعميل طلب تعديل فقط لكل فيديو</div>
-            <div>- لا يتم استرجاع الدفعة المقدمة في حال الإلغاء بعد بدء العمل</div>
-            <div>- يحق للطرف الأول استخدام الأعمال في معرض أعماله</div>
-          </div></>}
+          {opts.includePayment&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>القيمة المالية:</div><div style={{ fontFamily:"'Tajawal',sans-serif" }}><div>- قيمة الفيديوهات: {vAmt} {cur}</div><div>- قيمة الوجه الإعلامي: {pAmt} {cur}</div><div style={{ margin:"9px 0 3px",fontWeight:700 }}>طريقة الدفع: 50% مقدماً · 50% عند التسليم</div></div></>}
+          {opts.includeTerms&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>الشروط والأحكام:</div><div style={{ fontFamily:"'Tajawal',sans-serif" }}><div>- يحق للعميل طلب تعديل فقط لكل فيديو</div><div>- لا يتم استرجاع الدفعة المقدمة في حال الإلغاء بعد بدء العمل</div><div>- يحق للطرف الأول استخدام الأعمال في معرض أعماله</div></div></>}
           {c.notes&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>ملاحظات:</div><div style={{ fontFamily:"'Tajawal',sans-serif" }}>{c.notes}</div></>}
           <hr style={{ border:"none",borderTop:"1px solid #ddd",margin:"18px 0 14px" }}/>
           <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:36,fontFamily:"'Tajawal',sans-serif" }}>
@@ -1069,58 +1240,135 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
   );
 }
 
-// ─── Contract Card ────────────────────────────────────────────────
+// ─── Video Dots ───────────────────────────────────────────────────
+function VideoDots({ done, total, color }) {
+  if (!total || total === 0) return null;
+  const count = Math.min(total, 12);
+  return (
+    <div className="vdots">
+      {Array.from({length:count}).map((_,i) => (
+        <div key={i} className={`vdot${i < done ? " done" : ""}`}
+          style={{ background: i < done ? color : "var(--muted2)", boxShadow: i < done ? `0 0 4px ${color}88` : "none", animationDelay:`${i*50}ms` }} />
+      ))}
+      {total > 12 && <div style={{ fontSize:8, color:"var(--muted)", alignSelf:"center" }}>+{total-12}</div>}
+    </div>
+  );
+}
+
+// ─── Urgency Bar ──────────────────────────────────────────────────
+function UrgencyBar({ endDate }) {
+  if (!endDate) return null;
+  const d = daysDiff(endDate);
+  if (d === null || d > 30) return null;
+  const pct = Math.max(0, Math.min(100, 100 - (d / 30) * 100));
+  const color = d <= 0 ? "#ff4d4d" : d <= 3 ? "#ff6b35" : d <= 7 ? "#ffd600" : "#00ff88";
+  return (
+    <div style={{ marginTop:3 }}>
+      <div style={{ fontSize:8, color, fontWeight:700, marginBottom:2 }}>
+        {d <= 0 ? "منتهي" : d === 1 ? "يوم واحد" : `${d} أيام`}
+      </div>
+      <div className="urgency-bar" style={{ background:"var(--muted2)", width:"100%" }}>
+        <div className="urgency-fill" style={{ width:`${pct}%`, background:`linear-gradient(90deg,${color},${color}bb)`, boxShadow:`0 0 6px ${color}66` }}/>
+      </div>
+    </div>
+  );
+}
+
+// ─── Contract Card — redesigned ───────────────────────────────────
 function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, onCancel, selected, onSelect, selectionMode, delay=0 }) {
   const [expanded, setExpanded] = useState(false);
-  const pct=Math.round(((c.deposit50Paid?0.5:0)+(c.final50Paid?0.5:0))*100);
-  const f50d=c.final50Date?daysDiff(c.final50Date):null;
-  const vc=Number(c.videoCount||0),vd=Number(c.videoDone||0);
-  const vpct=vc>0?Math.round((vd/vc)*100):0;
-  const accent=CARD_ACCENT[c.status]||CARD_ACCENT.pending;
+  const pct = Math.round(((c.deposit50Paid?0.5:0)+(c.final50Paid?0.5:0))*100);
+  const f50d = c.final50Date ? daysDiff(c.final50Date) : null;
+  const vc = Number(c.videoCount||0), vd = Number(c.videoDone||0);
+  const vpct = vc > 0 ? Math.round((vd/vc)*100) : 0;
+  const accent = CARD_ACCENT[c.status] || CARD_ACCENT.pending;
+  const statusColor = SC[c.status];
+  const daysLeft = c.endDate ? daysDiff(c.endDate) : null;
+  const isUrgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 3 && c.status !== "completed" && c.status !== "cancelled";
 
   return (
     <div className="stagger-item" style={{ animationDelay:`${delay}ms` }}>
       <SwipeableCard onDelete={()=>onDelete(c.id)} onCancel={()=>onCancel(c.id)} onEdit={()=>onEdit(c)} onLongPress={()=>onSelect(c.id)}>
         <TiltCard>
-          <div className="cc" style={{ border:`1px solid ${accent.border}`, background:`linear-gradient(135deg,${accent.glow} 0%,transparent 60%),var(--glass-bg)`, backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)" }}>
+          <div className="cc" style={{
+            border:`1px solid ${accent.border}`,
+            background:`linear-gradient(135deg,${accent.glow} 0%,transparent 60%),var(--glass-bg)`,
+            backdropFilter:"blur(12px)",
+            WebkitBackdropFilter:"blur(12px)",
+            boxShadow:`0 8px 32px ${accent.shadow},0 2px 8px rgba(0,0,0,0.15)`,
+          }}>
+            {/* Animated border for urgent contracts */}
+            {isUrgent && (
+              <div style={{ position:"absolute",inset:0,borderRadius:16,pointerEvents:"none",zIndex:0,overflow:"hidden" }}>
+                <svg style={{ position:"absolute",inset:0,width:"100%",height:"100%" }} preserveAspectRatio="none">
+                  <rect x="1" y="1" width="calc(100%-2)" height="calc(100%-2)" rx="15" ry="15"
+                    fill="none" stroke="#ff4d4d" strokeWidth="2" strokeDasharray="8 4"
+                    style={{ animation:"urgent-border 1.5s ease-in-out infinite" }}/>
+                </svg>
+              </div>
+            )}
+
+            {/* Days remaining watermark */}
+            {daysLeft !== null && daysLeft > 0 && daysLeft <= 30 && (
+              <div className="days-watermark">{daysLeft}</div>
+            )}
+
             {/* Status bar */}
-            <div style={{ position:"absolute",right:0,top:0,bottom:0,width:3,background:SC[c.status],borderRadius:"0 16px 16px 0",opacity:0.9,boxShadow:`0 0 8px ${SC[c.status]}88` }}/>
+            <div style={{ position:"absolute",right:0,top:0,bottom:0,width:3,background:statusColor,borderRadius:"0 16px 16px 0",boxShadow:`0 0 10px ${statusColor}88`,zIndex:1 }}/>
+
             {/* Selection checkbox */}
-            {selectionMode&&(
+            {selectionMode && (
               <div style={{ position:"absolute",top:10,left:10,zIndex:5 }} onClick={e=>{ e.stopPropagation(); onSelect(c.id); }}>
                 <div className={`selection-checkbox${selected?" checked":""}`}>
                   {selected&&<Icon name="check" size={12} color="#000"/>}
                 </div>
               </div>
             )}
-            <div className="cc-compact" style={{ paddingLeft:selectionMode?36:14 }}>
-              <div className="cc-compact-icon" onClick={()=>onView(c)} style={{ cursor:"pointer",background:`${SC[c.status]}18`,border:`1px solid ${SC[c.status]}33` }}>
-                <Icon name="contracts" size={15} color={SC[c.status]}/>
+
+            <div className="cc-compact" style={{ paddingLeft:selectionMode?36:14, position:"relative", zIndex:1 }}>
+              {/* Client avatar */}
+              <div onClick={()=>onView(c)} style={{ cursor:"pointer", flexShrink:0 }}>
+                <div style={{ width:40,height:40,borderRadius:12,background:`linear-gradient(135deg,${statusColor}22,${statusColor}11)`,border:`1px solid ${statusColor}44`,display:"flex",alignItems:"center",justifyContent:"center",position:"relative" }}>
+                  <div style={{ width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${nameToGradient(c.clientName)[0]},${nameToGradient(c.clientName)[1]})`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:10,color:"#000" }}>
+                    {(c.clientName||"?").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase()}
+                  </div>
+                </div>
               </div>
+
               <div className="cc-compact-body" onClick={()=>onView(c)} style={{ cursor:"pointer" }}>
                 <div className="cc-compact-name">{c.clientName||"عميل"}</div>
-                <div className="cc-compact-sub">{vc>0?`${vd}/${vc} فيديو`:""}{vc>0&&c.startDate?" · ":""}{fmtDate(c.startDate)}{c.endDate?` · حتى ${fmtDate(c.endDate)}`:""}</div>
+                <div className="cc-compact-sub" style={{ display:"flex",alignItems:"center",gap:5,flexWrap:"wrap" }}>
+                  {vc > 0 && <VideoDots done={vd} total={vc} color={statusColor}/>}
+                  {fmtDate(c.startDate) && <span style={{ color:"var(--muted)",fontSize:9 }}>{fmtDate(c.startDate)}</span>}
+                </div>
+                <UrgencyBar endDate={c.endDate}/>
               </div>
+
               <div className="cc-compact-right">
-                <span className="badge" style={{ color:SC[c.status],background:SC[c.status]+"18",borderColor:SC[c.status]+"44" }}>{SL[c.status]}</span>
-                <div className="cc-compact-amt">{fmt(c.videoAmount||c.totalAmount,c.currency)}</div>
+                <span className="badge" style={{ color:statusColor,background:statusColor+"18",borderColor:statusColor+"44",boxShadow:`0 2px 8px ${statusColor}22` }}>{SL[c.status]}</span>
+                <div className="cc-compact-amt" style={{ color:statusColor }}>{fmt(c.videoAmount||c.totalAmount,c.currency)}</div>
               </div>
+
               <button className={`cc-expand-btn${expanded?" open":""}`} onClick={e=>{ e.stopPropagation(); setExpanded(p=>!p); }}>
                 <Icon name="chevron_down" size={14} color="currentColor"/>
               </button>
             </div>
-            {expanded&&(
-              <div className="cc-expanded cc-expanded-enter">
+
+            {expanded && (
+              <div className="cc-expanded" style={{ position:"relative", zIndex:1 }}>
                 <div className="cc-actions">
                   <div style={{ display:"flex",gap:5 }}>
-                    <button className="ico-btn" onClick={()=>onEdit(c)}><Icon name="edit" size={12} color="var(--text2)"/></button>
-                    <button className="ico-btn" onClick={()=>onView(c)}><Icon name="doc" size={12} color="var(--text2)"/></button>
+                    <button className="ico-btn" onClick={()=>onEdit(c)}><Icon name="edit" size={12}/></button>
+                    <button className="ico-btn" onClick={()=>onView(c)}><Icon name="doc" size={12}/></button>
                     <WABtn phone={c.clientPhone} sm/>
                     <button className="ico-btn red" onClick={()=>onCancel(c.id)}><Icon name="cancel" size={12} color="var(--danger)"/></button>
                     <button className="ico-btn red" onClick={()=>onDelete(c.id)}><Icon name="trash" size={12} color="var(--danger)"/></button>
                   </div>
                 </div>
-                <div className="amt-box"><div className="amt-lbl">الإجمالي</div><div className="amt-val">{fmt(c.totalAmount,c.currency)}</div></div>
+                <div className="amt-box" style={{ boxShadow:`0 4px 14px ${statusColor}22` }}>
+                  <div className="amt-lbl">الإجمالي</div>
+                  <div className="amt-val" style={{ color:statusColor }}>{fmt(c.totalAmount,c.currency)}</div>
+                </div>
                 <div className="psec">
                   <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8 }}>
                     <span style={{ fontSize:10,color:"var(--muted)",fontWeight:700 }}>الدفع</span>
@@ -1131,7 +1379,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
                       {label:"الأولى 50%",paid:c.deposit50Paid,date:c.deposit50Date,field:"deposit50Paid",diff:null},
                       {label:"الثانية 50%",paid:c.final50Paid,date:c.final50Date,field:"final50Paid",diff:f50d},
                     ].map(p=>(
-                      <div key={p.field} className="pitem">
+                      <div key={p.field} className="pitem" style={{ boxShadow:p.paid?`0 2px 10px ${statusColor}22`:"var(--shadow-card)" }}>
                         <div style={{ flex:1,minWidth:0 }}>
                           <div style={{ fontSize:9,color:"var(--muted)",fontWeight:700 }}>{p.label}</div>
                           <div style={{ fontSize:11,fontWeight:700 }}>{fmt(Number(c.totalAmount||0)*0.5,c.currency)}</div>
@@ -1142,7 +1390,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
                     ))}
                   </div>
                 </div>
-                {vc>0&&(
+                {vc > 0 && (
                   <div className="vpsec">
                     <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}><span style={{ fontSize:10,color:"var(--muted)",fontWeight:700 }}>الفيديوهات</span><span style={{ fontSize:10,fontWeight:800,color:"var(--ac)" }}>{vd}/{vc}</span></div>
                     <div className="vpbar"><div className="vpfill" style={{ width:`${vpct}%` }}/></div>
@@ -1152,7 +1400,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
                     </div>
                   </div>
                 )}
-                {c.notes&&<div style={{ marginTop:8,fontSize:10,color:"var(--muted)",padding:"7px 10px",background:"var(--surface2)",borderRadius:8,border:"1px solid var(--card-border)",display:"flex",gap:5 }}><Icon name="doc" size={10}/>{c.notes}</div>}
+                {c.notes&&<div style={{ marginTop:8,fontSize:10,color:"var(--muted)",padding:"7px 10px",background:"var(--surface2)",borderRadius:8,border:"1px solid var(--card-border)",display:"flex",gap:5 }}><Icon name="doc" size={10}/>  {c.notes}</div>}
               </div>
             )}
           </div>
@@ -1227,16 +1475,12 @@ function SettingsScreen({ settings, onSave, theme, onThemeChange }) {
   return (
     <div className="screen" style={{ paddingTop:8 }}>
       <div><div className="pt">الإعدادات</div><div className="ps">تخصيص التطبيق</div></div>
-
-      {/* Company Profile */}
       <div style={{ marginTop:16 }}><div className="sh">ملف الشركة</div></div>
       <div className="card">
         <div className="fg" style={{ marginBottom:10 }}><label className="flbl">اسم الشركة</label><input className="finp" value={f.companyName||""} onChange={e=>s("companyName",e.target.value)} placeholder="شركة فارق للإنتاج"/></div>
         <div className="fg" style={{ marginBottom:10 }}><label className="flbl">رقم الهاتف</label><input className="finp" value={f.companyPhone||""} onChange={e=>s("companyPhone",e.target.value)} placeholder="0920953918"/></div>
         <div className="fg"><label className="flbl">وصف الشركة</label><input className="finp" value={f.companyDesc||""} onChange={e=>s("companyDesc",e.target.value)} placeholder="FAREQ Productions"/></div>
       </div>
-
-      {/* Preferences */}
       <div className="sh">التفضيلات</div>
       <div className="card">
         <div className="settings-row">
@@ -1258,8 +1502,6 @@ function SettingsScreen({ settings, onSave, theme, onThemeChange }) {
           <Toggle val={f.notifyExpiry!==false} onToggle={()=>s("notifyExpiry",!(f.notifyExpiry!==false))}/>
         </div>
       </div>
-
-      {/* PDF Options */}
       <div className="sh">خيارات PDF</div>
       <div className="card">
         {[
@@ -1274,8 +1516,6 @@ function SettingsScreen({ settings, onSave, theme, onThemeChange }) {
           </div>
         ))}
       </div>
-
-      {/* Change Password */}
       <div className="sh">الأمان</div>
       <div className="card">
         <div style={{ fontSize:13,fontWeight:700,marginBottom:10,color:"var(--text)",display:"flex",alignItems:"center",gap:7 }}><Icon name="lock" size={14} color="var(--ac)"/>تغيير كلمة المرور</div>
@@ -1288,8 +1528,6 @@ function SettingsScreen({ settings, onSave, theme, onThemeChange }) {
           <button className="btn bngf" onClick={changePw} style={{ alignSelf:"flex-start" }}>تغيير</button>
         </div>
       </div>
-
-      {/* Backup */}
       <div className="sh">النسخ الاحتياطي</div>
       <div className="card">
         <div style={{ display:"flex",gap:10,flexWrap:"wrap" }}>
@@ -1379,17 +1617,20 @@ function Dashboard({ contracts, clients, goTo, onViewContract, onRefresh, refres
   const lastMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===lastMonthDate.getMonth()&&new Date(c.startDate).getFullYear()===lastMonthDate.getFullYear()).reduce((s,c)=>s+Number(c.videoAmount||0),0);
   const monthDiff=lastMonth>0?Math.round(((thisMonth-lastMonth)/lastMonth)*100):thisMonth>0?100:0;
 
+  const activities = useMemo(()=>buildActivities(contracts),[contracts]);
   const { pulling, progress, handlers } = usePullToRefresh(onRefresh);
+  const greeting = getGreeting();
 
   return (
     <div className="screen" style={{ paddingTop:8 }} {...handlers}>
       {pulling&&<div className="ptr-indicator" style={{ opacity:progress,transform:`translateY(${(1-progress)*-20}px)` }}><Icon name="refresh" size={14} color="var(--ac)"/>{progress>=1?"إطلاق للتحديث":"اسحب للتحديث"}</div>}
       {refreshing&&<div className="ptr-indicator"><Icon name="refresh" size={14} color="var(--ac)"/>جارٍ التحديث...</div>}
 
-      <div className="hero-card">
+      <div className="hero-card hero-card-shadow">
         <div className="hero-dots"/>
         <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8,position:"relative",zIndex:1 }}>
           <div>
+            <div className="hero-greeting">{greeting} 👋</div>
             <div className="hero-lbl">إجمالي المحصّل</div>
             <div className="hero-amount">{collectedAnim.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}<span style={{ fontSize:16,fontWeight:400,color:"rgba(255,255,255,0.4)",WebkitTextFillColor:"rgba(255,255,255,0.4)" }}> LYD</span></div>
           </div>
@@ -1424,7 +1665,7 @@ function Dashboard({ contracts, clients, goTo, onViewContract, onRefresh, refres
 
       {todayTasks.length>0&&<>
         <div className="sec-hdr"><span className="sec-title">📋 مهام اليوم</span><span style={{ fontSize:11,color:"var(--muted)",fontWeight:600 }}>{todayTasks.length} مهمة</span></div>
-        {todayTasks.map(c=>{ const d2=c.final50Date?daysDiff(c.final50Date):null,d1=c.deposit50Date?daysDiff(c.deposit50Date):null,de=c.endDate?daysDiff(c.endDate):null; let lbl=""; if(d1!==null&&d1>=0&&d1<=3&&!c.deposit50Paid) lbl=`الدفعة الأولى${d1===0?" — اليوم!":" — "+d1+" أيام"}`; else if(d2!==null&&d2>=0&&d2<=3&&!c.final50Paid) lbl=`الدفعة الثانية${d2===0?" — اليوم!":" — "+d2+" أيام"}`; else if(de!==null&&de>=0&&de<=1) lbl=`ينتهي العقد${de===0?" اليوم!":" غداً"}`; return (<div key={c.id} className="today-task"><div style={{ width:8,height:8,borderRadius:"50%",background:SC[c.status],flexShrink:0,boxShadow:`0 0 8px ${SC[c.status]}` }}/><div style={{ flex:1 }}><div style={{ fontSize:13,fontWeight:700,color:"var(--text)" }}>{c.clientName}</div><div style={{ fontSize:10,color:"var(--warn)",fontWeight:600,marginTop:2 }}>{lbl}</div></div><div style={{ fontSize:12,fontWeight:700,color:"var(--ac)" }}>{fmt(c.videoAmount||c.totalAmount,c.currency)}</div></div>); })}
+        {todayTasks.map(c=>{ const d2=c.final50Date?daysDiff(c.final50Date):null,d1=c.deposit50Date?daysDiff(c.deposit50Date):null,de=c.endDate?daysDiff(c.endDate):null; let lbl=""; if(d1!==null&&d1>=0&&d1<=3&&!c.deposit50Paid) lbl=`الدفعة الأولى${d1===0?" — اليوم!":" — "+d1+" أيام"}`; else if(d2!==null&&d2>=0&&d2<=3&&!c.final50Paid) lbl=`الدفعة الثانية${d2===0?" — اليوم!":" — "+d2+" أيام"}`; else if(de!==null&&de>=0&&de<=1) lbl=`ينتهي العقد${de===0?" اليوم!":" غداً"}`; return (<div key={c.id} className="today-task" style={{ boxShadow:`0 2px 12px ${SC[c.status]}22` }}><div style={{ width:8,height:8,borderRadius:"50%",background:SC[c.status],flexShrink:0,boxShadow:`0 0 8px ${SC[c.status]}` }}/><div style={{ flex:1 }}><div style={{ fontSize:13,fontWeight:700,color:"var(--text)" }}>{c.clientName}</div><div style={{ fontSize:10,color:"var(--warn)",fontWeight:600,marginTop:2 }}>{lbl}</div></div><div style={{ fontSize:12,fontWeight:700,color:"var(--ac)" }}>{fmt(c.videoAmount||c.totalAmount,c.currency)}</div></div>); })}
       </>}
 
       <CashFlowProjection contracts={contracts}/>
@@ -1432,14 +1673,14 @@ function Dashboard({ contracts, clients, goTo, onViewContract, onRefresh, refres
 
       <div className="stat-grid">
         {[
-          {l:"نشطة",v:contracts.filter(c=>c.status==="active").length,icon:"check",ac:true},
-          {l:"معلقة",v:contracts.filter(c=>c.status==="pending").length,icon:"clock"},
-          {l:"مكتملة",v:contracts.filter(c=>c.status==="completed").length,icon:"history"},
-          {l:"العملاء",v:clients.length,icon:"clients"},
+          {l:"نشطة",v:contracts.filter(c=>c.status==="active").length,icon:"check",ac:true,color:"#00ff88"},
+          {l:"معلقة",v:contracts.filter(c=>c.status==="pending").length,icon:"clock",color:"#ffd600"},
+          {l:"مكتملة",v:contracts.filter(c=>c.status==="completed").length,icon:"history",color:"#a78bfa"},
+          {l:"العملاء",v:clients.length,icon:"clients",color:"#38bdf8"},
         ].map((s,i)=>(
-          <div key={s.l} className="stat-card stagger-item" style={{ animationDelay:`${i*60}ms` }}>
-            <div className="stat-lbl"><Icon name={s.icon} size={12} color={s.ac?"var(--ac)":"var(--muted)"}/>{s.l}</div>
-            <div className={`stat-val${s.ac?" ac":""}`}>{s.v}</div>
+          <div key={s.l} className="stat-card stagger-item" style={{ animationDelay:`${i*60}ms`, boxShadow:`0 4px 20px ${s.color}18,0 2px 8px rgba(0,0,0,0.1)`, border:`1px solid ${s.color}22` }}>
+            <div className="stat-lbl" style={{ color:s.color }}><Icon name={s.icon} size={12} color={s.color}/>{s.l}</div>
+            <div className={`stat-val${s.ac?" ac":""}`} style={{ color:s.color }}>{s.v}</div>
           </div>
         ))}
       </div>
@@ -1447,16 +1688,18 @@ function Dashboard({ contracts, clients, goTo, onViewContract, onRefresh, refres
       {recent.length>0&&<>
         <div className="sec-hdr"><span className="sec-title">آخر العقود</span><span className="sec-link" onClick={()=>goTo("contracts")}>عرض الكل ←</span></div>
         {recent.map((c,i)=>(
-          <div key={c.id} className="tx-card stagger-item" style={{ borderRight:`3px solid ${SC[c.status]}`,background:`linear-gradient(135deg,${SC[c.status]}06,transparent)`,animationDelay:`${i*50}ms` }} onClick={()=>onViewContract(c)}>
-            <div className="tx-icon" style={{ background:`${SC[c.status]}18`,border:`1px solid ${SC[c.status]}33` }}><Icon name="contracts" size={18} color={SC[c.status]}/></div>
+          <div key={c.id} className="tx-card stagger-item" style={{ borderRight:`3px solid ${SC[c.status]}`,background:`linear-gradient(135deg,${SC[c.status]}06,transparent)`,animationDelay:`${i*50}ms`,boxShadow:`0 4px 16px ${SC[c.status]}14` }} onClick={()=>onViewContract(c)}>
+            <div className="tx-icon" style={{ background:`${SC[c.status]}18`,border:`1px solid ${SC[c.status]}33`,boxShadow:`0 2px 10px ${SC[c.status]}22` }}><Icon name="contracts" size={18} color={SC[c.status]}/></div>
             <div style={{ flex:1,minWidth:0 }}><div className="tx-name">{c.clientName}</div><div className="tx-sub">{c.videoCount?`${c.videoCount} فيديو · `:""}{fmtDate(c.startDate)}</div></div>
             <div style={{ textAlign:"left" }}>
-              <div style={{ fontSize:13,fontWeight:800,color:"var(--ac)" }}>{fmt(c.videoAmount||c.totalAmount,c.currency)}</div>
+              <div style={{ fontSize:13,fontWeight:800,color:SC[c.status] }}>{fmt(c.videoAmount||c.totalAmount,c.currency)}</div>
               <span className="badge" style={{ color:SC[c.status],background:SC[c.status]+"18",borderColor:SC[c.status]+"44" }}>{SL[c.status]}</span>
             </div>
           </div>
         ))}
       </>}
+
+      {activities.length > 0 && <ActivityFeed activities={activities}/>}
       {contracts.length===0&&<EmptyState type="contracts" onAdd={()=>goTo("contracts_new")}/>}
     </div>
   );
@@ -1493,8 +1736,6 @@ function ContractsScreen({ contracts, clients, onAdd, onEdit, onDelete, onToggle
         <div><div className="pt">العقود</div><div className="ps">{contracts.length} عقد</div></div>
         <button className="btn bngf" onClick={onAdd} style={{ padding:"8px 16px",fontSize:13 }}><Icon name="contract_plus" size={14} color="#000"/>جديد</button>
       </div>
-
-      {/* Selection mode banner */}
       {selectionMode&&(
         <div className="selection-banner">
           <span>{selected.size} محدد</span>
@@ -1504,57 +1745,120 @@ function ContractsScreen({ contracts, clients, onAdd, onEdit, onDelete, onToggle
           </div>
         </div>
       )}
-
       <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)"/></span><input className="sb" value={search} onChange={e=>setSearch(e.target.value)} placeholder="بحث بالاسم أو الهاتف..." style={{ paddingRight:36 }}/></div>
       <div className="tabs">{tabs.map(t=><button key={t.key} className={`tab${filter===t.key?" on":""}`} onClick={()=>setFilter(t.key)}>{t.label}{t.count>0&&<span style={{ marginRight:5,background:filter===t.key?"rgba(0,0,0,0.2)":"var(--surface2)",color:filter===t.key?"#000":"var(--muted)",borderRadius:20,padding:"0 6px",fontSize:9,fontWeight:800 }}>{t.count}</span>}</button>)}</div>
       {filtered.length===0
         ? <EmptyState type={contracts.length===0?"contracts":"search"} onAdd={contracts.length===0?onAdd:null}/>
         : filtered.map((c,i)=><ContractCard key={c.id} c={c} onEdit={onEdit} onDelete={onDelete} onToggle={onToggle} onView={onView} onVideoUpdate={onVideoUpdate} onCancel={onCancel} delay={i*40} selected={selected.has(c.id)} selectionMode={selectionMode} onSelect={id=>{ if(!selectionMode) setSelectionMode(true); toggleSel(id); }}/>)}
-
       {bulkConfirm&&<ConfirmDialog {...bulkConfirm} onCancel={()=>setBulkConfirm(null)}/>}
     </div>
   );
 }
 
-// ─── Clients Screen ───────────────────────────────────────────────
+// ─── Clients Screen (with swipe carousel + timeline) ─────────────
 function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel }) {
   const [search, setSearch] = useState("");
   const [sel, setSel] = useState(initialSel||null);
+  const [carouselIdx, setCarouselIdx] = useState(0);
+  const startTouchX = useRef(null);
   useEffect(()=>{ if(initialSel) setSel(initialSel); },[initialSel]);
-  const filtered=clients.filter(c=>!search||c.name.includes(search)||c.phone?.includes(search));
+  const filtered = clients.filter(c=>!search||c.name.includes(search)||c.phone?.includes(search));
+
+  // Build timeline for a client
+  const buildClientTimeline = (cl) => {
+    const events = [];
+    contracts.filter(c=>c.clientId===cl.id).forEach(c=>{
+      if(c.statusHistory) c.statusHistory.forEach(h=>{
+        events.push({ date:h.date, label:SL[h.status]||h.status, color:SC[h.status]||"var(--muted)", icon:"contracts" });
+      });
+      if(c.deposit50Paid) events.push({ date:c.deposit50Date||c.startDate, label:"استلام الدفعة الأولى", color:"#00ff88", icon:"income" });
+      if(c.final50Paid) events.push({ date:c.final50Date||c.endDate, label:"استلام الدفعة الثانية", color:"#00ff88", icon:"income" });
+    });
+    return events.sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
+  };
 
   if (sel) {
-    const cl=clients.find(c=>c.id===sel);
+    const filteredClients = filtered.filter(c=>c.id===sel||true);
+    const clIdx = filteredClients.findIndex(c=>c.id===sel);
+    const cl = clients.find(c=>c.id===sel);
     if (!cl) { setSel(null); return null; }
-    const clc=contracts.filter(c=>c.clientId===cl.id);
-    const ltv=clc.reduce((s,c)=>s+Number(c.videoAmount||0),0);
+    const clc = contracts.filter(c=>c.clientId===cl.id);
+    const ltv = clc.reduce((s,c)=>s+Number(c.videoAmount||0),0);
+    const timeline = buildClientTimeline(cl);
+    const [c1,c2] = nameToGradient(cl.name);
+
+    const goNext = () => {
+      const next = clients[clients.findIndex(c=>c.id===sel)+1];
+      if(next) setSel(next.id);
+    };
+    const goPrev = () => {
+      const prev = clients[clients.findIndex(c=>c.id===sel)-1];
+      if(prev) setSel(prev.id);
+    };
+    const clientIdx = clients.findIndex(c=>c.id===sel);
+
     return (
       <div className="screen" style={{ paddingTop:8 }}>
-        <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:18 }}>
+        <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:16 }}>
           <button className="btn bng" style={{ padding:"6px 10px",fontSize:12 }} onClick={()=>setSel(null)}><Icon name="back" size={13} color="var(--text2)"/>رجوع</button>
-          <div className="pt">{cl.name}</div>
+          <div className="pt" style={{ flex:1 }}>{cl.name}</div>
+          {clientIdx > 0 && <button className="ico-btn" onClick={goPrev}><Icon name="chevron_right" size={14}/></button>}
+          {clientIdx < clients.length-1 && <button className="ico-btn" onClick={goNext}><Icon name="chevron_left" size={14}/></button>}
         </div>
-        <div className="card" style={{ marginBottom:14 }}>
+
+        {/* Client profile hero */}
+        <div style={{ background:`linear-gradient(135deg,${c1}18,${c2}0d)`,border:`1px solid ${c1}33`,borderRadius:20,padding:"20px 16px",marginBottom:14,boxShadow:`0 8px 32px ${c1}22` }}>
           <div style={{ display:"flex",alignItems:"center",gap:14,marginBottom:14 }}>
-            <GradientAvatar name={cl.name} size={50}/>
-            <div style={{ flex:1 }}><div style={{ fontSize:17,fontWeight:700 }}>{cl.name}</div>{ltv>0&&<div style={{ fontSize:11,color:"var(--ac)",fontWeight:700,marginTop:2 }}>إجمالي العقود: {fmt(ltv)}</div>}</div>
+            <GradientAvatar name={cl.name} size={54}/>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:18,fontWeight:800,color:"var(--text)" }}>{cl.name}</div>
+              {ltv > 0 && <div style={{ fontSize:11,fontWeight:700,marginTop:3,color:c1 }}>إجمالي العقود: {fmt(ltv)}</div>}
+              <div style={{ fontSize:10,color:"var(--muted)",marginTop:2 }}>{clc.length} عقد · {clc.filter(c=>c.status==="active").length} نشط</div>
+            </div>
             <WABtn phone={cl.phone}/>
           </div>
-          {[["📞",cl.phone],["📍",cl.address],["📝",cl.notes]].filter(([,v])=>v).map(([i,v])=><div key={i} style={{ display:"flex",gap:10,padding:"8px 0",borderTop:"1px solid var(--muted2)",fontSize:13 }}><span>{i}</span><span style={{ color:"var(--text2)",flex:1 }}>{v}</span></div>)}
-          <div style={{ display:"flex",gap:8,marginTop:14 }}>
-            <button className="btn bng" style={{ flex:1,fontSize:13 }} onClick={()=>onEdit(cl)}><Icon name="edit" size={13} color="var(--ac)"/>تعديل</button>
-            <button className="btn btn-danger" style={{ fontSize:13 }} onClick={()=>{ if(confirm("حذف العميل؟")){ onDelete(cl.id); setSel(null); } }}><Icon name="trash" size={13} color="var(--danger)"/></button>
+          {[["📞",cl.phone],["📍",cl.address],["📝",cl.notes]].filter(([,v])=>v).map(([ic,v])=>(
+            <div key={ic} style={{ display:"flex",gap:10,padding:"7px 0",borderTop:"1px solid var(--muted2)",fontSize:13 }}>
+              <span>{ic}</span><span style={{ color:"var(--text2)",flex:1 }}>{v}</span>
+            </div>
+          ))}
+          <div style={{ display:"flex",gap:8,marginTop:12 }}>
+            <button className="btn bng" style={{ flex:1,fontSize:12 }} onClick={()=>onEdit(cl)}><Icon name="edit" size={13} color="var(--ac)"/>تعديل</button>
+            <button className="btn btn-danger" style={{ fontSize:12 }} onClick={()=>{ if(confirm("حذف العميل؟")){ onDelete(cl.id); setSel(null); } }}><Icon name="trash" size={13} color="var(--danger)"/></button>
           </div>
         </div>
+
+        {/* Contracts */}
         <div className="sec-hdr"><span className="sec-title">عقوده ({clc.length})</span></div>
-        {clc.length===0&&<div style={{ color:"var(--muted)",fontSize:13,textAlign:"center",padding:"16px 0" }}>لا توجد عقود</div>}
-        {clc.map(c=>(
-          <div key={c.id} className="tx-card" style={{ borderRight:`3px solid ${SC[c.status]}` }}>
-            <div className="tx-icon" style={{ background:`${SC[c.status]}18` }}><Icon name="contracts" size={16} color={SC[c.status]}/></div>
+        {clc.length===0 ? <div style={{ color:"var(--muted)",fontSize:13,textAlign:"center",padding:"16px 0" }}>لا توجد عقود</div>
+          : clc.map(c=>(
+          <div key={c.id} className="tx-card" style={{ borderRight:`3px solid ${SC[c.status]}`,boxShadow:`0 4px 16px ${SC[c.status]}14` }}>
+            <div className="tx-icon" style={{ background:`${SC[c.status]}18`,boxShadow:`0 2px 8px ${SC[c.status]}22` }}><Icon name="contracts" size={16} color={SC[c.status]}/></div>
             <div style={{ flex:1 }}><div className="tx-name">{c.videoCount?`${c.videoCount} فيديو`:"عقد"}</div><div className="tx-sub">{fmtDate(c.startDate)}</div></div>
-            <div><div style={{ fontSize:13,fontWeight:800,color:"var(--ac)" }}>{fmt(c.videoAmount||c.totalAmount,c.currency)}</div><span className="badge" style={{ color:SC[c.status],background:SC[c.status]+"18",borderColor:SC[c.status]+"44" }}>{SL[c.status]}</span></div>
+            <div><div style={{ fontSize:13,fontWeight:800,color:SC[c.status] }}>{fmt(c.videoAmount||c.totalAmount,c.currency)}</div><span className="badge" style={{ color:SC[c.status],background:SC[c.status]+"18",borderColor:SC[c.status]+"44" }}>{SL[c.status]}</span></div>
           </div>
         ))}
+
+        {/* Timeline */}
+        {timeline.length > 0 && (
+          <div style={{ marginTop:16 }}>
+            <div className="sec-hdr"><span className="sec-title">📅 التسلسل الزمني</span></div>
+            <div className="card">
+              {timeline.map((ev,i)=>(
+                <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:12,padding:"6px 0" }}>
+                  <div style={{ display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0 }}>
+                    <div style={{ width:10,height:10,borderRadius:"50%",background:ev.color,boxShadow:`0 0 8px ${ev.color}88` }}/>
+                    {i < timeline.length-1 && <div style={{ width:2,height:20,background:"var(--muted2)",margin:"3px 0" }}/>}
+                  </div>
+                  <div style={{ paddingBottom:i<timeline.length-1?4:0 }}>
+                    <div style={{ fontSize:12,fontWeight:700,color:ev.color }}>{ev.label}</div>
+                    <div style={{ fontSize:10,color:"var(--muted)" }}>{fmtDate(ev.date)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1570,12 +1874,21 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
         ? <EmptyState type="clients" onAdd={clients.length===0?onAdd:null}/>
         : filtered.map((cl,i)=>{
           const ltv=contracts.filter(c=>c.clientId===cl.id).reduce((s,c)=>s+Number(c.videoAmount||0),0);
+          const lastContract = contracts.filter(c=>c.clientId===cl.id).sort((a,b)=>Number(b.id)-Number(a.id))[0];
+          const [g1,g2] = nameToGradient(cl.name);
           return (
-            <div key={cl.id} className="clic stagger-item" style={{ animationDelay:`${i*40}ms` }} onClick={()=>setSel(cl.id)}>
+            <div key={cl.id} className="clic stagger-item" style={{ animationDelay:`${i*40}ms`,borderColor:`${g1}33`,boxShadow:`0 4px 20px ${g1}14` }} onClick={()=>setSel(cl.id)}>
               <GradientAvatar name={cl.name} size={42}/>
               <div style={{ flex:1,minWidth:0 }}>
                 <div className="clic-name">{cl.name}</div>
                 <div className="clic-sub">{[cl.phone,`${contracts.filter(c=>c.clientId===cl.id).length} عقد`,ltv>0?fmt(ltv):null].filter(Boolean).join(" · ")}</div>
+                {lastContract && (
+                  <div style={{ display:"flex",alignItems:"center",gap:4,marginTop:3 }}>
+                    <div style={{ width:5,height:5,borderRadius:"50%",background:SC[lastContract.status],boxShadow:`0 0 4px ${SC[lastContract.status]}` }}/>
+                    <span style={{ fontSize:9,color:SC[lastContract.status],fontWeight:700 }}>{SL[lastContract.status]}</span>
+                    <span style={{ fontSize:9,color:"var(--muted)" }}>· آخر عقد</span>
+                  </div>
+                )}
               </div>
               <WABtn phone={cl.phone} sm/>
             </div>
@@ -1597,7 +1910,7 @@ function IncomeScreen({ contracts, clients }) {
   const totalC=contracts.reduce((s,c)=>s+videoOnly(c),0);
   const activeT=contracts.filter(c=>c.status==="active").reduce((s,c)=>s+videoOnly(c),0);
 
-  const clientTotals=clients.map(cl=>{ const clc=contracts.filter(c=>c.clientId===cl.id); const total=clc.reduce((s,c)=>s+videoOnly(c),0); const collected=clc.reduce((s,c)=>s+videoOnly(c)*((c.deposit50Paid?0.5:0)+(c.final50Paid?0.5:0)),0); return {id:cl.id,name:cl.name,total,collected,count:clc.length}; }).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);
+  const clientTotals=clients.map(cl=>{ const clc=contracts.filter(c=>c.clientId===cl.id); const total=clc.reduce((s,c)=>s+videoOnly(c),0); const collected=clc.reduce((s,c)=>s+videoOnly(c)*((c.deposit50Paid?.5:0)+(c.final50Paid?.5:0)),0); return {id:cl.id,name:cl.name,total,collected,count:clc.length}; }).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);
 
   const months6=[];
   for(let i=5;i>=0;i--){const d=new Date(NOW.getFullYear(),NOW.getMonth()-i,1);const label=d.toLocaleDateString("ar-LY",{month:"short",year:"2-digit"});const amount=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===d.getMonth()&&new Date(c.startDate).getFullYear()===d.getFullYear()).reduce((s,c)=>s+videoOnly(c),0);months6.push({label,amount});}
@@ -1605,12 +1918,12 @@ function IncomeScreen({ contracts, clients }) {
   const unpaidInvoices=contracts.filter(c=>c.status!=="cancelled"&&(!c.deposit50Paid||!c.final50Paid)).map(c=>({...c,unpaidAmt:videoOnly(c)*((!c.deposit50Paid?0.5:0)+(!c.final50Paid?0.5:0)),unpaidLabel:!c.deposit50Paid&&!c.final50Paid?"كلا الدفعتين":!c.deposit50Paid?"الدفعة الأولى":"الدفعة الثانية"})).filter(c=>c.unpaidAmt>0).sort((a,b)=>b.unpaidAmt-a.unpaidAmt);
 
   const stats=[
-    {l:"آخر 30 يوم",v:fmt(last30),icon:"clock"},
-    {l:String(NOW.getFullYear()),v:fmt(yearT),icon:"income"},
-    {l:"محصّل",v:fmt(allCollected),icon:"check",ac:true},
-    {l:"متوقع",v:fmt(pend),icon:"calendar"},
-    {l:"إجمالي العقود",v:fmt(totalC),icon:"contracts"},
-    {l:"العقود النشطة",v:fmt(activeT),icon:"check"},
+    {l:"آخر 30 يوم",v:fmt(last30),icon:"clock",color:"#38bdf8"},
+    {l:String(NOW.getFullYear()),v:fmt(yearT),icon:"income",color:"#a78bfa"},
+    {l:"محصّل",v:fmt(allCollected),icon:"check",ac:true,color:"#00ff88"},
+    {l:"متوقع",v:fmt(pend),icon:"calendar",color:"#ffd600"},
+    {l:"إجمالي العقود",v:fmt(totalC),icon:"contracts",color:"#fb923c"},
+    {l:"العقود النشطة",v:fmt(activeT),icon:"check",color:"#00ff88"},
   ];
 
   const exportReport=()=>{
@@ -1622,7 +1935,7 @@ function IncomeScreen({ contracts, clients }) {
 
   return (
     <div className="screen" style={{ paddingTop:8 }}>
-      <div className="hero-card">
+      <div className="hero-card hero-card-shadow">
         <div className="hero-dots"/>
         <div style={{ position:"relative",zIndex:1 }}>
           <div className="hero-lbl">إجمالي المحصّل</div>
@@ -1642,9 +1955,9 @@ function IncomeScreen({ contracts, clients }) {
         <>
           <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
             {stats.map((s,i)=>(
-              <div key={s.l} className="stat-card stagger-item" style={{ animationDelay:`${i*50}ms` }}>
-                <div className="stat-lbl" style={{ color:s.ac?"var(--ac)":"var(--muted)" }}><Icon name={s.icon} size={12} color={s.ac?"var(--ac)":"var(--muted)"}/>{s.l}</div>
-                <div className={`stat-val sm${s.ac?" ac":""}`}>{s.v}</div>
+              <div key={s.l} className="stat-card stagger-item" style={{ animationDelay:`${i*50}ms`,boxShadow:`0 4px 20px ${s.color}18`,border:`1px solid ${s.color}22` }}>
+                <div className="stat-lbl" style={{ color:s.color }}><Icon name={s.icon} size={12} color={s.color}/>{s.l}</div>
+                <div className={`stat-val sm${s.ac?" ac":""}`} style={{ color:s.color }}>{s.v}</div>
               </div>
             ))}
           </div>
@@ -1653,8 +1966,8 @@ function IncomeScreen({ contracts, clients }) {
           {contracts.filter(c=>c.deposit50Paid||c.final50Paid).length===0
             ? <EmptyState type="income"/>
             : contracts.filter(c=>c.deposit50Paid||c.final50Paid).slice(0,6).map((c,i)=>(
-              <div key={c.id} className="tx-card stagger-item" style={{ animationDelay:`${i*40}ms` }}>
-                <div className="tx-icon"><Icon name="income" size={16} color="var(--ac)"/></div>
+              <div key={c.id} className="tx-card stagger-item" style={{ animationDelay:`${i*40}ms`,boxShadow:"0 4px 16px rgba(0,255,136,0.12)" }}>
+                <div className="tx-icon" style={{ boxShadow:"0 2px 10px rgba(0,255,136,0.2)" }}><Icon name="income" size={16} color="var(--ac)"/></div>
                 <div style={{ flex:1,minWidth:0 }}><div className="tx-name">{c.clientName}</div><div className="tx-sub">{c.deposit50Paid&&c.final50Paid?"مدفوع بالكامل":c.deposit50Paid?"الدفعة الأولى":"الدفعة الثانية"}</div></div>
                 <div className="tx-amt pos">{fmt(videoOnly(c)*((c.deposit50Paid?0.5:0)+(c.final50Paid?0.5:0)),c.currency)}</div>
               </div>
@@ -1694,7 +2007,7 @@ function IncomeScreen({ contracts, clients }) {
         <>
           {unpaidInvoices.length===0
             ? <div style={{ textAlign:"center",padding:"30px 0" }}><div style={{ fontSize:32,marginBottom:10 }}>✅</div><div style={{ fontWeight:700,color:"var(--ac)",fontSize:14 }}>كل المدفوعات محصّلة!</div></div>
-            : <>{unpaidInvoices.map((c,i)=>(
+            : unpaidInvoices.map((c,i)=>(
               <div key={c.id} className="unpaid-row stagger-item" style={{ animationDelay:`${i*40}ms` }}>
                 <div>
                   <div style={{ fontSize:13,fontWeight:700,color:"var(--text)" }}>{c.clientName}</div>
@@ -1705,7 +2018,7 @@ function IncomeScreen({ contracts, clients }) {
                   <span className="badge" style={{ color:SC[c.status],background:SC[c.status]+"18",borderColor:SC[c.status]+"44" }}>{SL[c.status]}</span>
                 </div>
               </div>
-            ))}</>
+            ))
           }
         </>
       )}
@@ -1725,7 +2038,9 @@ export default function App() {
   const [clm, setClm] = useState(null);
   const [vm, setVm] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
-  const [anyModalOpen, setAnyModalOpen] = useState(false);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const [dismissedNotifs, setDismissedNotifs] = useState(()=>getStoredNotifs());
+  const [readNotifs, setReadNotifs] = useState([]);
   const [theme, setTheme] = useState(()=>{
     const saved=initSettings.theme||"dark";
     document.documentElement.setAttribute("data-theme",saved);
@@ -1738,10 +2053,6 @@ export default function App() {
   const [loginF, setLoginF] = useState({ u:"", p:"", err:"" });
 
   useEffect(()=>{ document.documentElement.setAttribute("data-theme",theme); },[theme]);
-
-  // Modal open state for FAB animation
-  useEffect(()=>{ setAnyModalOpen(!!(cm||clm||vm||showSearch)); },[cm,clm,vm,showSearch]);
-
   const handleThemeChange = t => { setTheme(t); const ns={...settings,theme:t}; setSettings(ns); saveSettings(ns); };
   const handleSettingsSave = ns => { setSettings(ns); saveSettings(ns); };
 
@@ -1755,7 +2066,6 @@ export default function App() {
   };
 
   useEffect(()=>{ if(!auth) return; loadData().then(()=>setLoading(false)); },[auth]);
-
   const handleRefresh = async () => { setRefreshing(true); await loadData(); setRefreshing(false); };
 
   const doLogin = () => {
@@ -1816,7 +2126,17 @@ export default function App() {
   const goToClient=id=>{ setSelClient(id); setTab("clients"); };
   const goTo=t=>{ if(t==="contracts_new"){setTab("contracts");setTimeout(()=>setCm("new"),100);} else if(t==="clients_new"){setTab("clients");setTimeout(()=>setClm("new"),100);} else setTab(t); };
 
-  const alerts=buildAlerts(contracts);
+  // Notifications
+  const notifications = useMemo(()=>buildNotifications(contracts, dismissedNotifs),[contracts,dismissedNotifs]);
+  const unreadCount = notifications.filter(n=>!readNotifs.includes(n.id)).length;
+  const notifsWithRead = notifications.map(n=>({...n, read:readNotifs.includes(n.id)}));
+
+  const handleMarkAllRead = () => setReadNotifs(notifications.map(n=>n.id));
+  const handleDismissNotif = (id) => {
+    const newDismissed = [...dismissedNotifs, id];
+    setDismissedNotifs(newDismissed);
+    saveNotifs(newDismissed);
+  };
 
   const pdfOptions={
     includeTerms:settings.pdfIncludeTerms!==false,
@@ -1840,7 +2160,7 @@ export default function App() {
     <>
       {cssEl}
       <div style={{ display:"flex",alignItems:"center",justifyContent:"center",height:"100dvh",background:"var(--bg)",padding:24 }}>
-        <div style={{ background:"var(--glass-bg)",backdropFilter:"blur(20px)",border:"1px solid var(--card-border)",borderRadius:24,padding:32,width:"100%",maxWidth:360,boxShadow:"var(--shadow-float)" }}>
+        <div style={{ background:"var(--glass-bg)",backdropFilter:"blur(20px)",border:"1px solid var(--card-border)",borderRadius:24,padding:32,width:"100%",maxWidth:360,boxShadow:"0 20px 60px rgba(0,255,136,0.1),var(--shadow-float)" }}>
           <div style={{ textAlign:"center",marginBottom:28 }}>
             <div className="lmark" style={{ width:52,height:52,borderRadius:16,fontSize:22,margin:"0 auto 12px" }}>F</div>
             <div style={{ fontSize:20,fontWeight:900,color:"var(--text)" }}>فارق للإنتاج</div>
@@ -1881,7 +2201,7 @@ export default function App() {
       <div className="app">
         <div className="topbar">
           <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-            <div style={{ width:36,height:36,borderRadius:11,background:"#000",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0,border:"1px solid rgba(0,255,136,0.2)" }}>
+            <div style={{ width:36,height:36,borderRadius:11,background:"#000",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0,border:"1px solid rgba(0,255,136,0.2)",boxShadow:"0 0 12px rgba(0,255,136,0.2)" }}>
               <FareqLogo size={30}/>
             </div>
             <div>
@@ -1890,7 +2210,7 @@ export default function App() {
             </div>
           </div>
           <div style={{ display:"flex",gap:8,alignItems:"center" }}>
-            <NotifBell alerts={alerts}/>
+            <NotifBell count={unreadCount} onClick={()=>{ setShowNotifs(true); setReadNotifs(notifications.map(n=>n.id)); }}/>
             <button className="tb-btn" onClick={()=>setShowSearch(true)}><Icon name="search" size={16} color="var(--text2)"/></button>
             <button className="tb-btn" onClick={()=>handleThemeChange(theme==="dark"?"light":"dark")}><Icon name={theme==="dark"?"sun":"moon"} size={16} color="var(--text2)"/></button>
           </div>
@@ -1907,7 +2227,7 @@ export default function App() {
             <div key={n.key} className={`bni${tab===n.key?" on":""}`}
               onClick={()=>{ setTab(n.key); if(n.key!=="clients") setSelClient(null); }}>
               {n.key==="contracts"
-                ? <div className="bni-fab"><Icon name={n.icon} size={20} color="#000" className={`fab-icon${anyModalOpen?" open":""}`}/></div>
+                ? <div className="bni-fab"><Icon name={n.icon} size={20} color="#000"/></div>
                 : <Icon name={n.icon} size={20} color={tab===n.key?"var(--ac)":"var(--muted)"}/>
               }
               <div className="bni-lbl">{n.label}</div>
@@ -1919,6 +2239,7 @@ export default function App() {
         {clm!==null&&<ClientModal client={clm==="new"?null:clm} onClose={()=>setClm(null)} onSave={saveClient}/>}
         {vm&&<ContractViewModal c={vm} onClose={()=>setVm(null)} onPdfExported={handlePdfExported} companyProfile={companyProfile} pdfOptions={pdfOptions}/>}
         {showSearch&&<GlobalSearch contracts={contracts} clients={clients} onClose={()=>setShowSearch(false)} onViewContract={c=>{ setVm(c); setShowSearch(false); }} goToClient={id=>{ goToClient(id); setShowSearch(false); }}/>}
+        {showNotifs&&<NotificationCenter notifications={notifsWithRead} onClose={()=>setShowNotifs(false)} onMarkAllRead={handleMarkAllRead} onDismiss={handleDismissNotif}/>}
         {confirm&&<ConfirmDialog msg={confirm.msg} onConfirm={confirm.onConfirm} onCancel={()=>setConfirm(null)} confirmLabel={confirm.confirmLabel} confirmColor={confirm.confirmColor} icon={confirm.icon} iconColor={confirm.iconColor}/>}
       </div>
     </>
