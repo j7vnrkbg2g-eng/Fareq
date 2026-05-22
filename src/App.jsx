@@ -1871,7 +1871,9 @@ const [filter, setFilter] = useState("all");
 // ─── Clients Screen (with swipe carousel + timeline) ─────────────
 function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel, onRefresh }) {
   const [search, setSearch] = useState("");
-  const [sel, setSel] = useState(initialSel||null);
+const [sel, setSel] = useState(initialSel||null);
+const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
+const { pulling:pullingDetail, progress:progressDetail, handlers:handlersDetail } = usePullToRefresh(onRefresh || (()=>{}));
   const [carouselIdx, setCarouselIdx] = useState(0);
   const startTouchX = useRef(null);
   useEffect(()=>{ if(initialSel) setSel(initialSel); },[initialSel]);
