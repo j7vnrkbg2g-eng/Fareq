@@ -2378,7 +2378,8 @@ export default function App() {
 </div>
         </div>
 
-       {tab==="contracts"&&<ContractsScreen contracts={contracts} clients={clients} onAdd={()=>setCm("new")} onEdit={setCm} onDelete={delContract} onToggle={togglePay} onView={setVm} onVideoUpdate={updateVideoDone} onCancel={cancelContract} defaultCurrency={settings.defaultCurrency} onRefresh={handleRefresh}/>}
+      {tab==="dashboard"&&<Dashboard contracts={contracts} clients={clients} goTo={goTo} onViewContract={setVm} onRefresh={handleRefresh} refreshing={refreshing}/>}
+{tab==="contracts"&&<ContractsScreen contracts={contracts} clients={clients} onAdd={()=>setCm("new")} onEdit={setCm} onDelete={delContract} onToggle={togglePay} onView={setVm} onVideoUpdate={updateVideoDone} onCancel={cancelContract} defaultCurrency={settings.defaultCurrency} onRefresh={handleRefresh}/>}
 {tab==="clients"&&<ClientsScreen clients={clients} contracts={contracts} onAdd={()=>setClm("new")} onEdit={c=>setClm(c)} onDelete={delClient} initialSel={selClient} onRefresh={handleRefresh}/>}
 {tab==="income"&&<IncomeScreen contracts={contracts} clients={clients} onRefresh={handleRefresh}/>}
 {tab==="settings"&&<SettingsScreen settings={settings} onSave={handleSettingsSave} theme={theme} onThemeChange={handleThemeChange} onRefresh={handleRefresh}/>}
