@@ -1702,9 +1702,9 @@ function Dashboard({ contracts, clients, goTo, onViewContract, onRefresh, refres
 
   const todayTasks=contracts.filter(c=>{ if(c.status==="cancelled"||c.status==="completed") return false; const d1=c.deposit50Date?daysDiff(c.deposit50Date):null,d2=c.final50Date?daysDiff(c.final50Date):null,de=c.endDate?daysDiff(c.endDate):null; return (d1!==null&&d1>=0&&d1<=3&&!c.deposit50Paid)||(d2!==null&&d2>=0&&d2<=3&&!c.final50Paid)||(de!==null&&de>=0&&de<=1); });
 
-  const thisMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===getNow().getMonth()&&new Date(c.startDate).getFullYear()===getNow().getFullYear()).reduce((s,c)=>s+Number(c.videoAmount||0),0);
+  const thisMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===getNow().getMonth()&&new Date(c.startDate).getFullYear()===getNow().getFullYear()).reduce((s,c)=>s+Number(c.videoAmount||0),0)
 const lastMonthDate=new Date(getNow().getFullYear(),getNow().getMonth()-1,1);
-  const lastMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===lastMonthDate.getMonth()&&new Date(c.startDate).getFullYear()===lastMonthDate.getFullYear()).reduce((s,c)=>s+Number(c.videoAmount||0),0);
+const lastMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===lastMonthDate.getMonth()&&new Date(c.startDate).getFullYear()===lastMonthDate.getFullYear()).reduce((s,c)=>s+Number(c.videoAmount||0),0)
   const monthDiff=lastMonth>0?Math.round(((thisMonth-lastMonth)/lastMonth)*100):thisMonth>0?100:0;
 
   const activities = useMemo(()=>buildActivities(contracts),[contracts]);
