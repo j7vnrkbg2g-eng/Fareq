@@ -6,11 +6,11 @@ const fmt = (n, cur = "LYD") => { const x = Number(n); if (!x) return `0.00 ${cu
 const fmtDate = d => d ? new Date(d).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric" }) : "";
 const daysDiff = d => { if (!d) return null; const t = new Date(); t.setHours(0,0,0,0); return Math.round((new Date(d)-t)/86400000); };
 const addMonths = (dateStr, months) => { const d = new Date(dateStr); d.setMonth(d.getMonth()+months); return d.toISOString().split("T")[0]; };
-const NOW = new Date();
+const getNow = () => new Date();
 const DEFAULT_CREDENTIALS = { user: "fahed", pass: "771997" };
 
 const getGreeting = () => {
-  const h = NOW.getHours();
+const h = getNow().getHours();
   if (h < 12) return "صباح الخير";
   if (h < 17) return "مساء الخير";
   if (h < 20) return "مساء النور";
@@ -1702,8 +1702,8 @@ function Dashboard({ contracts, clients, goTo, onViewContract, onRefresh, refres
 
   const todayTasks=contracts.filter(c=>{ if(c.status==="cancelled"||c.status==="completed") return false; const d1=c.deposit50Date?daysDiff(c.deposit50Date):null,d2=c.final50Date?daysDiff(c.final50Date):null,de=c.endDate?daysDiff(c.endDate):null; return (d1!==null&&d1>=0&&d1<=3&&!c.deposit50Paid)||(d2!==null&&d2>=0&&d2<=3&&!c.final50Paid)||(de!==null&&de>=0&&de<=1); });
 
-  const thisMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===NOW.getMonth()&&new Date(c.startDate).getFullYear()===NOW.getFullYear()).reduce((s,c)=>s+Number(c.videoAmount||0),0);
-  const lastMonthDate=new Date(NOW.getFullYear(),NOW.getMonth()-1,1);
+  const thisMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===getNow().getMonth()&&new Date(c.startDate).getFullYear()===getNow().getFullYear()
+const lastMonthDate=new Date(getNow().getFullYear(),getNow().getMonth()-1,1);
   const lastMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===lastMonthDate.getMonth()&&new Date(c.startDate).getFullYear()===lastMonthDate.getFullYear()).reduce((s,c)=>s+Number(c.videoAmount||0),0);
   const monthDiff=lastMonth>0?Math.round(((thisMonth-lastMonth)/lastMonth)*100):thisMonth>0?100:0;
 
@@ -1870,129 +1870,116 @@ const [filter, setFilter] = useState("all");
 // ─── Clients Screen (with swipe carousel + timeline) ─────────────
 function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel, onRefresh }) {
   const [search, setSearch] = useState("");
-const [sel, setSel] = useState(initialSel||null);
-const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
-const { pulling:pullingDetail, progress:progressDetail, handlers:handlersDetail } = usePullToRefresh(onRefresh || (()=>{}));
-  const [carouselIdx, setCarouselIdx] = useState(0);
-  const startTouchX = useRef(null);
-  useEffect(()=>{ if(initialSel) setSel(initialSel); },[initialSel]);
-  const filtered = clients.filter(c=>!search||c.name.includes(search)||c.phone?.includes(search));
+  const [sel, setSel] = useState(initialSel || null);
+  const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
+  const { pulling: pullingDetail, progress: progressDetail, handlers: handlersDetail } = usePullToRefresh(onRefresh || (()=>{}));
+  useEffect(() => { if (initialSel) setSel(initialSel); }, [initialSel]);
+  const filtered = clients.filter(c => !search || c.name.includes(search) || c.phone?.includes(search));
 
-  // Build timeline for a client
   const buildClientTimeline = (cl) => {
     const events = [];
-    contracts.filter(c=>c.clientId===cl.id).forEach(c=>{
-      if(c.statusHistory) c.statusHistory.forEach(h=>{
-        events.push({ date:h.date, label:SL[h.status]||h.status, color:SC[h.status]||"var(--muted)", icon:"contracts" });
+    contracts.filter(c => c.clientId === cl.id).forEach(c => {
+      if (c.statusHistory) c.statusHistory.forEach(h => {
+        events.push({ date: h.date, label: SL[h.status] || h.status, color: SC[h.status] || "var(--muted)", icon: "contracts" });
       });
-      if(c.deposit50Paid) events.push({ date:c.deposit50Date||c.startDate, label:"استلام الدفعة الأولى", color:"#00ff88", icon:"income" });
-      if(c.final50Paid) events.push({ date:c.final50Date||c.endDate, label:"استلام الدفعة الثانية", color:"#00ff88", icon:"income" });
+      if (c.deposit50Paid) events.push({ date: c.deposit50Date || c.startDate, label: "استلام الدفعة الأولى", color: "#00ff88", icon: "income" });
+      if (c.final50Paid) events.push({ date: c.final50Date || c.endDate, label: "استلام الدفعة الثانية", color: "#00ff88", icon: "income" });
     });
-    return events.sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
+    return events.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8);
   };
 
+  // ── DETAIL VIEW ──
   if (sel) {
-    const filteredClients = filtered.filter(c=>c.id===sel||true);
-    const clIdx = filteredClients.findIndex(c=>c.id===sel);
-    const cl = clients.find(c=>c.id===sel);
+    const cl = clients.find(c => c.id === sel);
     if (!cl) { setSel(null); return null; }
-    const clc = contracts.filter(c=>c.clientId===cl.id);
-    const ltv = clc.reduce((s,c)=>s+Number(c.videoAmount||0),0);
+    const clc = contracts.filter(c => c.clientId === cl.id);
+    const ltv = clc.reduce((s, c) => s + Number(c.videoAmount || 0), 0);
     const timeline = buildClientTimeline(cl);
-    const [c1,c2] = nameToGradient(cl.name);
+    const [c1, c2] = nameToGradient(cl.name);
+    const clientIdx = clients.findIndex(c => c.id === sel);
+    const goNext = () => { const next = clients[clientIdx + 1]; if (next) setSel(next.id); };
+    const goPrev = () => { const prev = clients[clientIdx - 1]; if (prev) setSel(prev.id); };
 
-    const goNext = () => {
-      const next = clients[clients.findIndex(c=>c.id===sel)+1];
-      if(next) setSel(next.id);
-    };
-    const goPrev = () => {
-      const prev = clients[clients.findIndex(c=>c.id===sel)-1];
-      if(prev) setSel(prev.id);
-    };
-    const clientIdx = clients.findIndex(c=>c.id===sel);
-
-   return (
-  <div className="screen" style={{ paddingTop:8 }} {...handlersDetail}>
-return (
-  <div className="screen" style={{ paddingTop:8 }} {...handlersDetail}>
-    {pullingDetail && (
-      <div className="ptr-indicator" style={{ opacity:progressDetail, transform:`translateY(${(1-progressDetail)*-20}px)` }}>
-        <Icon name="refresh" size={14} color="var(--ac)"/>
-        {progressDetail>=1 ? "إطلاق للتحديث" : "اسحب للتحديث"}
-      </div>
-    )}
-    <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:16 }}>
-      <button className="btn bng" style={{ padding:"6px 10px",fontSize:12 }} onClick={()=>setSel(null)}><Icon name="back" size={13} color="var(--text2)"/>رجوع</button>
-          <div className="pt" style={{ flex:1 }}>{cl.name}</div>
-          {clientIdx > 0 && <button className="ico-btn" onClick={goPrev}><Icon name="chevron_right" size={14}/></button>}
-          {clientIdx < clients.length-1 && <button className="ico-btn" onClick={goNext}><Icon name="chevron_left" size={14}/></button>}
+    return (   // ← only ONE return here
+      <div className="screen" style={{ paddingTop: 8 }} {...handlersDetail}>
+        {pullingDetail && (
+          <div className="ptr-indicator" style={{ opacity: progressDetail, transform: `translateY(${(1 - progressDetail) * -20}px)` }}>
+            <Icon name="refresh" size={14} color="var(--ac)" />
+            {progressDetail >= 1 ? "إطلاق للتحديث" : "اسحب للتحديث"}
+          </div>
+        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <button className="btn bng" style={{ padding: "6px 10px", fontSize: 12 }} onClick={() => setSel(null)}>
+            <Icon name="back" size={13} color="var(--text2)" />رجوع
+          </button>
+          <div className="pt" style={{ flex: 1 }}>{cl.name}</div>
+          {clientIdx > 0 && <button className="ico-btn" onClick={goPrev}><Icon name="chevron_right" size={14} /></button>}
+          {clientIdx < clients.length - 1 && <button className="ico-btn" onClick={goNext}><Icon name="chevron_left" size={14} /></button>}
         </div>
 
-        {/* Client profile hero */}
-        <div style={{ background:`linear-gradient(135deg,${c1}18,${c2}0d)`,border:`1px solid ${c1}33`,borderRadius:20,padding:"20px 16px",marginBottom:14,boxShadow:`0 8px 32px ${c1}22` }}>
-          <div style={{ display:"flex",alignItems:"center",gap:14,marginBottom:14 }}>
-            <GradientAvatar name={cl.name} size={54}/>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:18,fontWeight:800,color:"var(--text)" }}>{cl.name}</div>
-              {ltv > 0 && <div style={{ fontSize:11,fontWeight:700,marginTop:3,color:c1 }}>إجمالي العقود: {fmt(ltv)}</div>}
-              <div style={{ fontSize:10,color:"var(--muted)",marginTop:2 }}>{clc.length} عقد · {clc.filter(c=>c.status==="active").length} نشط</div>
+        <div style={{ background: `linear-gradient(135deg,${c1}18,${c2}0d)`, border: `1px solid ${c1}33`, borderRadius: 20, padding: "20px 16px", marginBottom: 14, boxShadow: `0 8px 32px ${c1}22` }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
+            <GradientAvatar name={cl.name} size={54} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text)" }}>{cl.name}</div>
+              {ltv > 0 && <div style={{ fontSize: 11, fontWeight: 700, marginTop: 3, color: c1 }}>إجمالي العقود: {fmt(ltv)}</div>}
+              <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>{clc.length} عقد · {clc.filter(c => c.status === "active").length} نشط</div>
             </div>
           </div>
-         {[
-            {icon:"whatsapp",color:"#25D366",value:cl.phone},
-            {icon:"building",color:"#60a5fa",value:cl.address},
-            {icon:"doc",color:"var(--muted)",value:cl.notes},
-          ].filter(f=>f.value).map((f,i)=>(
-            <div key={i} style={{ display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderTop:"1px solid var(--muted2)" }}>
-              <div style={{ width:30,height:30,borderRadius:9,background:`${f.color}15`,border:`1px solid ${f.color}25`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                <Icon name={f.icon} size={13} color={f.color}/>
+          {[
+            { icon: "whatsapp", color: "#25D366", value: cl.phone },
+            { icon: "building", color: "#60a5fa", value: cl.address },
+            { icon: "doc", color: "var(--muted)", value: cl.notes },
+          ].filter(f => f.value).map((f, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderTop: "1px solid var(--muted2)" }}>
+              <div style={{ width: 30, height: 30, borderRadius: 9, background: `${f.color}15`, border: `1px solid ${f.color}25`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name={f.icon} size={13} color={f.color} />
               </div>
-              <span style={{ color:"var(--text2)",fontSize:13,flex:1,lineHeight:1.5 }}>{f.value}</span>
+              <span style={{ color: "var(--text2)", fontSize: 13, flex: 1, lineHeight: 1.5 }}>{f.value}</span>
             </div>
           ))}
-          <div style={{ display:"flex",gap:8,marginTop:14,alignItems:"center" }}>
-            <WABtn phone={cl.phone}/>
-            <button className="btn bng" style={{ flex:1,fontSize:12,padding:"9px 14px" }} onClick={()=>onEdit(cl)}>
-              <Icon name="edit" size={13} color="var(--ac)"/>تعديل
+          <div style={{ display: "flex", gap: 8, marginTop: 14, alignItems: "center" }}>
+            <WABtn phone={cl.phone} />
+            <button className="btn bng" style={{ flex: 1, fontSize: 12, padding: "9px 14px" }} onClick={() => onEdit(cl)}>
+              <Icon name="edit" size={13} color="var(--ac)" />تعديل
             </button>
-            <button className="ico-btn red" style={{ width:38,height:38,borderRadius:11 }} onClick={()=>{ if(confirm("حذف العميل؟")){ onDelete(cl.id); setSel(null); } }}>
-              <Icon name="trash" size={14} color="var(--danger)"/>
+            <button className="ico-btn red" style={{ width: 38, height: 38, borderRadius: 11 }} onClick={() => { if (confirm("حذف العميل؟")) { onDelete(cl.id); setSel(null); } }}>
+              <Icon name="trash" size={14} color="var(--danger)" />
             </button>
           </div>
         </div>
 
-        {/* Contracts */}
         <div className="sec-hdr"><span className="sec-title">عقوده ({clc.length})</span></div>
-        {clc.length===0 ? <div style={{ color:"var(--muted)",fontSize:13,textAlign:"center",padding:"16px 0" }}>لا توجد عقود</div>
-          : clc.map(c=>(
-          <div key={c.id} className="tx-card" style={{ borderRight:`3px solid ${SC[c.status]}`,boxShadow:`0 4px 16px ${SC[c.status]}14` }}>
-            <div className="tx-icon" style={{ background:`${SC[c.status]}18`,boxShadow:`0 2px 8px ${SC[c.status]}22` }}><Icon name="contracts" size={16} color={SC[c.status]}/></div>
-            <div style={{ flex:1 }}><div className="tx-name">{c.videoCount?`${c.videoCount} فيديو`:"عقد"}</div><div className="tx-sub">{fmtDate(c.startDate)}</div></div>
-            <div><div style={{ fontSize:13,fontWeight:800,color:SC[c.status] }}>{fmt(c.videoAmount||c.totalAmount,c.currency)}</div><span className="badge" style={{ color:SC[c.status],background:SC[c.status]+"18",borderColor:SC[c.status]+"44" }}>{SL[c.status]}</span></div>
-          </div>
-        ))}
-
-        {/* Timeline */}
-        {timeline.length > 0 && (
-          <div style={{ marginTop:16 }}>
-            <div className="sec-hdr">
-          <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-            <div style={{ width:28,height:28,borderRadius:9,background:"rgba(96,165,250,0.12)",border:"1px solid rgba(96,165,250,0.2)",display:"flex",alignItems:"center",justifyContent:"center" }}>
-              <Icon name="calendar" size={13} color="#60a5fa"/>
+        {clc.length === 0
+          ? <div style={{ color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "16px 0" }}>لا توجد عقود</div>
+          : clc.map(c => (
+            <div key={c.id} className="tx-card" style={{ borderRight: `3px solid ${SC[c.status]}`, boxShadow: `0 4px 16px ${SC[c.status]}14` }}>
+              <div className="tx-icon" style={{ background: `${SC[c.status]}18`, boxShadow: `0 2px 8px ${SC[c.status]}22` }}><Icon name="contracts" size={16} color={SC[c.status]} /></div>
+              <div style={{ flex: 1 }}><div className="tx-name">{c.videoCount ? `${c.videoCount} فيديو` : "عقد"}</div><div className="tx-sub">{fmtDate(c.startDate)}</div></div>
+              <div><div style={{ fontSize: 13, fontWeight: 800, color: SC[c.status] }}>{fmt(c.videoAmount || c.totalAmount, c.currency)}</div><span className="badge" style={{ color: SC[c.status], background: SC[c.status] + "18", borderColor: SC[c.status] + "44" }}>{SL[c.status]}</span></div>
             </div>
-            <span className="sec-title">التسلسل الزمني</span>
-          </div>
-        </div>
+          ))}
+
+        {timeline.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <div className="sec-hdr">
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 9, background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="calendar" size={13} color="#60a5fa" />
+                </div>
+                <span className="sec-title">التسلسل الزمني</span>
+              </div>
+            </div>
             <div className="card">
-              {timeline.map((ev,i)=>(
-                <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:12,padding:"6px 0" }}>
-                  <div style={{ display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0 }}>
-                    <div style={{ width:10,height:10,borderRadius:"50%",background:ev.color,boxShadow:`0 0 8px ${ev.color}88` }}/>
-                    {i < timeline.length-1 && <div style={{ width:2,height:20,background:"var(--muted2)",margin:"3px 0" }}/>}
+              {timeline.map((ev, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "6px 0" }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: ev.color, boxShadow: `0 0 8px ${ev.color}88` }} />
+                    {i < timeline.length - 1 && <div style={{ width: 2, height: 20, background: "var(--muted2)", margin: "3px 0" }} />}
                   </div>
-                  <div style={{ paddingBottom:i<timeline.length-1?4:0 }}>
-                    <div style={{ fontSize:12,fontWeight:700,color:ev.color }}>{ev.label}</div>
-                    <div style={{ fontSize:10,color:"var(--muted)" }}>{fmtDate(ev.date)}</div>
+                  <div style={{ paddingBottom: i < timeline.length - 1 ? 4 : 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: ev.color }}>{ev.label}</div>
+                    <div style={{ fontSize: 10, color: "var(--muted)" }}>{fmtDate(ev.date)}</div>
                   </div>
                 </div>
               ))}
@@ -2001,53 +1988,60 @@ return (
         )}
       </div>
     );
+  } // ← closes if(sel)
 
+  // ── CLIENT LIST VIEW ──
   return (
-  <div className="screen" style={{ paddingTop:8 }} {...handlers}>
-    {pulling && (
-      <div className="ptr-indicator" style={{ opacity:progress, transform:`translateY(${(1-progress)*-20}px)` }}>
-        <Icon name="refresh" size={14} color="var(--ac)"/>
-        {progress>=1 ? "إطلاق للتحديث" : "اسحب للتحديث"}
+    <div className="screen" style={{ paddingTop: 8 }} {...handlers}>
+      {pulling && (
+        <div className="ptr-indicator" style={{ opacity: progress, transform: `translateY(${(1 - progress) * -20}px)` }}>
+          <Icon name="refresh" size={14} color="var(--ac)" />
+          {progress >= 1 ? "إطلاق للتحديث" : "اسحب للتحديث"}
+        </div>
+      )}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div>
+          <div className="screen-title-wrap">
+            <div className="screen-title-glow" />
+            <div className="pt">العملاء</div>
+          </div>
+          <div className="ps">{clients.length} عميل</div>
+        </div>
+        <button className="btn bngf" onClick={onAdd} style={{ padding: "8px 16px", fontSize: 13 }}>
+          <Icon name="user_plus" size={14} color="#000" />عميل
+        </button>
       </div>
-    )}
-    <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
-     <div>
-  <div className="screen-title-wrap">
-    <div className="screen-title-glow"/>
-    <div className="pt">العملاء</div>
-  </div>
-  <div className="ps">{clients.length} عميل</div>
-</div>
-        <button className="btn bngf" onClick={onAdd} style={{ padding:"8px 16px",fontSize:13 }}><Icon name="user_plus" size={14} color="#000"/>عميل</button>
+      <div className="sb-wrap">
+        <span className="sb-ico"><Icon name="search" size={14} color="var(--muted)" /></span>
+        <input className="sb" value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight: 36 }} />
       </div>
-      <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)"/></span><input className="sb" value={search} onChange={e=>setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight:36 }}/></div>
-      {filtered.length===0
-        ? <EmptyState type="clients" onAdd={clients.length===0?onAdd:null}/>
-        : filtered.map((cl,i)=>{
-          const ltv=contracts.filter(c=>c.clientId===cl.id).reduce((s,c)=>s+Number(c.videoAmount||0),0);
-          const lastContract = contracts.filter(c=>c.clientId===cl.id).sort((a,b)=>Number(b.id)-Number(a.id))[0];
-          const [g1,g2] = nameToGradient(cl.name);
+      {filtered.length === 0
+        ? <EmptyState type="clients" onAdd={clients.length === 0 ? onAdd : null} />
+        : filtered.map((cl, i) => {
+          const ltv = contracts.filter(c => c.clientId === cl.id).reduce((s, c) => s + Number(c.videoAmount || 0), 0);
+          const lastContract = contracts.filter(c => c.clientId === cl.id).sort((a, b) => Number(b.id) - Number(a.id))[0];
+          const [g1, g2] = nameToGradient(cl.name);
           return (
-            <div key={cl.id} className="clic stagger-item" style={{ animationDelay:`${i*40}ms`,borderColor:`${g1}33`,boxShadow:`0 4px 20px ${g1}14` }} onClick={()=>setSel(cl.id)}>
-              <GradientAvatar name={cl.name} size={42}/>
-              <div style={{ flex:1,minWidth:0 }}>
+            <div key={cl.id} className="clic stagger-item" style={{ animationDelay: `${i * 40}ms`, borderColor: `${g1}33`, boxShadow: `0 4px 20px ${g1}14` }} onClick={() => setSel(cl.id)}>
+              <GradientAvatar name={cl.name} size={42} />
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="clic-name">{cl.name}</div>
-                <div className="clic-sub">{[cl.phone,`${contracts.filter(c=>c.clientId===cl.id).length} عقد`,ltv>0?fmt(ltv):null].filter(Boolean).join(" · ")}</div>
+                <div className="clic-sub">{[cl.phone, `${contracts.filter(c => c.clientId === cl.id).length} عقد`, ltv > 0 ? fmt(ltv) : null].filter(Boolean).join(" · ")}</div>
                 {lastContract && (
-                  <div style={{ display:"flex",alignItems:"center",gap:4,marginTop:3 }}>
-                    <div style={{ width:5,height:5,borderRadius:"50%",background:SC[lastContract.status],boxShadow:`0 0 4px ${SC[lastContract.status]}` }}/>
-                    <span style={{ fontSize:9,color:SC[lastContract.status],fontWeight:700 }}>{SL[lastContract.status]}</span>
-                    <span style={{ fontSize:9,color:"var(--muted)" }}>· آخر عقد</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
+                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: SC[lastContract.status], boxShadow: `0 0 4px ${SC[lastContract.status]}` }} />
+                    <span style={{ fontSize: 9, color: SC[lastContract.status], fontWeight: 700 }}>{SL[lastContract.status]}</span>
+                    <span style={{ fontSize: 9, color: "var(--muted)" }}>· آخر عقد</span>
                   </div>
                 )}
               </div>
-              <WABtn phone={cl.phone} sm/>
+              <WABtn phone={cl.phone} sm />
             </div>
           );
         })}
     </div>
   );
-}
+} 
 
 // ─── Income Screen ────────────────────────────────────────────────
 function IncomeScreen({ contracts, clients, onRefresh }) {
@@ -2269,7 +2263,7 @@ export default function App() {
     const c=contracts.find(x=>x.id===id); if(!c) return;
     const updated={...c,[field]:!c[field]};
     const vc=Number(updated.videoCount||0),vd=Number(updated.videoDone||0);
-    if(updated.deposit50Paid&&updated.final50Paid&&(vc===0||vd>=vc)){ updated.status="completed"; updated.statusHistory=addHist(c,"completed"); }
+    if(updated.deposit50Paid&&updated.final50Paid&&vd>=vc){
     const {data}=await supabase.from("contracts").update(toDB(updated)).eq("id",id).select().single();
     if(data) setContracts(p=>p.map(x=>x.id===id?toApp(data):x));
   };
@@ -2283,7 +2277,7 @@ export default function App() {
   const handlePdfExported=async id=>{
     const c=contracts.find(x=>x.id===id); if(!c) return;
     const hist=addHist(c,"active");
-    const updated={...c,deposit50Paid:true,status:"active",statusHistory:hist};
+   const updated = { ...c, status: "active", statusHistory: hist };
     const {data}=await supabase.from("contracts").update(toDB(updated)).eq("id",id).select().single();
     if(data) setContracts(p=>p.map(x=>x.id===id?toApp(data):x));
   };
