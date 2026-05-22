@@ -2054,7 +2054,8 @@ return (
 
 // ─── Income Screen ────────────────────────────────────────────────
 function IncomeScreen({ contracts, clients, onRefresh }) {
-  const [incomeTab, setIncomeTab] = useState("overview");
+ const [incomeTab, setIncomeTab] = useState("overview");
+const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
   const videoOnly=c=>Number(c.videoAmount||0);
   const thirtyAgo=new Date(); thirtyAgo.setDate(thirtyAgo.getDate()-30);
   const last30=contracts.filter(c=>c.startDate&&new Date(c.startDate)>=thirtyAgo).reduce((s,c)=>s+videoOnly(c),0);
@@ -2088,9 +2089,7 @@ function IncomeScreen({ contracts, clients, onRefresh }) {
   };
 
   return (
-    const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
-// place this BEFORE the return statement above, then:
-<div className="screen" style={{ paddingTop:0 }} {...handlers}>
+   <div className="screen" style={{ paddingTop:0 }} {...handlers}>
   {pulling && (
     <div className="ptr-indicator" style={{ opacity:progress, transform:`translateY(${(1-progress)*-20}px)` }}>
       <Icon name="refresh" size={14} color="var(--ac)"/>
