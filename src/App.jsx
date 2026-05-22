@@ -50,11 +50,7 @@ const haptic = (type = "light") => {
   if (navigator.vibrate) { const p = { light:30, medium:[30,20,30], heavy:80 }; navigator.vibrate(p[type]||30); }
 };
 
-// ─── Logo ─────────────────────────────────────────────────────────
-const FareqLogo = ({ size=36, style={} }) => (
-  <img src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG" alt="فارق"
-    style={{ width:size, height:size, objectFit:"contain", mixBlendMode:"screen", filter:"brightness(1.1)", display:"block", ...style }} />
-);
+
 
 // ─── Animated counter hook ────────────────────────────────────────
 function useCountUp(target, duration=900, start=false) {
@@ -140,43 +136,6 @@ function ProgressRing({ pct, size=52, stroke=4, color="var(--ac)", track="var(--
         {pct}%
       </text>
     </svg>
-  );
-}
-
-// ─── Bar Chart ────────────────────────────────────────────────────
-function MonthlyBarChart({ contracts }) {
-  const months = [];
-  for (let i=5;i>=0;i--) {
-    const d = new Date(NOW.getFullYear(), NOW.getMonth()-i, 1);
-    const label = d.toLocaleDateString("ar-LY", { month:"short" });
-    const total = contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===d.getMonth()&&new Date(c.startDate).getFullYear()===d.getFullYear()).reduce((s,c)=>s+Number(c.videoAmount||0),0);
-    months.push({ label, total });
-  }
-  const max = Math.max(...months.map(m=>m.total),1);
-  const current=months[5].total, prev=months[4].total;
-  const diff = prev>0 ? Math.round(((current-prev)/prev)*100) : current>0 ? 100 : 0;
-  return (
-    <div className="card" style={{ marginBottom:10 }}>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-        <div style={{ fontSize:13, fontWeight:800, color:"var(--text)" }}>الإيرادات الشهرية</div>
-        <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, color:diff>=0?"var(--ac)":"var(--danger)" }}>
-          <span>{diff>=0?"▲":"▼"} {Math.abs(diff)}%</span>
-          <span style={{ color:"var(--muted)", fontWeight:500 }}>vs الشهر الماضي</span>
-        </div>
-      </div>
-      <div style={{ display:"flex", gap:6, alignItems:"flex-end", height:80 }}>
-        {months.map((m,i)=>{
-          const h = max>0?Math.max((m.total/max)*72,m.total>0?6:2):2;
-          const isLast=i===5;
-          return (
-            <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
-              <div style={{ width:"100%", height:h, borderRadius:"4px 4px 0 0", background:isLast?"linear-gradient(180deg,var(--ac),var(--ac2))":"var(--surface2)", border:`1px solid ${isLast?"var(--ac-border)":"var(--card-border)"}`, boxShadow:isLast?"0 0 10px var(--ac-glow)":"none", transition:"height .5s cubic-bezier(.4,0,.2,1)", alignSelf:"flex-end" }} />
-              <div style={{ fontSize:9, color:isLast?"var(--ac)":"var(--muted)", fontWeight:isLast?800:500 }}>{m.label}</div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
   );
 }
 
@@ -278,7 +237,12 @@ function NotificationCenter({ notifications, onClose, onMarkAllRead, onDismiss }
     return groups;
   }, [notifications]);
 
-  const groupLabels = { payments:"💳 الدفعات", deadlines:"⏰ المواعيد النهائية", completions:"✅ المكتملة", smart:"🧠 تنبيهات ذكية" };
+  const groupLabels = {
+    payments:{ label:"الدفعات", icon:"income", color:"#00ff88" },
+    deadlines:{ label:"المواعيد النهائية", icon:"clock", color:"var(--warn)" },
+    completions:{ label:"المكتملة", icon:"check", color:"#a78bfa" },
+    smart:{ label:"تنبيهات ذكية", icon:"zap", color:"#60a5fa" },
+  };
   const unread = notifications.filter(n => !n.read).length;
 
   return (
@@ -308,7 +272,12 @@ function NotificationCenter({ notifications, onClose, onMarkAllRead, onDismiss }
             if (!items.length) return null;
             return (
               <div key={key} style={{ marginBottom:16 }}>
-                <div style={{ fontSize:10, fontWeight:800, color:"var(--muted)", letterSpacing:1, textTransform:"uppercase", marginBottom:8 }}>{groupLabels[key]}</div>
+                <div style={{ display:"flex",alignItems:"center",gap:7,marginBottom:10 }}>
+                  <div style={{ width:24,height:24,borderRadius:7,background:`${groupLabels[key].color}18`,border:`1px solid ${groupLabels[key].color}30`,display:"flex",alignItems:"center",justifyContent:"center" }}>
+                    <Icon name={groupLabels[key].icon} size={11} color={groupLabels[key].color}/>
+                  </div>
+                  <span style={{ fontSize:10,fontWeight:700,color:"var(--muted)",letterSpacing:"1px",textTransform:"uppercase" }}>{groupLabels[key].label}</span>
+                </div>
                 {items.map((n, i) => (
                   <NotifRow key={n.id} n={n} onDismiss={()=>onDismiss(n.id)} delay={i*30}/>
                 ))}
@@ -375,25 +344,49 @@ function NotifBell({ count, onClick }) {
 }
 
 // ─── Activity Feed ────────────────────────────────────────────────
+const ACTIVITY_ICONS = {
+  payment: { icon:"income", color:"#00ff88" },
+  contract: { icon:"contracts", color:"#60a5fa" },
+  complete: { icon:"check", color:"#a78bfa" },
+  cancel: { icon:"cancel", color:"#ff4d6d" },
+  video: { icon:"zap", color:"#fbbf24" },
+  client: { icon:"person", color:"#38bdf8" },
+};
+
 function ActivityFeed({ activities }) {
+  const [expanded, setExpanded] = useState(false);
   if (!activities.length) return null;
-  const icons = { payment:"💳", contract:"📄", complete:"✅", cancel:"❌", video:"🎬", client:"👤" };
+  const visible = expanded ? activities : activities.slice(0,3);
   return (
-    <div className="card" style={{ marginBottom:10 }}>
-      <div style={{ fontSize:13, fontWeight:800, color:"var(--text)", marginBottom:12, display:"flex", alignItems:"center", gap:7 }}>
-        <Icon name="history" size={14} color="var(--ac)"/> آخر النشاطات
-      </div>
-      {activities.slice(0,6).map((a, i) => (
-        <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"7px 0", borderBottom: i < activities.length-1 ? "1px solid var(--muted2)" : "none", animation:`stagger-in .4s ${i*50}ms both` }}>
-          <div style={{ width:32, height:32, borderRadius:10, background:"var(--surface2)", border:"1px solid var(--card-border)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>
-            {icons[a.type] || "📝"}
+    <div className="card" style={{ marginBottom:16 }}>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
+        <div style={{ fontSize:14,fontWeight:700,color:"var(--text)",display:"flex",alignItems:"center",gap:8,letterSpacing:"-0.2px" }}>
+          <div style={{ width:28,height:28,borderRadius:9,background:"rgba(0,255,136,0.12)",border:"1px solid rgba(0,255,136,0.2)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+            <Icon name="history" size={13} color="var(--ac)"/>
           </div>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:12, fontWeight:600, color:"var(--text)", lineHeight:1.4 }}>{a.msg}</div>
-            <div style={{ fontSize:9, color:"var(--muted)", marginTop:2 }}>{a.time}</div>
-          </div>
+          آخر النشاطات
         </div>
-      ))}
+        {activities.length>3&&(
+          <button onClick={()=>setExpanded(p=>!p)} style={{ fontSize:11,color:"var(--ac)",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"var(--font)",display:"flex",alignItems:"center",gap:4 }}>
+            {expanded?"عرض أقل":"عرض الكل"}
+            <Icon name={expanded?"chevron_down":"chevron_left"} size={12} color="var(--ac)"/>
+          </button>
+        )}
+      </div>
+      {visible.map((a,i)=>{
+        const cfg=ACTIVITY_ICONS[a.type]||{icon:"doc",color:"var(--muted)"};
+        return (
+          <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:10,padding:"8px 0",borderBottom:i<visible.length-1?"1px solid var(--muted2)":"none",animation:`stagger-in .4s ${i*50}ms both` }}>
+            <div style={{ width:32,height:32,borderRadius:10,background:`${cfg.color}15`,border:`1px solid ${cfg.color}30`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:`0 2px 8px ${cfg.color}20` }}>
+              <Icon name={cfg.icon} size={13} color={cfg.color}/>
+            </div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:12,fontWeight:600,color:"var(--text)",lineHeight:1.5 }}>{a.msg}</div>
+              <div style={{ fontSize:10,color:"var(--muted)",marginTop:2 }}>{a.time}</div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -401,32 +394,111 @@ function ActivityFeed({ activities }) {
 // ─── Empty State ──────────────────────────────────────────────────
 function EmptyState({ type, onAdd }) {
   const states = {
-    contracts:{ svg:(<svg viewBox="0 0 120 100" width={120} height={100}><rect x={20} y={15} width={80} height={70} rx={8} fill="var(--surface2)" stroke="var(--card-border)" strokeWidth={1.5}/><rect x={32} y={30} width={56} height={5} rx={2.5} fill="var(--muted2)"/><rect x={32} y={42} width={40} height={4} rx={2} fill="var(--muted2)"/><rect x={32} y={54} width={48} height={4} rx={2} fill="var(--muted2)"/><circle cx={86} cy={72} r={14} fill="var(--ac)" opacity={0.15}/><line x1={80} y1={72} x2={92} y2={72} stroke="var(--ac)" strokeWidth={2.5} strokeLinecap="round"/><line x1={86} y1={66} x2={86} y2={78} stroke="var(--ac)" strokeWidth={2.5} strokeLinecap="round"/></svg>), title:"لا توجد عقود بعد", sub:"أضف أول عقد لبدء تتبع عملك", cta:"+ إضافة عقد" },
-    clients:{ svg:(<svg viewBox="0 0 120 100" width={120} height={100}><circle cx={60} cy={35} r={18} fill="var(--surface2)" stroke="var(--card-border)" strokeWidth={1.5}/><circle cx={60} cy={30} r={9} fill="var(--muted2)"/><path d="M35 75 Q60 55 85 75" fill="var(--surface2)" stroke="var(--card-border)" strokeWidth={1.5}/><circle cx={86} cy={72} r={14} fill="var(--ac)" opacity={0.15}/><line x1={80} y1={72} x2={92} y2={72} stroke="var(--ac)" strokeWidth={2.5} strokeLinecap="round"/><line x1={86} y1={66} x2={86} y2={78} stroke="var(--ac)" strokeWidth={2.5} strokeLinecap="round"/></svg>), title:"لا يوجد عملاء بعد", sub:"أضف أول عميل لبدء إدارة قاعدة عملائك", cta:"+ إضافة عميل" },
-    income:{ svg:(<svg viewBox="0 0 120 100" width={120} height={100}>{[0,1,2,3,4].map((i)=><rect key={i} x={14+i*20} y={70-[30,50,40,60,20][i]} width={14} height={[30,50,40,60,20][i]} rx={3} fill={i===3?"var(--ac)":"var(--muted2)"} opacity={i===3?0.5:1}/>)}<line x1={10} y1={72} x2={110} y2={72} stroke="var(--card-border)" strokeWidth={1}/></svg>), title:"لا توجد بيانات دخل بعد", sub:"أضف عقودًا لبدء تتبع دخلك", cta:null },
-    search:{ svg:(<svg viewBox="0 0 120 100" width={120} height={100}><circle cx={52} cy={48} r={24} fill="var(--surface2)" stroke="var(--card-border)" strokeWidth={1.5}/><circle cx={52} cy={48} r={16} fill="var(--muted2)" opacity={0.5}/><line x1={70} y1={66} x2={90} y2={82} stroke="var(--card-border)" strokeWidth={4} strokeLinecap="round"/></svg>), title:"لا توجد نتائج", sub:"جرّب البحث بكلمات مختلفة", cta:null },
+    contracts:{
+      svg:(
+        <svg viewBox="0 0 160 130" width={160} height={130}>
+          <rect x={18} y={12} width={88} height={106} rx={12} fill="var(--surface2)" stroke="var(--muted2)" strokeWidth={1.5}/>
+          <rect x={18} y={12} width={88} height={26} rx={12} fill="var(--surface3)" stroke="var(--muted2)" strokeWidth={1.5}/>
+          <rect x={18} y={26} width={88} height={12} fill="var(--surface3)"/>
+          <circle cx={34} cy={25} r={5} fill="var(--muted2)" opacity={0.6}/>
+          <circle cx={50} cy={25} r={5} fill="var(--muted2)" opacity={0.4}/>
+          <circle cx={66} cy={25} r={5} fill="var(--muted2)" opacity={0.2}/>
+          <rect x={32} y={50} width={60} height={6} rx={3} fill="var(--muted2)"/>
+          <rect x={32} y={64} width={44} height={5} rx={2.5} fill="var(--muted2)" opacity={0.7}/>
+          <rect x={32} y={77} width={52} height={5} rx={2.5} fill="var(--muted2)" opacity={0.5}/>
+          <rect x={32} y={90} width={36} height={5} rx={2.5} fill="var(--muted2)" opacity={0.3}/>
+          <circle cx={126} cy={96} r={24} fill="var(--ac)" opacity={0.1}/>
+          <circle cx={126} cy={96} r={24} stroke="var(--ac)" strokeWidth={1.5} fill="none" strokeDasharray="4 3"/>
+          <line x1={118} y1={96} x2={134} y2={96} stroke="var(--ac)" strokeWidth={2.5} strokeLinecap="round"/>
+          <line x1={126} y1={88} x2={126} y2={104} stroke="var(--ac)" strokeWidth={2.5} strokeLinecap="round"/>
+          <circle cx={126} cy={96} r={10} stroke="var(--ac)" strokeWidth={1} fill="none" opacity={0.3}/>
+        </svg>
+      ),
+      title:"لا توجد عقود بعد",
+      sub:"أضف أول عقد لبدء تتبع عملك",
+      cta:"+ إضافة عقد"
+    },
+    clients:{
+      svg:(
+        <svg viewBox="0 0 160 130" width={160} height={130}>
+          <circle cx={58} cy={42} r={22} fill="var(--surface2)" stroke="var(--muted2)" strokeWidth={1.5}/>
+          <circle cx={58} cy={36} r={11} fill="var(--muted2)"/>
+          <path d="M22 95 Q58 68 94 95" fill="var(--surface2)" stroke="var(--muted2)" strokeWidth={1.5}/>
+          <circle cx={106} cy={50} r={15} fill="var(--surface2)" stroke="var(--muted2)" strokeWidth={1.2} opacity={0.7}/>
+          <circle cx={106} cy={45} r={8} fill="var(--muted2)" opacity={0.6}/>
+          <path d="M84 82 Q106 65 128 82" fill="none" stroke="var(--muted2)" strokeWidth={1.2} opacity={0.6}/>
+          <circle cx={128} cy={100} r={22} fill="var(--ac)" opacity={0.1}/>
+          <circle cx={128} cy={100} r={22} stroke="var(--ac)" strokeWidth={1.5} fill="none" strokeDasharray="4 3"/>
+          <line x1={120} y1={100} x2={136} y2={100} stroke="var(--ac)" strokeWidth={2.5} strokeLinecap="round"/>
+          <line x1={128} y1={92} x2={128} y2={108} stroke="var(--ac)" strokeWidth={2.5} strokeLinecap="round"/>
+          <circle cx={128} cy={100} r={10} stroke="var(--ac)" strokeWidth={1} fill="none" opacity={0.3}/>
+        </svg>
+      ),
+      title:"لا يوجد عملاء بعد",
+      sub:"أضف أول عميل لبدء إدارة قاعدة عملائك",
+      cta:"+ إضافة عميل"
+    },
+    income:{
+      svg:(
+        <svg viewBox="0 0 160 130" width={160} height={130}>
+          <line x1={16} y1={104} x2={148} y2={104} stroke="var(--muted2)" strokeWidth={1.5} strokeLinecap="round"/>
+          <line x1={16} y1={104} x2={16} y2={20} stroke="var(--muted2)" strokeWidth={1.5} strokeLinecap="round"/>
+          {[0,1,2,3,4,5].map(i=>{
+            const h=[28,48,36,64,42,54][i];
+            const isLast=i===5;
+            return <rect key={i} x={24+i*21} y={104-h} width={14} height={h} rx={4}
+              fill={isLast?"var(--ac)":"var(--muted2)"} opacity={isLast?0.85:0.45}
+              style={{ filter:isLast?"drop-shadow(0 0 6px var(--ac))":"none" }}/>;
+          })}
+          <polyline points="31,90 52,66 73,76 94,48 115,62 136,34"
+            fill="none" stroke="var(--ac)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" opacity={0.5}/>
+          <circle cx={136} cy={34} r={5} fill="var(--ac)" opacity={0.8}/>
+          <polyline points="128,26 136,34 144,26" fill="none" stroke="var(--ac)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" opacity={0.6}/>
+        </svg>
+      ),
+      title:"لا توجد بيانات دخل بعد",
+      sub:"أضف عقودًا لبدء تتبع دخلك",
+      cta:null
+    },
+    search:{
+      svg:(
+        <svg viewBox="0 0 160 130" width={160} height={130}>
+          <circle cx={68} cy={58} r={36} fill="var(--surface2)" stroke="var(--muted2)" strokeWidth={2}/>
+          <circle cx={68} cy={58} r={24} fill="var(--surface3)" stroke="var(--muted2)" strokeWidth={1} opacity={0.6}/>
+          <line x1={56} y1={50} x2={64} y2={50} stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" opacity={0.7}/>
+          <line x1={56} y1={58} x2={76} y2={58} stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" opacity={0.7}/>
+          <line x1={56} y1={66} x2={71} y2={66} stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" opacity={0.5}/>
+          <line x1={96} y1={86} x2={128} y2={114} stroke="var(--muted2)" strokeWidth={6} strokeLinecap="round"/>
+          <line x1={96} y1={86} x2={128} y2={114} stroke="var(--muted)" strokeWidth={3} strokeLinecap="round" opacity={0.5}/>
+          <circle cx={68} cy={58} r={36} fill="none" stroke="var(--muted2)" strokeWidth={2} strokeDasharray="3 5" opacity={0.4}/>
+        </svg>
+      ),
+      title:"لا توجد نتائج",
+      sub:"جرّب البحث بكلمات مختلفة",
+      cta:null
+    },
   };
-  const s = states[type]||states.contracts;
+  const s = states[type] || states.contracts;
   return (
-    <div style={{ textAlign:"center", padding:"40px 16px" }}>
-      <div style={{ display:"flex", justifyContent:"center", marginBottom:12, opacity:0.7 }}>{s.svg}</div>
-      <div style={{ fontWeight:700, color:"var(--text)", fontSize:14, marginBottom:6 }}>{s.title}</div>
-      <div style={{ color:"var(--muted)", fontSize:12, marginBottom:s.cta?16:0 }}>{s.sub}</div>
-      {s.cta&&onAdd&&<button className="btn bngf" style={{ fontSize:12, padding:"8px 18px" }} onClick={onAdd}>{s.cta}</button>}
+    <div style={{ textAlign:"center", padding:"48px 16px" }}>
+      <div style={{ display:"flex", justifyContent:"center", marginBottom:16, opacity:0.85 }}>{s.svg}</div>
+      <div style={{ fontWeight:700, color:"var(--text)", fontSize:15, marginBottom:8, letterSpacing:"-0.3px" }}>{s.title}</div>
+      <div style={{ color:"var(--muted)", fontSize:13, marginBottom:s.cta?20:0, lineHeight:1.6 }}>{s.sub}</div>
+      {s.cta&&onAdd&&<button className="btn bngf" style={{ fontSize:13, padding:"10px 22px" }} onClick={onAdd}>{s.cta}</button>}
     </div>
   );
 }
 
 // ─── CSS ──────────────────────────────────────────────────────────
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 :root {
   --bg:#f0f2f7; --surface:#ffffff; --surface2:#e8ebf4; --surface3:#dde1ef;
   --glass-bg:rgba(255,255,255,0.72); --glass-blur:blur(20px);
   --ac:#00c96e; --ac2:#00a85a; --ac-glow:rgba(0,201,110,0.25); --ac-faint:rgba(0,201,110,0.10); --ac-border:rgba(0,201,110,0.35);
   --text:#0d1b2a; --text2:#4a5568; --muted:#94a3b8; --muted2:#e2e8f0;
-  --danger:#ff4d6d; --warn:#f59e0b; --card-border:rgba(255,255,255,0.8); --card-gap:10px; --font:'Tajawal',sans-serif;
+  --danger:#ff4d6d; --warn:#f59e0b; --card-border:rgba(255,255,255,0.8); --card-gap:10px; --font:'IBM Plex Sans Arabic',sans-serif;
   --grad-card:linear-gradient(135deg,#1a2340 0%,#0f1829 60%,#0a1020 100%);
   --grad-accent:linear-gradient(135deg,#00ff88,#00c96e);
   --shadow-card:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.08);
@@ -464,10 +536,11 @@ const CSS = `
 @keyframes dot-appear { from{transform:scale(0)} to{transform:scale(1)} }
 
 /* ── Base ── */
-html,body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rtl;height:100%;transition:background .3s,color .3s;}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rtl;height:100%;transition:background .3s,color .3s;font-variant-numeric:tabular-nums;font-feature-settings:"tnum";}
 ::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--ac-border);border-radius:4px}
 .app{display:flex;flex-direction:column;height:100dvh;background:var(--bg);overflow:hidden;}
-.screen{flex:1;overflow-y:auto;padding:0 14px 100px;}
+.screen{flex:1;overflow-y:auto;padding:0 14px 100px;scroll-snap-type:y proximity;}
+.hero-card,.stat-grid,.card,.sec-hdr,.unpaid-banner,.countdown-box{scroll-snap-align:start;}
 
 /* ── Topbar frosted ── */
 .topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 14px 10px;gap:10px;position:sticky;top:0;z-index:50;
@@ -534,7 +607,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 /* ── Amount / payment boxes ── */
 .amt-box{background:var(--surface2);border-radius:10px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--card-border);}
 .amt-lbl{font-size:9px;color:var(--muted);font-weight:600;}
-.amt-val{font-size:14px;font-weight:800;color:var(--ac);}
+.amt-val{font-size:15px;font-weight:700;color:var(--ac);font-variant-numeric:tabular-nums;font-feature-settings:"tnum";}
 .payment-amt-shadow{box-shadow:0 4px 14px rgba(0,255,136,0.15);}
 
 /* Payment sections */
@@ -565,7 +638,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .stat-card:hover{transform:translateY(-2px);}
 .stat-card.wide{grid-column:1/-1;}
 .stat-lbl{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
-.stat-val{font-size:18px;font-weight:800;color:var(--text);} .stat-val.ac{color:var(--ac);} .stat-val.sm{font-size:14px;}
+.stat-val{font-size:20px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;font-feature-settings:"tnum";} .stat-val.ac{color:var(--ac);} .stat-val.sm{font-size:14px;}
 
 /* ── Nav ── */
 .bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:1px solid var(--card-border);display:flex;align-items:center;padding:6px 8px max(6px,env(safe-area-inset-bottom));box-shadow:0 -8px 32px rgba(0,0,0,0.12);gap:4px;}
@@ -578,7 +651,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .bni-fab:active{transform:scale(.95);}
 
 /* ── Core card ── */
-.card{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:18px;padding:14px;box-shadow:var(--shadow-card);margin-bottom:var(--card-gap);transition:all .25s;}
+.card{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:18px;padding:16px;box-shadow:var(--shadow-card);margin-bottom:16px;transition:all .25s;}
 .card:hover{box-shadow:var(--shadow-float);border-color:var(--ac-border);}
 
 /* ── Transaction cards ── */
@@ -590,8 +663,8 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .tx-amt{font-size:13px;font-weight:700;} .tx-amt.pos{color:var(--ac);} .tx-amt.neg{color:var(--danger);}
 
 /* ── Section headers ── */
-.sec-hdr{display:flex;justify-content:space-between;align-items:center;margin:18px 0 10px;}
-.sec-title{font-size:15px;font-weight:800;color:var(--text);}
+.sec-hdr{display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px;}
+.sec-title{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-0.3px;}
 .sec-link{font-size:11px;color:var(--ac);font-weight:700;cursor:pointer;}
 
 /* ── Badges ── */
@@ -614,8 +687,9 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .ico-btn.wa:hover{color:#25D366;border-color:rgba(37,211,102,0.3);}
 
 /* ── Modals ── */
-.mov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(12px);}
-.mod{background:var(--glass-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--card-border);border-radius:24px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;padding:24px;box-shadow:var(--shadow-float),0 0 60px var(--ac-glow);animation:fu .25s cubic-bezier(.4,0,.2,1);}
+.mov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:0;backdrop-filter:blur(14px);}
+.mod{background:var(--glass-bg);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid var(--card-border);border-top:1px solid rgba(255,255,255,0.12);border-radius:28px 28px 0 0;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;padding:0 24px 40px;box-shadow:var(--shadow-float),0 0 60px var(--ac-glow);animation:slide-up .32s cubic-bezier(.32,1.2,.64,1);}
+.mod::before{content:'';display:block;width:40px;height:4px;background:var(--muted2);border-radius:2px;margin:12px auto 20px;}
 .mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
 .mtitle{font-size:17px;font-weight:900;color:var(--text);display:flex;align-items:center;gap:8px;}
 .mclose{width:30px;height:30px;border-radius:9px;background:var(--surface2);border:1px solid var(--card-border);color:var(--muted);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;}
@@ -698,7 +772,10 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 /* ── Typography ── */
 .pt{font-size:22px;font-weight:900;color:var(--text);margin-bottom:2px;}
 .ps{font-size:12px;color:var(--muted);}
-.sh{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:18px 0 8px;}
+.screen-title-wrap{display:inline-flex;align-items:center;position:relative;margin-bottom:2px;}
+.screen-title-glow{position:absolute;inset:-8px -16px;background:linear-gradient(135deg,rgba(0,255,136,0.22),rgba(0,201,110,0.08));border-radius:14px;filter:blur(10px);z-index:0;pointer-events:none;}
+.pt{font-size:28px;font-weight:700;letter-spacing:-0.5px;color:var(--text);margin-bottom:2px;position:relative;z-index:1;}
+.sh{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin:24px 0 10px;}
 .lmark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#000;box-shadow:0 4px 14px var(--ac-glow);}
 
 /* ── Misc UI ── */
@@ -1214,9 +1291,9 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
         </div>
         <div ref={ref} style={{ display:"none" }}>
           {opts.includeLogo&&<div style={{ textAlign:"center",marginBottom:16 }}>
-            <img src="/BA449EC2-EB5B-4033-BCDA-333BF5EED250.PNG" alt="فارق" style={{ width:70,height:70,objectFit:"contain",filter:"invert(1)",display:"inline-block",marginBottom:7 }}/>
-            <div style={{ fontWeight:800,fontSize:16,fontFamily:"'Tajawal',sans-serif" }}>{compName}</div>
-            <div style={{ color:"#555",fontSize:11,fontFamily:"'Tajawal',sans-serif" }}>FAREQ Productions — {compPhone}</div>
+  <div style={{ width:56,height:56,borderRadius:14,background:"linear-gradient(135deg,#00ff88,#00c96e)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 10px",fontSize:22,fontWeight:700,color:"#000",fontFamily:"'IBM Plex Sans Arabic',sans-serif" }}>F</div>
+  <div style={{ fontWeight:800,fontSize:16,fontFamily:"'IBM Plex Sans Arabic',sans-serif" }}>{compName}</div>
+  <div style={{ color:"#555",fontSize:11,fontFamily:"'IBM Plex Sans Arabic',sans-serif" }}>FAREQ Productions — {compPhone}</div>
           </div>}
           <hr style={{ border:"none",borderTop:"2px solid #111",margin:"12px 0" }}/>
           <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:11,margin:"11px 0",fontFamily:"'Tajawal',sans-serif" }}>
@@ -1437,7 +1514,7 @@ function WalletModal({ type, onClose, onSave }) {
 }
 
 // ─── Settings Screen ──────────────────────────────────────────────
-function SettingsScreen({ settings, onSave, theme, onThemeChange }) {
+function SettingsScreen({ settings, onSave, theme, onThemeChange, onRefresh }) {
   const [f, setF] = useState({ ...settings });
   const [pwForm, setPwForm] = useState({ old:"", new1:"", new2:"", err:"", ok:false });
   const s = (k,v) => { const ns={...f,[k]:v}; setF(ns); onSave(ns); };
@@ -1473,8 +1550,22 @@ function SettingsScreen({ settings, onSave, theme, onThemeChange }) {
   const Toggle = ({val,onToggle}) => <button className={`toggle${val?" on":""}`} onClick={onToggle}/>;
 
   return (
-    <div className="screen" style={{ paddingTop:8 }}>
-      <div><div className="pt">الإعدادات</div><div className="ps">تخصيص التطبيق</div></div>
+    const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
+// place hook call BEFORE return, then:
+<div className="screen" style={{ paddingTop:8 }} {...handlers}>
+  {pulling && (
+    <div className="ptr-indicator" style={{ opacity:progress, transform:`translateY(${(1-progress)*-20}px)` }}>
+      <Icon name="refresh" size={14} color="var(--ac)"/>
+      {progress>=1 ? "إطلاق للتحديث" : "اسحب للتحديث"}
+    </div>
+  )}
+  <div>
+  <div className="screen-title-wrap">
+    <div className="screen-title-glow"/>
+    <div className="pt">الإعدادات</div>
+  </div>
+  <div className="ps">تخصيص التطبيق</div>
+</div>
       <div style={{ marginTop:16 }}><div className="sh">ملف الشركة</div></div>
       <div className="card">
         <div className="fg" style={{ marginBottom:10 }}><label className="flbl">اسم الشركة</label><input className="finp" value={f.companyName||""} onChange={e=>s("companyName",e.target.value)} placeholder="شركة فارق للإنتاج"/></div>
@@ -1634,42 +1725,52 @@ function Dashboard({ contracts, clients, goTo, onViewContract, onRefresh, refres
             <div className="hero-lbl">إجمالي المحصّل</div>
             <div className="hero-amount">{collectedAnim.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}<span style={{ fontSize:16,fontWeight:400,color:"rgba(255,255,255,0.4)",WebkitTextFillColor:"rgba(255,255,255,0.4)" }}> LYD</span></div>
           </div>
-          <div style={{ textAlign:"left" }}>
-            <div style={{ fontSize:10,color:"rgba(255,255,255,0.4)" }}>العقود</div>
-            <div style={{ fontSize:22,fontWeight:900,color:"#fff" }}>{contracts.length}</div>
+        </div>
+       <div style={{ display:"flex",gap:12,marginBottom:4,position:"relative",zIndex:1 }}>
+          <div className="hero-change">
+            <Icon name="check" size={12} color="var(--ac)"/>
+            {contracts.filter(c=>c.status==="active").length} عقد نشط
           </div>
         </div>
-        <div style={{ display:"flex",gap:12,marginBottom:4,position:"relative",zIndex:1 }}>
-          <div className="hero-change"><Icon name="check" size={12} color="var(--ac)"/>{contracts.filter(c=>c.status==="active").length} نشط · {contracts.filter(c=>c.status==="pending").length} معلق</div>
-          {(thisMonth>0||lastMonth>0)&&<div style={{ fontSize:10,color:monthDiff>=0?"var(--ac)":"var(--danger)",fontWeight:700,display:"flex",alignItems:"center",gap:3 }}>{monthDiff>=0?"▲":"▼"} {Math.abs(monthDiff)}% هذا الشهر</div>}
-        </div>
-        <div className="quick-actions">
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:20,position:"relative",zIndex:1 }}>
           {[
             {label:"عقد جديد",icon:"contract_plus",action:()=>goTo("contracts_new")},
-            {label:"عميل",icon:"user_plus",action:()=>goTo("clients_new")},
-            {label:"العقود",icon:"contracts",action:()=>goTo("contracts")},
-            {label:"الدخل",icon:"income",action:()=>goTo("income")},
+            {label:"عميل جديد",icon:"user_plus",action:()=>goTo("clients_new")},
           ].map(q=>(
-            <button key={q.label} className="qa-btn" onClick={q.action}>
-              <div className="qa-icon"><Icon name={q.icon} size={16} color="rgba(255,255,255,0.85)"/></div>
-              <span className="qa-lbl">{q.label}</span>
+            <button key={q.label} className="qa-btn" onClick={q.action} style={{ padding:"14px 10px" }}>
+              <div className="qa-icon"><Icon name={q.icon} size={18} color="rgba(255,255,255,0.9)"/></div>
+              <span className="qa-lbl" style={{ fontSize:11 }}>{q.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {unpaid>0&&<div className="unpaid-banner"><div><div style={{ fontSize:10,color:"var(--danger)",fontWeight:700,marginBottom:2 }}>إجمالي غير المحصّل</div><div style={{ fontSize:18,fontWeight:900,color:"var(--danger)" }}>{unpaid.toLocaleString("en-US",{minimumFractionDigits:2})} LYD</div></div><Icon name="alert" size={22} color="var(--danger)"/></div>}
-      {upcoming&&<div className="countdown-box"><div><div style={{ fontSize:10,color:"var(--warn)",fontWeight:700,marginBottom:2 }}>⏰ أقرب دفعة قادمة</div><div style={{ fontSize:13,fontWeight:800,color:"var(--text)" }}>{upcoming.name} — {upcoming.label}</div><div style={{ fontSize:11,color:"var(--warn)",fontWeight:700,marginTop:2 }}>{fmtDate(upcoming.date)} · {daysDiff(upcoming.date)===0?"اليوم!":`خلال ${daysDiff(upcoming.date)} يوم`}</div></div><div style={{ textAlign:"left" }}><div style={{ fontSize:14,fontWeight:800,color:"var(--warn)" }}>{fmt(upcoming.amt,upcoming.currency)}</div></div></div>}
+      {upcoming&&(
+  <div className="countdown-box">
+    <div style={{ display:"flex",alignItems:"center",gap:12 }}>
+      <div style={{ width:40,height:40,borderRadius:12,background:"rgba(251,191,36,0.12)",border:"1px solid rgba(251,191,36,0.25)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 4px 12px rgba(251,191,36,0.15)" }}>
+        <Icon name="clock" size={18} color="var(--warn)"/>
+      </div>
+      <div>
+        <div style={{ fontSize:10,color:"var(--warn)",fontWeight:600,marginBottom:2,letterSpacing:"0.3px" }}>أقرب دفعة قادمة</div>
+        <div style={{ fontSize:13,fontWeight:700,color:"var(--text)",letterSpacing:"-0.2px" }}>{upcoming.name} — {upcoming.label}</div>
+        <div style={{ fontSize:11,color:"var(--warn)",fontWeight:600,marginTop:2 }}>{fmtDate(upcoming.date)} · {daysDiff(upcoming.date)===0?"اليوم!":`خلال ${daysDiff(upcoming.date)} يوم`}</div>
+      </div>
+    </div>
+    <div style={{ textAlign:"left" }}>
+      <div style={{ fontSize:14,fontWeight:700,color:"var(--warn)",fontVariantNumeric:"tabular-nums" }}>{fmt(upcoming.amt,upcoming.currency)}</div>
+    </div>
+  </div>
+)}
 
-      <Alerts contracts={contracts}/>
+     <Alerts contracts={contracts}/>
+      {activities.length>0&&<ActivityFeed activities={activities}/>}
 
       {todayTasks.length>0&&<>
         <div className="sec-hdr"><span className="sec-title">📋 مهام اليوم</span><span style={{ fontSize:11,color:"var(--muted)",fontWeight:600 }}>{todayTasks.length} مهمة</span></div>
         {todayTasks.map(c=>{ const d2=c.final50Date?daysDiff(c.final50Date):null,d1=c.deposit50Date?daysDiff(c.deposit50Date):null,de=c.endDate?daysDiff(c.endDate):null; let lbl=""; if(d1!==null&&d1>=0&&d1<=3&&!c.deposit50Paid) lbl=`الدفعة الأولى${d1===0?" — اليوم!":" — "+d1+" أيام"}`; else if(d2!==null&&d2>=0&&d2<=3&&!c.final50Paid) lbl=`الدفعة الثانية${d2===0?" — اليوم!":" — "+d2+" أيام"}`; else if(de!==null&&de>=0&&de<=1) lbl=`ينتهي العقد${de===0?" اليوم!":" غداً"}`; return (<div key={c.id} className="today-task" style={{ boxShadow:`0 2px 12px ${SC[c.status]}22` }}><div style={{ width:8,height:8,borderRadius:"50%",background:SC[c.status],flexShrink:0,boxShadow:`0 0 8px ${SC[c.status]}` }}/><div style={{ flex:1 }}><div style={{ fontSize:13,fontWeight:700,color:"var(--text)" }}>{c.clientName}</div><div style={{ fontSize:10,color:"var(--warn)",fontWeight:600,marginTop:2 }}>{lbl}</div></div><div style={{ fontSize:12,fontWeight:700,color:"var(--ac)" }}>{fmt(c.videoAmount||c.totalAmount,c.currency)}</div></div>); })}
       </>}
 
-      <CashFlowProjection contracts={contracts}/>
-      {contracts.length>0&&<MonthlyBarChart contracts={contracts}/>}
 
       <div className="stat-grid">
         {[
@@ -1699,15 +1800,15 @@ function Dashboard({ contracts, clients, goTo, onViewContract, onRefresh, refres
         ))}
       </>}
 
-      {activities.length > 0 && <ActivityFeed activities={activities}/>}
       {contracts.length===0&&<EmptyState type="contracts" onAdd={()=>goTo("contracts_new")}/>}
     </div>
   );
 }
 
 // ─── Contracts Screen ─────────────────────────────────────────────
-function ContractsScreen({ contracts, clients, onAdd, onEdit, onDelete, onToggle, onView, onVideoUpdate, onCancel, defaultCurrency }) {
-  const [filter, setFilter] = useState("all");
+function ContractsScreen({ contracts, clients, onAdd, onEdit, onDelete, onToggle, onView, onVideoUpdate, onCancel, defaultCurrency, onRefresh }) {
+ const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
+const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selectionMode, setSelectionMode] = useState(false);
   const [selected, setSelected] = useState(new Set());
@@ -1731,9 +1832,21 @@ function ContractsScreen({ contracts, clients, onAdd, onEdit, onDelete, onToggle
   const bulkCancel = () => setBulkConfirm({ msg:`إلغاء ${selected.size} عقد؟`, icon:"cancel", iconColor:"var(--warn)", confirmLabel:"نعم إلغاء", confirmColor:"var(--warn)", onConfirm:()=>{ selected.forEach(id=>onCancel(id)); exitSel(); setBulkConfirm(null); } });
 
   return (
-    <div className="screen" style={{ paddingTop:8 }}>
-      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
-        <div><div className="pt">العقود</div><div className="ps">{contracts.length} عقد</div></div>
+    <div className="screen" style={{ paddingTop:8 }} {...handlers}>
+  {pulling && (
+    <div className="ptr-indicator" style={{ opacity:progress, transform:`translateY(${(1-progress)*-20}px)` }}>
+      <Icon name="refresh" size={14} color="var(--ac)"/>
+      {progress>=1 ? "إطلاق للتحديث" : "اسحب للتحديث"}
+    </div>
+  )}
+  <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
+    <div>
+  <div className="screen-title-wrap">
+    <div className="screen-title-glow"/>
+    <div className="pt">العقود</div>
+  </div>
+  <div className="ps">{contracts.length} عقد</div>
+</div>
         <button className="btn bngf" onClick={onAdd} style={{ padding:"8px 16px",fontSize:13 }}><Icon name="contract_plus" size={14} color="#000"/>جديد</button>
       </div>
       {selectionMode&&(
@@ -1756,7 +1869,7 @@ function ContractsScreen({ contracts, clients, onAdd, onEdit, onDelete, onToggle
 }
 
 // ─── Clients Screen (with swipe carousel + timeline) ─────────────
-function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel }) {
+function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel, onRefresh }) {
   const [search, setSearch] = useState("");
   const [sel, setSel] = useState(initialSel||null);
   const [carouselIdx, setCarouselIdx] = useState(0);
@@ -1798,9 +1911,17 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
     const clientIdx = clients.findIndex(c=>c.id===sel);
 
     return (
-      <div className="screen" style={{ paddingTop:8 }}>
-        <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:16 }}>
-          <button className="btn bng" style={{ padding:"6px 10px",fontSize:12 }} onClick={()=>setSel(null)}><Icon name="back" size={13} color="var(--text2)"/>رجوع</button>
+     const { pulling:pullingDetail, progress:progressDetail, handlers:handlersDetail } = usePullToRefresh(onRefresh || (()=>{}));
+return (
+  <div className="screen" style={{ paddingTop:8 }} {...handlersDetail}>
+    {pullingDetail && (
+      <div className="ptr-indicator" style={{ opacity:progressDetail, transform:`translateY(${(1-progressDetail)*-20}px)` }}>
+        <Icon name="refresh" size={14} color="var(--ac)"/>
+        {progressDetail>=1 ? "إطلاق للتحديث" : "اسحب للتحديث"}
+      </div>
+    )}
+    <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:16 }}>
+      <button className="btn bng" style={{ padding:"6px 10px",fontSize:12 }} onClick={()=>setSel(null)}><Icon name="back" size={13} color="var(--text2)"/>رجوع</button>
           <div className="pt" style={{ flex:1 }}>{cl.name}</div>
           {clientIdx > 0 && <button className="ico-btn" onClick={goPrev}><Icon name="chevron_right" size={14}/></button>}
           {clientIdx < clients.length-1 && <button className="ico-btn" onClick={goNext}><Icon name="chevron_left" size={14}/></button>}
@@ -1815,16 +1936,27 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
               {ltv > 0 && <div style={{ fontSize:11,fontWeight:700,marginTop:3,color:c1 }}>إجمالي العقود: {fmt(ltv)}</div>}
               <div style={{ fontSize:10,color:"var(--muted)",marginTop:2 }}>{clc.length} عقد · {clc.filter(c=>c.status==="active").length} نشط</div>
             </div>
-            <WABtn phone={cl.phone}/>
           </div>
-          {[["📞",cl.phone],["📍",cl.address],["📝",cl.notes]].filter(([,v])=>v).map(([ic,v])=>(
-            <div key={ic} style={{ display:"flex",gap:10,padding:"7px 0",borderTop:"1px solid var(--muted2)",fontSize:13 }}>
-              <span>{ic}</span><span style={{ color:"var(--text2)",flex:1 }}>{v}</span>
+         {[
+            {icon:"whatsapp",color:"#25D366",value:cl.phone},
+            {icon:"building",color:"#60a5fa",value:cl.address},
+            {icon:"doc",color:"var(--muted)",value:cl.notes},
+          ].filter(f=>f.value).map((f,i)=>(
+            <div key={i} style={{ display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderTop:"1px solid var(--muted2)" }}>
+              <div style={{ width:30,height:30,borderRadius:9,background:`${f.color}15`,border:`1px solid ${f.color}25`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                <Icon name={f.icon} size={13} color={f.color}/>
+              </div>
+              <span style={{ color:"var(--text2)",fontSize:13,flex:1,lineHeight:1.5 }}>{f.value}</span>
             </div>
           ))}
-          <div style={{ display:"flex",gap:8,marginTop:12 }}>
-            <button className="btn bng" style={{ flex:1,fontSize:12 }} onClick={()=>onEdit(cl)}><Icon name="edit" size={13} color="var(--ac)"/>تعديل</button>
-            <button className="btn btn-danger" style={{ fontSize:12 }} onClick={()=>{ if(confirm("حذف العميل؟")){ onDelete(cl.id); setSel(null); } }}><Icon name="trash" size={13} color="var(--danger)"/></button>
+          <div style={{ display:"flex",gap:8,marginTop:14,alignItems:"center" }}>
+            <WABtn phone={cl.phone}/>
+            <button className="btn bng" style={{ flex:1,fontSize:12,padding:"9px 14px" }} onClick={()=>onEdit(cl)}>
+              <Icon name="edit" size={13} color="var(--ac)"/>تعديل
+            </button>
+            <button className="ico-btn red" style={{ width:38,height:38,borderRadius:11 }} onClick={()=>{ if(confirm("حذف العميل؟")){ onDelete(cl.id); setSel(null); } }}>
+              <Icon name="trash" size={14} color="var(--danger)"/>
+            </button>
           </div>
         </div>
 
@@ -1842,7 +1974,14 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
         {/* Timeline */}
         {timeline.length > 0 && (
           <div style={{ marginTop:16 }}>
-            <div className="sec-hdr"><span className="sec-title">📅 التسلسل الزمني</span></div>
+            <div className="sec-hdr">
+          <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+            <div style={{ width:28,height:28,borderRadius:9,background:"rgba(96,165,250,0.12)",border:"1px solid rgba(96,165,250,0.2)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+              <Icon name="calendar" size={13} color="#60a5fa"/>
+            </div>
+            <span className="sec-title">التسلسل الزمني</span>
+          </div>
+        </div>
             <div className="card">
               {timeline.map((ev,i)=>(
                 <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:12,padding:"6px 0" }}>
@@ -1864,9 +2003,23 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
   }
 
   return (
-    <div className="screen" style={{ paddingTop:8 }}>
-      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
-        <div><div className="pt">العملاء</div><div className="ps">{clients.length} عميل</div></div>
+    const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
+return (
+  <div className="screen" style={{ paddingTop:8 }} {...handlers}>
+    {pulling && (
+      <div className="ptr-indicator" style={{ opacity:progress, transform:`translateY(${(1-progress)*-20}px)` }}>
+        <Icon name="refresh" size={14} color="var(--ac)"/>
+        {progress>=1 ? "إطلاق للتحديث" : "اسحب للتحديث"}
+      </div>
+    )}
+    <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
+     <div>
+  <div className="screen-title-wrap">
+    <div className="screen-title-glow"/>
+    <div className="pt">العملاء</div>
+  </div>
+  <div className="ps">{clients.length} عميل</div>
+</div>
         <button className="btn bngf" onClick={onAdd} style={{ padding:"8px 16px",fontSize:13 }}><Icon name="user_plus" size={14} color="#000"/>عميل</button>
       </div>
       <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)"/></span><input className="sb" value={search} onChange={e=>setSearch(e.target.value)} placeholder="بحث..." style={{ paddingRight:36 }}/></div>
@@ -1899,7 +2052,7 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
 }
 
 // ─── Income Screen ────────────────────────────────────────────────
-function IncomeScreen({ contracts, clients }) {
+function IncomeScreen({ contracts, clients, onRefresh }) {
   const [incomeTab, setIncomeTab] = useState("overview");
   const videoOnly=c=>Number(c.videoAmount||0);
   const thirtyAgo=new Date(); thirtyAgo.setDate(thirtyAgo.getDate()-30);
@@ -1934,8 +2087,16 @@ function IncomeScreen({ contracts, clients }) {
   };
 
   return (
-    <div className="screen" style={{ paddingTop:8 }}>
-      <div className="hero-card hero-card-shadow">
+    const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
+// place this BEFORE the return statement above, then:
+<div className="screen" style={{ paddingTop:0 }} {...handlers}>
+  {pulling && (
+    <div className="ptr-indicator" style={{ opacity:progress, transform:`translateY(${(1-progress)*-20}px)` }}>
+      <Icon name="refresh" size={14} color="var(--ac)"/>
+      {progress>=1 ? "إطلاق للتحديث" : "اسحب للتحديث"}
+    </div>
+  )}
+  <div className="hero-card hero-card-shadow">
         <div className="hero-dots"/>
         <div style={{ position:"relative",zIndex:1 }}>
           <div className="hero-lbl">إجمالي المحصّل</div>
@@ -1952,8 +2113,18 @@ function IncomeScreen({ contracts, clients }) {
       </div>
 
       {incomeTab==="overview"&&(
-        <>
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+  <>
+    {pend>0&&(
+      <div className="unpaid-banner" style={{ marginBottom:16 }}>
+        <div>
+          <div style={{ fontSize:10,color:"var(--danger)",fontWeight:700,marginBottom:2 }}>إجمالي غير المحصّل</div>
+          <div style={{ fontSize:18,fontWeight:700,color:"var(--danger)",fontVariantNumeric:"tabular-nums" }}>{pend.toLocaleString("en-US",{minimumFractionDigits:2})} LYD</div>
+        </div>
+        <Icon name="alert" size={22} color="var(--danger)"/>
+      </div>
+    )}
+    <CashFlowProjection contracts={contracts}/>
+    <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
             {stats.map((s,i)=>(
               <div key={s.l} className="stat-card stagger-item" style={{ animationDelay:`${i*50}ms`,boxShadow:`0 4px 20px ${s.color}18`,border:`1px solid ${s.color}22` }}>
                 <div className="stat-lbl" style={{ color:s.color }}><Icon name={s.icon} size={12} color={s.color}/>{s.l}</div>
@@ -1961,7 +2132,6 @@ function IncomeScreen({ contracts, clients }) {
               </div>
             ))}
           </div>
-          <MonthlyBarChart contracts={contracts}/>
           <div className="sec-hdr"><span className="sec-title">المحصّل حديثاً</span></div>
           {contracts.filter(c=>c.deposit50Paid||c.final50Paid).length===0
             ? <EmptyState type="income"/>
@@ -2201,26 +2371,25 @@ export default function App() {
       <div className="app">
         <div className="topbar">
           <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-            <div style={{ width:36,height:36,borderRadius:11,background:"#000",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0,border:"1px solid rgba(0,255,136,0.2)",boxShadow:"0 0 12px rgba(0,255,136,0.2)" }}>
-              <FareqLogo size={30}/>
+           <div style={{ width:36, height:36, borderRadius:11, background:"linear-gradient(135deg,#00ff88,#00c96e)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 0 14px rgba(0,255,136,0.4)", border:"1px solid rgba(0,255,136,0.3)" }}>
+  <span style={{ fontSize:16, fontWeight:700, color:"#000", letterSpacing:"-0.5px", fontFamily:"var(--font)" }}>F</span> 
             </div>
             <div>
               <div style={{ fontSize:16,fontWeight:800,color:"var(--text)",lineHeight:1.1 }}>فارق</div>
               <div style={{ fontSize:10,color:"var(--muted)",fontWeight:500 }}>للإنتاج</div>
             </div>
           </div>
-          <div style={{ display:"flex",gap:8,alignItems:"center" }}>
-            <NotifBell count={unreadCount} onClick={()=>{ setShowNotifs(true); setReadNotifs(notifications.map(n=>n.id)); }}/>
-            <button className="tb-btn" onClick={()=>setShowSearch(true)}><Icon name="search" size={16} color="var(--text2)"/></button>
-            <button className="tb-btn" onClick={()=>handleThemeChange(theme==="dark"?"light":"dark")}><Icon name={theme==="dark"?"sun":"moon"} size={16} color="var(--text2)"/></button>
-          </div>
+          <div style={{ display:"flex",gap:8,alignItems:"center",marginRight:"-6px" }}>
+  <NotifBell count={unreadCount} onClick={()=>{ setShowNotifs(true); setReadNotifs(notifications.map(n=>n.id)); }}/>
+  <button className="tb-btn" onClick={()=>setShowSearch(true)}><Icon name="search" size={16} color="var(--text2)"/></button>
+  <button className="tb-btn" onClick={()=>handleThemeChange(theme==="dark"?"light":"dark")}><Icon name={theme==="dark"?"sun":"moon"} size={16} color="var(--text2)"/></button>
+</div>
         </div>
 
-        {tab==="dashboard"&&<Dashboard contracts={contracts} clients={clients} goTo={goTo} onViewContract={setVm} onRefresh={handleRefresh} refreshing={refreshing}/>}
-        {tab==="contracts"&&<ContractsScreen contracts={contracts} clients={clients} onAdd={()=>setCm("new")} onEdit={setCm} onDelete={delContract} onToggle={togglePay} onView={setVm} onVideoUpdate={updateVideoDone} onCancel={cancelContract} defaultCurrency={settings.defaultCurrency}/>}
-        {tab==="clients"&&<ClientsScreen clients={clients} contracts={contracts} onAdd={()=>setClm("new")} onEdit={c=>setClm(c)} onDelete={delClient} initialSel={selClient}/>}
-        {tab==="income"&&<IncomeScreen contracts={contracts} clients={clients}/>}
-        {tab==="settings"&&<SettingsScreen settings={settings} onSave={handleSettingsSave} theme={theme} onThemeChange={handleThemeChange}/>}
+       {tab==="contracts"&&<ContractsScreen contracts={contracts} clients={clients} onAdd={()=>setCm("new")} onEdit={setCm} onDelete={delContract} onToggle={togglePay} onView={setVm} onVideoUpdate={updateVideoDone} onCancel={cancelContract} defaultCurrency={settings.defaultCurrency} onRefresh={handleRefresh}/>}
+{tab==="clients"&&<ClientsScreen clients={clients} contracts={contracts} onAdd={()=>setClm("new")} onEdit={c=>setClm(c)} onDelete={delClient} initialSel={selClient} onRefresh={handleRefresh}/>}
+{tab==="income"&&<IncomeScreen contracts={contracts} clients={clients} onRefresh={handleRefresh}/>}
+{tab==="settings"&&<SettingsScreen settings={settings} onSave={handleSettingsSave} theme={theme} onThemeChange={handleThemeChange} onRefresh={handleRefresh}/>}
 
         <nav className="bnav">
           {nav.map(n=>(
