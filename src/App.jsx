@@ -1911,8 +1911,8 @@ const { pulling:pullingDetail, progress:progressDetail, handlers:handlersDetail 
     };
     const clientIdx = clients.findIndex(c=>c.id===sel);
 
-    return (
-     const { pulling:pullingDetail, progress:progressDetail, handlers:handlersDetail } = usePullToRefresh(onRefresh || (()=>{}));
+   return (
+  <div className="screen" style={{ paddingTop:8 }} {...handlersDetail}>
 return (
   <div className="screen" style={{ paddingTop:8 }} {...handlersDetail}>
     {pullingDetail && (
