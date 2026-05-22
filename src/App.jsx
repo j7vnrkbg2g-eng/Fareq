@@ -1138,7 +1138,19 @@ function ContractModal({ contract, clients, onClose, onSave, defaultCurrency }) 
   useEffect(()=>{ const v=Number(f.videoAmount||0),p=Number(f.presenterAmount||0); if(v||p) s("totalAmount",String(v+p)); },[f.videoAmount,f.presenterAmount]);
   useEffect(()=>{ if(f.startDate) s("deposit50Date",f.startDate); },[f.startDate]);
   useEffect(()=>{ if(f.endDate) s("final50Date",f.endDate); },[f.endDate]);
-  const handleDur = m => { setDur(m); if(f.startDate) s("endDate",addMonths(f.startDate,m)); };
+  const handleDur = m => {
+  setDur(m);
+  if (m === 0) {
+    s("endDate", "");
+    s("deposit50Date", "");
+    s("final50Date", "");
+    s("deposit50Paid", false);
+    s("final50Paid", false);
+  } else {
+    if (f.startDate) s("endDate", addMonths(f.startDate, m));
+  }
+};
+  
   const handleStart = v => { s("startDate",v); if(dur&&v) s("endDate",addMonths(v,dur)); };
   const pick = c => { setF(p=>({...p,clientId:c.id,clientName:c.name,clientPhone:c.phone||"",clientAddress:c.address||""})); setDrop(false); };
   return (
@@ -1168,12 +1180,16 @@ function ContractModal({ contract, clients, onClose, onSave, defaultCurrency }) 
           <div className="fg"><label className="flbl">قيمة الوجه الإعلامي</label><input className="finp" type="number" value={f.presenterAmount} onChange={e=>s("presenterAmount",e.target.value)}/></div>
           <div className="fg ffl"><label className="flbl">الإجمالي (تلقائي)</label><input className="finp" type="number" value={f.totalAmount} readOnly style={{ color:"var(--ac)",fontWeight:800 }}/></div>
           <div className="fg"><label className="flbl">تاريخ البدء</label><input className="finp" type="date" value={f.startDate} onChange={e=>handleStart(e.target.value)}/></div>
-          <div className="fg"><label className="flbl">المدة</label><div className="dur-btns"><button className={`dur-btn${dur===1?" on":""}`} onClick={()=>handleDur(1)}>شهر</button><button className={`dur-btn${dur===3?" on":""}`} onClick={()=>handleDur(3)}>3 أشهر</button></div></div>
-          <div className="fg"><label className="flbl">تاريخ الانتهاء</label><input className="finp" type="date" value={f.endDate} onChange={e=>s("endDate",e.target.value)}/></div>
-          <div className="fg"><label className="flbl">موعد الدفعة الأولى</label><input className="finp" type="date" value={f.deposit50Date} readOnly style={{ color:"var(--muted)" }}/></div>
-          <div className="fg"><label className="flbl">موعد الدفعة الثانية</label><input className="finp" type="date" value={f.final50Date} readOnly style={{ color:"var(--muted)" }}/></div>
-          <div className="fck"><input type="checkbox" id="d1" checked={f.deposit50Paid} onChange={e=>s("deposit50Paid",e.target.checked)}/><label htmlFor="d1">تم استلام الدفعة الأولى</label></div>
-          <div className="fck"><input type="checkbox" id="d2" checked={f.final50Paid} onChange={e=>s("final50Paid",e.target.checked)}/><label htmlFor="d2">تم استلام الدفعة الثانية</label></div>
+          <div className="fg"><label className="flbl">المدة</label><div className="dur-btns">
+  <button className={`dur-btn${dur===1?" on":""}`} onClick={()=>handleDur(1)}>شهر</button>
+  <button className={`dur-btn${dur===3?" on":""}`} onClick={()=>handleDur(3)}>3 أشهر</button>
+  <button className={`dur-btn${dur===0?" on":""}`} onClick={()=>handleDur(0)}>بدون مدة</button>
+</div></div>
+          {dur !== 0 && <div className="fg"><label className="flbl">موعد الدفعة الأولى</label><input className="finp" type="date" value={f.deposit50Date} readOnly style={{ color:"var(--muted)" }}/></div>}
+{dur !== 0 && <div className="fg"><label className="flbl">موعد الدفعة الثانية</label><input className="finp" type="date" value={f.final50Date} readOnly style={{ color:"var(--muted)" }}/></div>}
+{dur !== 0 && <div className="fck"><input type="checkbox" id="d1" checked={f.deposit50Paid} onChange={e=>s("deposit50Paid",e.target.checked)}/><label htmlFor="d1">تم استلام الدفعة الأولى</label></div>}
+{dur !== 0 && <div className="fck"><input type="checkbox" id="d2" checked={f.final50Paid} onChange={e=>s("final50Paid",e.target.checked)}/><label htmlFor="d2">تم استلام الدفعة الثانية</label></div>}
+{dur === 0 && <div className="fck"><input type="checkbox" id="d_full" checked={f.final50Paid} onChange={e=>{ s("final50Paid",e.target.checked); s("deposit50Paid",e.target.checked); }}/><label htmlFor="d_full">تم استلام الدفعة كاملة</label></div>}
           <div className="fg ffl"><label className="flbl">الحالة</label><select className="fsel" value={f.status} onChange={e=>s("status",e.target.value)}><option value="pending">معلق</option><option value="active">جارٍ</option><option value="completed">مكتمل</option><option value="cancelled">ملغي</option></select></div>
           <div className="fg ffl"><label className="flbl">ملاحظات</label><textarea className="fta" value={f.notes} onChange={e=>s("notes",e.target.value)}/></div>
         </div>
@@ -1186,8 +1202,6 @@ function ContractModal({ contract, clients, onClose, onSave, defaultCurrency }) 
 // ─── Contract View Modal ──────────────────────────────────────────
 function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptions }) {
   const ref = useRef();
-  const sigRef = useRef();
-  const [hasSig, setHasSig] = useState(false);
   const opts = pdfOptions || { includeTerms:true, includePayment:true, includeSignature:true, includeLogo:true };
 
   const dParts = d=>{ if(!d) return {d:"",m:"",y:""}; const dt=new Date(d); return {d:String(dt.getDate()).padStart(2,"0"),m:String(dt.getMonth()+1).padStart(2,"0"),y:String(dt.getFullYear())}; };
@@ -1201,27 +1215,13 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
   const compName = co.name||"شركة فارق للإنتاج";
   const compPhone = co.phone||"0920953918";
 
-  useEffect(()=>{
-    if (!sigRef.current) return;
-    const canvas=sigRef.current;
-    const ctx=canvas.getContext("2d");
-    ctx.strokeStyle="#000"; ctx.lineWidth=2; ctx.lineCap="round";
-    let isDown=false, last=null;
-    const getPos=e=>{ const r=canvas.getBoundingClientRect(); const src=e.touches?e.touches[0]:e; return {x:src.clientX-r.left,y:src.clientY-r.top}; };
-    const down=e=>{ isDown=true; last=getPos(e); setHasSig(true); };
-    const move=e=>{ if(!isDown||!last) return; e.preventDefault(); const pos=getPos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(pos.x,pos.y); ctx.stroke(); last=pos; };
-    const up=()=>{ isDown=false; last=null; };
-    canvas.addEventListener("mousedown",down); canvas.addEventListener("mousemove",move); canvas.addEventListener("mouseup",up);
-    canvas.addEventListener("touchstart",down,{passive:false}); canvas.addEventListener("touchmove",move,{passive:false}); canvas.addEventListener("touchend",up);
-    return ()=>{ canvas.removeEventListener("mousedown",down); canvas.removeEventListener("mousemove",move); canvas.removeEventListener("mouseup",up); canvas.removeEventListener("touchstart",down); canvas.removeEventListener("touchmove",move); canvas.removeEventListener("touchend",up); };
-  },[]);
 
-  const clearSig=()=>{ const canvas=sigRef.current; if(!canvas) return; canvas.getContext("2d").clearRect(0,0,canvas.width,canvas.height); setHasSig(false); };
+
+
 
   const exportPDF=()=>{
     const w=window.open("","_blank");
-    const sigData=hasSig?sigRef.current.toDataURL():"";
-    w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"/><title>عقد - ${c.clientName||""}</title><style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Tajawal',sans-serif;direction:rtl;color:#111;background:#fff;padding:32px 44px;font-size:14px;line-height:1.9;}.sec{font-weight:800;font-size:14px;margin:13px 0 5px;border-right:3px solid #111;padding-right:8px;}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:11px 0;}.bx{border:1px solid #ddd;border-radius:7px;padding:10px 12px;}.bl{font-weight:800;font-size:10px;color:#555;margin-bottom:5px;border-right:3px solid #111;padding-right:6px;}hr{border:none;border-top:2px solid #111;margin:12px 0;}hr.t{border-top:1px solid #ddd;margin:16px 0;}.sg{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:22px;}.s{text-align:center;}.sl{margin-top:34px;border-bottom:1.5px dashed #bbb;}</style></head><body>${ref.current.innerHTML}${opts.includeSignature&&sigData?`<div style="margin-top:20px;"><div style="font-weight:700;font-size:12px;margin-bottom:6px;">توقيع العميل الرقمي:</div><img src="${sigData}" style="border:1px solid #ddd;border-radius:8px;max-height:80px;"/></div>`:""}</body></html>`);
+    w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"/><title>عقد - ${c.clientName||""}</title><style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Tajawal',sans-serif;direction:rtl;color:#111;background:#fff;padding:32px 44px;font-size:14px;line-height:1.9;}.sec{font-weight:800;font-size:14px;margin:13px 0 5px;border-right:3px solid #111;padding-right:8px;}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:11px 0;}.bx{border:1px solid #ddd;border-radius:7px;padding:10px 12px;}.bl{font-weight:800;font-size:10px;color:#555;margin-bottom:5px;border-right:3px solid #111;padding-right:6px;}hr{border:none;border-top:2px solid #111;margin:12px 0;}hr.t{border-top:1px solid #ddd;margin:16px 0;}.sg{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:22px;}.s{text-align:center;}.sl{margin-top:34px;border-bottom:1.5px dashed #bbb;}</style></head><body>${ref.current.innerHTML}</body></html>`);
     w.document.close(); setTimeout(()=>{ w.focus(); w.print(); },500);
     onPdfExported(c.id);
   };
@@ -1278,16 +1278,7 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
               ))}
             </div>
           )}
-          {opts.includeSignature&&(
-            <div style={{ marginTop:14 }}>
-              <div style={{ fontSize:11,fontWeight:800,color:"var(--muted)",marginBottom:6,display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-                <span><Icon name="pen" size={11} color="var(--muted)"/> التوقيع الرقمي للعميل</span>
-                {hasSig&&<button className="btn bgh" style={{ fontSize:10,padding:"3px 9px" }} onClick={clearSig}>مسح</button>}
-              </div>
-              <canvas ref={sigRef} width={340} height={80} style={{ border:"1px dashed var(--muted2)",borderRadius:10,background:"var(--surface2)",cursor:"crosshair",width:"100%",height:80,touchAction:"none" }}/>
-              <div style={{ fontSize:9,color:"var(--muted)",marginTop:4 }}>امسح بإصبعك أو الماوس</div>
-            </div>
-          )}
+        
           {c.notes&&<div style={{ marginTop:10,fontSize:12,color:"var(--text2)",padding:"9px 12px",background:"var(--surface2)",borderRadius:10,border:"1px solid var(--card-border)" }}>📝 {c.notes}</div>}
         </div>
         <div ref={ref} style={{ display:"none" }}>
@@ -1303,15 +1294,45 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
           </div>
           <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>موضوع العقد</div>
           <div style={{ fontFamily:"'Tajawal',sans-serif",lineHeight:1.9 }}><div>يلتزم الطرف الأول بتقديم خدمات إنتاج محتوى فيديو تشمل:</div><div>- تصوير وإنتاج عدد ({c.videoCount||"          "}) فيديوهات</div></div>
-          <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>مدة العقد:</div>
-          <div style={{ fontFamily:"'Tajawal',sans-serif" }}>من {sd.d}/{sd.m}/{sd.y} إلى {ed.d}/{ed.m}/{ed.y}</div>
+         <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>مدة العقد:</div>
+<div style={{ fontFamily:"'Tajawal',sans-serif" }}>
+  {c.endDate
+    ? `تبدأ من تاريخ ${sd.d}/${sd.m}/${sd.y} وتنتهي في تاريخ ${ed.d}/${ed.m}/${ed.y}`
+    : `تبدأ من تاريخ ${sd.d}/${sd.m}/${sd.y}`
+  }
+</div>
           {opts.includePayment&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>القيمة المالية:</div><div style={{ fontFamily:"'Tajawal',sans-serif" }}><div>- قيمة الفيديوهات: {vAmt} {cur}</div><div>- قيمة الوجه الإعلامي: {pAmt} {cur}</div><div style={{ margin:"9px 0 3px",fontWeight:700 }}>طريقة الدفع: 50% مقدماً · 50% عند التسليم</div></div></>}
-          {opts.includeTerms&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>الشروط والأحكام:</div><div style={{ fontFamily:"'Tajawal',sans-serif" }}><div>- يحق للعميل طلب تعديل فقط لكل فيديو</div><div>- لا يتم استرجاع الدفعة المقدمة في حال الإلغاء بعد بدء العمل</div><div>- يحق للطرف الأول استخدام الأعمال في معرض أعماله</div></div></>}
+         {opts.includeTerms&&<>
+  <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>الشروط والأحكام:</div>
+  <div style={{ fontFamily:"'Tajawal',sans-serif",lineHeight:2,fontSize:13 }}>
+    <div>- يلتزم الطرف الأول بتصوير وإنتاج عدد ({c.videoCount||"__"}) فيديوهات</div>
+    <div>- يلتزم الطرف الثاني بتوفير المعلومات / المنتجات اللازمة</div>
+    <div>- يحق للطرف الثاني طلب تعديل واحد لكل فيديو</div>
+    <div>- لا يحق للطرف الثاني إلغاء العقد بعد تنفيذ نصف عدد الفيديوهات المتفق عليها</div>
+    <div>- في حالة الإلغاء بعد البدء لا يتم استرجاع الدفعة المقدمة</div>
+    <div>- يحق للطرف الثاني استخدام الفيديوهات لأغراضه التسويقية</div>
+    <div>- يحق للطرف الأول استخدام الفيديوهات في معرض أعماله</div>
+    <div>- يلتزم الطرف الثاني بدفع قيمة الفيديوهات وقدرها {vAmt} {cur} على أن يتم دفع 50% مقدماً و50% عند تسليم آخر فيديو</div>
+    {c.presenterAmount&&<div>- يلتزم الطرف الثاني بدفع قيمة وقدرها {pAmt} {cur} للوجه الإعلامي</div>}
+  </div>
+</>}
           {c.notes&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>ملاحظات:</div><div style={{ fontFamily:"'Tajawal',sans-serif" }}>{c.notes}</div></>}
           <hr style={{ border:"none",borderTop:"1px solid #ddd",margin:"18px 0 14px" }}/>
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:36,fontFamily:"'Tajawal',sans-serif" }}>
-            {[`الطرف الأول — ${compName}`,`الطرف الثاني — ${c.clientName||"___________"}`].map((p,i)=><div key={i} style={{ textAlign:"center" }}><div style={{ fontSize:11,color:"#555",marginBottom:3 }}>{p}</div><div style={{ fontWeight:700 }}>التوقيع</div><div style={{ marginTop:34,borderBottom:"1.5px dashed #bbb" }}/></div>)}
-          </div>
+         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:36,fontFamily:"'Tajawal',sans-serif",marginTop:28 }}>
+  {[
+    { title:`الطرف الأول — ${compName}` },
+    { title:`الطرف الثاني — ${c.clientName||"___________"}` }
+  ].map((p,i)=>(
+    <div key={i}>
+      <div style={{ fontSize:12,color:"#333",fontWeight:700,marginBottom:8,textAlign:"center" }}>{p.title}</div>
+      <div style={{ marginTop:44,borderBottom:"1.5px dashed #bbb" }}/>
+      <div style={{ marginTop:10,display:"flex",flexDirection:"column",gap:8 }}>
+        <div style={{ fontSize:12 }}>اسم الموقع الثلاثي: ___________________________</div>
+        <div style={{ fontSize:12 }}>صفته / منصبه في المكان: ___________________________</div>
+      </div>
+    </div>
+  ))}
+</div>
         </div>
       </div>
     </div>
@@ -1365,9 +1386,9 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
   const isUrgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 3 && c.status !== "completed" && c.status !== "cancelled";
 
   return (
-    <div className="stagger-item" style={{ animationDelay:`${delay}ms` }}>
-      <SwipeableCard onDelete={()=>onDelete(c.id)} onCancel={()=>onCancel(c.id)} onEdit={()=>onEdit(c)} onLongPress={()=>onSelect(c.id)}>
-        <TiltCard>
+    <div className="stagger-item" style={{ animationDelay:`${delay}ms` }}><div style={{ marginBottom:10 }}>
+      
+        <div>
           <div className="cc" style={{
             border:`1px solid ${accent.border}`,
             background:`linear-gradient(135deg,${accent.glow} 0%,transparent 60%),var(--glass-bg)`,
@@ -1447,43 +1468,67 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
                   <div className="amt-lbl">الإجمالي</div>
                   <div className="amt-val" style={{ color:statusColor }}>{fmt(c.totalAmount,c.currency)}</div>
                 </div>
-                <div className="psec">
-                  <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8 }}>
-                    <span style={{ fontSize:10,color:"var(--muted)",fontWeight:700 }}>الدفع</span>
-                    <ProgressRing pct={pct} size={48} stroke={4} color={pct===100?"var(--ac)":"#ffd600"}/>
-                  </div>
-                  <div className="pgrid">
-                    {[
-                      {label:"الأولى 50%",paid:c.deposit50Paid,date:c.deposit50Date,field:"deposit50Paid",diff:null},
-                      {label:"الثانية 50%",paid:c.final50Paid,date:c.final50Date,field:"final50Paid",diff:f50d},
-                    ].map(p=>(
-                      <div key={p.field} className="pitem" style={{ boxShadow:p.paid?`0 2px 10px ${statusColor}22`:"var(--shadow-card)" }}>
-                        <div style={{ flex:1,minWidth:0 }}>
-                          <div style={{ fontSize:9,color:"var(--muted)",fontWeight:700 }}>{p.label}</div>
-                          <div style={{ fontSize:11,fontWeight:700 }}>{fmt(Number(c.totalAmount||0)*0.5,c.currency)}</div>
-                          {p.date&&<div style={{ fontSize:9,color:!p.paid&&p.diff!==null&&p.diff<=7&&p.diff>=0?"var(--warn)":"var(--muted)" }}>{fmtDate(p.date)}</div>}
-                        </div>
-                        <button className={`ptog ${p.paid?"ok":"no"}`} onClick={()=>{ haptic("medium"); onToggle(c.id,p.field); }}>{p.paid?"✓ مدفوع":"تحديد"}</button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <div style={{ marginTop:8 }}>
+  <div style={{ fontSize:10,color:"var(--muted)",fontWeight:700,marginBottom:8 }}>الدفع</div>
+  <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8 }}>
+    {[
+      {label:"الدفعة الأولى 50%",paid:c.deposit50Paid,date:c.deposit50Date,field:"deposit50Paid",diff:null},
+      {label:"الدفعة الثانية 50%",paid:c.final50Paid,date:c.final50Date,field:"final50Paid",diff:f50d},
+    ].map(p=>(
+      <div key={p.field}
+        onClick={()=>{ haptic("medium"); onToggle(c.id,p.field); }}
+        style={{
+          background: p.paid ? "rgba(0,255,136,0.08)" : "var(--surface2)",
+          border: `1.5px solid ${p.paid ? "rgba(0,255,136,0.35)" : "var(--card-border)"}`,
+          borderRadius:14, padding:"12px 10px",
+          display:"flex", flexDirection:"column", alignItems:"center", gap:5,
+          cursor:"pointer", transition:"all .2s",
+          boxShadow: p.paid ? "0 2px 14px rgba(0,255,136,0.15)" : "var(--shadow-card)"
+        }}>
+        <div style={{ fontSize:9,color:"var(--muted)",fontWeight:700 }}>{p.label}</div>
+        <div style={{ fontSize:14,fontWeight:900,color:p.paid?"var(--ac)":"var(--text)" }}>
+          {fmt(Number(c.totalAmount||0)*0.5,c.currency)}
+        </div>
+        {p.date && <div style={{ fontSize:9,color:!p.paid&&p.diff!==null&&p.diff<=7&&p.diff>=0?"var(--warn)":"var(--muted)" }}>{fmtDate(p.date)}</div>}
+        <div style={{
+          marginTop:4, fontSize:10, fontWeight:800, padding:"4px 12px", borderRadius:20,
+          background: p.paid ? "rgba(0,255,136,0.18)" : "var(--surface3)",
+          color: p.paid ? "var(--ac)" : "var(--muted)",
+          border: `1px solid ${p.paid ? "rgba(0,255,136,0.3)" : "var(--muted2)"}`
+        }}>{p.paid ? "✓ مدفوع" : "اضغط للتأكيد"}</div>
+      </div>
+    ))}
+  </div>
+</div>
                 {vc > 0 && (
-                  <div className="vpsec">
-                    <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}><span style={{ fontSize:10,color:"var(--muted)",fontWeight:700 }}>الفيديوهات</span><span style={{ fontSize:10,fontWeight:800,color:"var(--ac)" }}>{vd}/{vc}</span></div>
-                    <div className="vpbar"><div className="vpfill" style={{ width:`${vpct}%` }}/></div>
-                    <div style={{ display:"flex",gap:6 }}>
-                      <button className="vp-btn" onClick={()=>onVideoUpdate(c.id,Math.min(vc,vd+1))}>+1 فيديو</button>
-                      {vd>0&&<button className="vp-btn" onClick={()=>onVideoUpdate(c.id,vd-1)}>-1 فيديو</button>}
-                    </div>
-                  </div>
-                )}
+  <div className="vpsec" style={{ marginTop:8 }}>
+    <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8 }}>
+      <span style={{ fontSize:10,color:"var(--muted)",fontWeight:700 }}>الفيديوهات</span>
+      <span style={{ fontSize:11,fontWeight:900,color:"var(--ac)" }}>{vd}/{vc}</span>
+    </div>
+    <div style={{ display:"flex",gap:4,flexWrap:"wrap",marginBottom:10 }}>
+      {Array.from({length:Math.min(vc,20)}).map((_,i)=>(
+        <div key={i} style={{
+          width:10,height:10,borderRadius:"50%",
+          background: i < vd ? statusColor : "var(--muted2)",
+          boxShadow: i < vd ? `0 0 5px ${statusColor}99` : "none",
+          transition:"all .3s ease",
+        }}/>
+      ))}
+      {vc > 20 && <div style={{ fontSize:8,color:"var(--muted)",alignSelf:"center" }}>+{vc-20}</div>}
+    </div>
+    <div style={{ display:"flex",gap:6 }}>
+      <button className="vp-btn" onClick={()=>onVideoUpdate(c.id,Math.min(vc,vd+1))}>+1</button>
+      <button className="vp-btn" onClick={()=>onVideoUpdate(c.id,Math.min(vc,vd+2))}>+2</button>
+    </div>
+  </div>
+)}
                 {c.notes&&<div style={{ marginTop:8,fontSize:10,color:"var(--muted)",padding:"7px 10px",background:"var(--surface2)",borderRadius:8,border:"1px solid var(--card-border)",display:"flex",gap:5 }}><Icon name="doc" size={10}/>  {c.notes}</div>}
               </div>
             )}
           </div>
-        </TiltCard>
-      </SwipeableCard>
+       </div>
+      </div>
     </div>
   );
 }
