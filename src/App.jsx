@@ -2001,11 +2001,8 @@ return (
         )}
       </div>
     );
-  }
 
   return (
-    const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
-return (
   <div className="screen" style={{ paddingTop:8 }} {...handlers}>
     {pulling && (
       <div className="ptr-indicator" style={{ opacity:progress, transform:`translateY(${(1-progress)*-20}px)` }}>
