@@ -1515,7 +1515,8 @@ function WalletModal({ type, onClose, onSave }) {
 
 // ─── Settings Screen ──────────────────────────────────────────────
 function SettingsScreen({ settings, onSave, theme, onThemeChange, onRefresh }) {
-  const [f, setF] = useState({ ...settings });
+ const [f, setF] = useState({ ...settings });
+const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
   const [pwForm, setPwForm] = useState({ old:"", new1:"", new2:"", err:"", ok:false });
   const s = (k,v) => { const ns={...f,[k]:v}; setF(ns); onSave(ns); };
 
@@ -1550,9 +1551,7 @@ function SettingsScreen({ settings, onSave, theme, onThemeChange, onRefresh }) {
   const Toggle = ({val,onToggle}) => <button className={`toggle${val?" on":""}`} onClick={onToggle}/>;
 
   return (
-    const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
-// place hook call BEFORE return, then:
-<div className="screen" style={{ paddingTop:8 }} {...handlers}>
+  <div className="screen" style={{ paddingTop:8 }} {...handlers}>
   {pulling && (
     <div className="ptr-indicator" style={{ opacity:progress, transform:`translateY(${(1-progress)*-20}px)` }}>
       <Icon name="refresh" size={14} color="var(--ac)"/>
