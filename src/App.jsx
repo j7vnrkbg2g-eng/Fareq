@@ -6,7 +6,8 @@ const fmt = (n, cur = "LYD") => { const x = Number(n); if (!x) return `0.00 ${cu
 const fmtDate = d => d ? new Date(d).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric" }) : "";
 const daysDiff = d => { if (!d) return null; const t = new Date(); t.setHours(0,0,0,0); return Math.round((new Date(d)-t)/86400000); };
 const addMonths = (dateStr, months) => { const d = new Date(dateStr); d.setMonth(d.getMonth()+months); return d.toISOString().split("T")[0]; };
-const NOW = new Date();
+const getNow = () => new Date();
+const NOW = getNow();
 const DEFAULT_CREDENTIALS = { user: "fahed", pass: "771997" };
 
 const getGreeting = () => {
