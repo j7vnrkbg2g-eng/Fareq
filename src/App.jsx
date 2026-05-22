@@ -6,11 +6,11 @@ const fmt = (n, cur = "LYD") => { const x = Number(n); if (!x) return `0.00 ${cu
 const fmtDate = d => d ? new Date(d).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric" }) : "";
 const daysDiff = d => { if (!d) return null; const t = new Date(); t.setHours(0,0,0,0); return Math.round((new Date(d)-t)/86400000); };
 const addMonths = (dateStr, months) => { const d = new Date(dateStr); d.setMonth(d.getMonth()+months); return d.toISOString().split("T")[0]; };
-const getNow = () => new Date();
+const NOW = new Date();
 const DEFAULT_CREDENTIALS = { user: "fahed", pass: "771997" };
 
 const getGreeting = () => {
-const h = getNow().getHours();
+  const h = NOW.getHours();
   if (h < 12) return "صباح الخير";
   if (h < 17) return "مساء الخير";
   if (h < 20) return "مساء النور";
@@ -1702,7 +1702,7 @@ function Dashboard({ contracts, clients, goTo, onViewContract, onRefresh, refres
 
   const todayTasks=contracts.filter(c=>{ if(c.status==="cancelled"||c.status==="completed") return false; const d1=c.deposit50Date?daysDiff(c.deposit50Date):null,d2=c.final50Date?daysDiff(c.final50Date):null,de=c.endDate?daysDiff(c.endDate):null; return (d1!==null&&d1>=0&&d1<=3&&!c.deposit50Paid)||(d2!==null&&d2>=0&&d2<=3&&!c.final50Paid)||(de!==null&&de>=0&&de<=1); });
 
-  const thisMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===getNow().getMonth()&&new Date(c.startDate).getFullYear()===getNow().getFullYear()
+  const thisMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===getNow().getMonth()&&new Date(c.startDate).getFullYear()===getNow().getFullYear()).reduce((s,c)=>s+Number(c.videoAmount||0),0);
 const lastMonthDate=new Date(getNow().getFullYear(),getNow().getMonth()-1,1);
   const lastMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth()===lastMonthDate.getMonth()&&new Date(c.startDate).getFullYear()===lastMonthDate.getFullYear()).reduce((s,c)=>s+Number(c.videoAmount||0),0);
   const monthDiff=lastMonth>0?Math.round(((thisMonth-lastMonth)/lastMonth)*100):thisMonth>0?100:0;
@@ -2263,7 +2263,7 @@ export default function App() {
     const c=contracts.find(x=>x.id===id); if(!c) return;
     const updated={...c,[field]:!c[field]};
     const vc=Number(updated.videoCount||0),vd=Number(updated.videoDone||0);
-    if(updated.deposit50Paid&&updated.final50Paid&&vd>=vc){
+    if(updated.deposit50Paid&&updated.final50Paid&&(vc===0||vd>=vc)){ updated.status="completed"; updated.statusHistory=addHist(c,"completed"); }
     const {data}=await supabase.from("contracts").update(toDB(updated)).eq("id",id).select().single();
     if(data) setContracts(p=>p.map(x=>x.id===id?toApp(data):x));
   };
@@ -2277,7 +2277,7 @@ export default function App() {
   const handlePdfExported=async id=>{
     const c=contracts.find(x=>x.id===id); if(!c) return;
     const hist=addHist(c,"active");
-   const updated = { ...c, status: "active", statusHistory: hist };
+    const updated={...c,deposit50Paid:true,status:"active",statusHistory:hist};
     const {data}=await supabase.from("contracts").update(toDB(updated)).eq("id",id).select().single();
     if(data) setContracts(p=>p.map(x=>x.id===id?toApp(data):x));
   };
