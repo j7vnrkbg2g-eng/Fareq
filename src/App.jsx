@@ -1282,11 +1282,10 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
           {c.notes&&<div style={{ marginTop:10,fontSize:12,color:"var(--text2)",padding:"9px 12px",background:"var(--surface2)",borderRadius:10,border:"1px solid var(--card-border)" }}>📝 {c.notes}</div>}
         </div>
         <div ref={ref} style={{ display:"none" }}>
-          {opts.includeLogo&&<div style={{ textAlign:"center",marginBottom:16 }}>
-  <div style={{ width:56,height:56,borderRadius:14,background:"linear-gradient(135deg,#00ff88,#00c96e)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 10px",fontSize:22,fontWeight:700,color:"#000",fontFamily:"'IBM Plex Sans Arabic',sans-serif" }}>F</div>
-  <div style={{ fontWeight:800,fontSize:16,fontFamily:"'IBM Plex Sans Arabic',sans-serif" }}>{compName}</div>
-  <div style={{ color:"#555",fontSize:11,fontFamily:"'IBM Plex Sans Arabic',sans-serif" }}>FAREQ Productions — {compPhone}</div>
-          </div>}
+    <div style={{ textAlign:"center",marginBottom:16 }}>
+  <div style={{ fontWeight:900,fontSize:22,fontFamily:"'Tajawal',sans-serif",letterSpacing:"0.5px" }}>Fareq Productions</div>
+  <div style={{ color:"#555",fontSize:11,fontFamily:"'Tajawal',sans-serif",marginTop:4 }}>{compPhone}</div>
+          </div>
           <hr style={{ border:"none",borderTop:"2px solid #111",margin:"12px 0" }}/>
           <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:11,margin:"11px 0",fontFamily:"'Tajawal',sans-serif" }}>
             <div style={{ border:"1px solid #ddd",borderRadius:7,padding:"9px 11px" }}><div style={{ fontWeight:800,fontSize:10,color:"#555",marginBottom:5,borderRight:"3px solid #111",paddingRight:6 }}>الطرف الأول</div>{[["الاسم",compName],["الهاتف",compPhone]].map(([l,v])=><div key={l} style={{ display:"flex",gap:4,margin:"2px 0",fontSize:13 }}><span style={{ color:"#666",minWidth:45 }}>{l}:</span><span style={{ fontWeight:600 }}>{v}</span></div>)}</div>
@@ -1307,7 +1306,7 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
   <div style={{ fontFamily:"'Tajawal',sans-serif",lineHeight:2,fontSize:13 }}>
     <div>- يلتزم الطرف الأول بتصوير وإنتاج عدد ({c.videoCount||"__"}) فيديوهات</div>
     <div>- يلتزم الطرف الثاني بتوفير المعلومات / المنتجات اللازمة</div>
-    <div>- يحق للطرف الثاني طلب تعديل واحد لكل فيديو</div>
+    <div>- يحق للطرف الثاني طلب تعديل واحد لكل فيديو</div>    
     <div>- لا يحق للطرف الثاني إلغاء العقد بعد تنفيذ نصف عدد الفيديوهات المتفق عليها</div>
     <div>- في حالة الإلغاء بعد البدء لا يتم استرجاع الدفعة المقدمة</div>
     <div>- يحق للطرف الثاني استخدام الفيديوهات لأغراضه التسويقية</div>
@@ -1629,29 +1628,12 @@ const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
             <option value="LYD">دينار ليبي</option><option value="SAR">ريال سعودي</option><option value="AED">درهم إماراتي</option><option value="USD">دولار</option>
           </select>
         </div>
-        <div className="settings-row">
-          <div><div className="settings-lbl">إشعارات الدفعات</div><div className="settings-sub">تنبيه قبل 7 أيام من موعد الدفع</div></div>
-          <Toggle val={f.notifyPayments!==false} onToggle={()=>s("notifyPayments",!(f.notifyPayments!==false))}/>
-        </div>
-        <div className="settings-row">
-          <div><div className="settings-lbl">إشعارات انتهاء العقد</div></div>
-          <Toggle val={f.notifyExpiry!==false} onToggle={()=>s("notifyExpiry",!(f.notifyExpiry!==false))}/>
+      <div className="settings-row">
+          <div><div className="settings-lbl">الإشعارات</div><div className="settings-sub">تنبيهات الدفعات ومواعيد انتهاء العقود</div></div>
+          <Toggle val={f.notifyPayments!==false} onToggle={()=>{ const v=!(f.notifyPayments!==false); s("notifyPayments",v); s("notifyExpiry",v); }}/>
         </div>
       </div>
-      <div className="sh">خيارات PDF</div>
-      <div className="card">
-        {[
-          {key:"pdfIncludeLogo",label:"تضمين الشعار في PDF"},
-          {key:"pdfIncludeTerms",label:"تضمين الشروط والأحكام"},
-          {key:"pdfIncludePayment",label:"تضمين تفاصيل الدفع"},
-          {key:"pdfIncludeSignature",label:"حقل التوقيع الرقمي"},
-        ].map(opt=>(
-          <div key={opt.key} className="settings-row">
-            <div className="settings-lbl">{opt.label}</div>
-            <Toggle val={f[opt.key]!==false} onToggle={()=>s(opt.key,!(f[opt.key]!==false))}/>
-          </div>
-        ))}
-      </div>
+     
       <div className="sh">الأمان</div>
       <div className="card">
         <div style={{ fontSize:13,fontWeight:700,marginBottom:10,color:"var(--text)",display:"flex",alignItems:"center",gap:7 }}><Icon name="lock" size={14} color="var(--ac)"/>تغيير كلمة المرور</div>
@@ -1671,6 +1653,12 @@ const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
           <button className="btn bng" onClick={importBackup} style={{ flex:1 }}><Icon name="database" size={14} color="var(--ac)"/>استيراد</button>
         </div>
         <div style={{ fontSize:10,color:"var(--muted)",marginTop:8 }}>يشمل النسخ الاحتياطي: الإعدادات وبيانات المحفظة</div>
+      </div>
+      <div className="sh">الحساب</div>
+      <div className="card">
+        <button className="btn btn-danger" style={{ width:"100%",justifyContent:"center",gap:8 }} onClick={()=>{ sessionStorage.removeItem("auth"); window.location.reload(); }}>
+          <Icon name="lock" size={14} color="var(--danger)"/>تسجيل الخروج
+        </button>
       </div>
     </div>
   );
@@ -1820,13 +1808,13 @@ const lastMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth(
       <div className="stat-grid">
         {[
           {l:"نشطة",v:contracts.filter(c=>c.status==="active").length,icon:"check",ac:true,color:"#00ff88"},
-          {l:"معلقة",v:contracts.filter(c=>c.status==="pending").length,icon:"clock",color:"#ffd600"},
-          {l:"مكتملة",v:contracts.filter(c=>c.status==="completed").length,icon:"history",color:"#a78bfa"},
-          {l:"العملاء",v:clients.length,icon:"clients",color:"#38bdf8"},
+          {l:"معلقة",v:contracts.filter(c=>c.status==="pending").length,icon:"clock",color:"var(--muted)"},
+          {l:"مكتملة",v:contracts.filter(c=>c.status==="completed").length,icon:"history",color:"var(--muted)"},
+          {l:"العملاء",v:clients.length,icon:"clients",color:"var(--muted)"},
         ].map((s,i)=>(
-          <div key={s.l} className="stat-card stagger-item" style={{ animationDelay:`${i*60}ms`, boxShadow:`0 4px 20px ${s.color}18,0 2px 8px rgba(0,0,0,0.1)`, border:`1px solid ${s.color}22` }}>
+          <div key={s.l} className="stat-card stagger-item" style={{ animationDelay:`${i*60}ms`, boxShadow:`0 4px 20px rgba(0,0,0,0.08),0 2px 8px rgba(0,0,0,0.06)`, border:`1px solid var(--card-border)` }}>
             <div className="stat-lbl" style={{ color:s.color }}><Icon name={s.icon} size={12} color={s.color}/>{s.l}</div>
-            <div className={`stat-val${s.ac?" ac":""}`} style={{ color:s.color }}>{s.v}</div>
+            <div className={`stat-val${s.ac?" ac":""}`} style={{ color:s.ac?"#00ff88":"var(--text)" }}>{s.v}</div>
           </div>
         ))}
       </div>
@@ -2109,13 +2097,13 @@ const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
 
   const unpaidInvoices=contracts.filter(c=>c.status!=="cancelled"&&(!c.deposit50Paid||!c.final50Paid)).map(c=>({...c,unpaidAmt:videoOnly(c)*((!c.deposit50Paid?0.5:0)+(!c.final50Paid?0.5:0)),unpaidLabel:!c.deposit50Paid&&!c.final50Paid?"كلا الدفعتين":!c.deposit50Paid?"الدفعة الأولى":"الدفعة الثانية"})).filter(c=>c.unpaidAmt>0).sort((a,b)=>b.unpaidAmt-a.unpaidAmt);
 
-  const stats=[
-    {l:"آخر 30 يوم",v:fmt(last30),icon:"clock",color:"#38bdf8"},
-    {l:String(NOW.getFullYear()),v:fmt(yearT),icon:"income",color:"#a78bfa"},
+ const stats=[
+    {l:"آخر 30 يوم",v:fmt(last30),icon:"clock",color:"var(--muted)"},
+    {l:String(NOW.getFullYear()),v:fmt(yearT),icon:"income",color:"var(--muted)"},
     {l:"محصّل",v:fmt(allCollected),icon:"check",ac:true,color:"#00ff88"},
-    {l:"متوقع",v:fmt(pend),icon:"calendar",color:"#ffd600"},
-    {l:"إجمالي العقود",v:fmt(totalC),icon:"contracts",color:"#fb923c"},
-    {l:"العقود النشطة",v:fmt(activeT),icon:"check",color:"#00ff88"},
+    {l:"متوقع",v:fmt(pend),icon:"calendar",color:"var(--muted)"},
+    {l:"إجمالي العقود",v:fmt(totalC),icon:"contracts",color:"var(--muted)"},
+    {l:"العقود النشطة",v:fmt(activeT),icon:"check",color:"var(--muted)"},
   ];
 
   const exportReport=()=>{
@@ -2145,8 +2133,8 @@ const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
         </div>
       </div>
 
-      <div className="tabs" style={{ marginBottom:14 }}>
-        {[{key:"overview",label:"نظرة عامة"},{key:"clients",label:"حسب العميل"},{key:"monthly",label:"شهري"},{key:"cashflow",label:"توقع النقدي"},{key:"unpaid",label:`غير محصّل (${unpaidInvoices.length})`}].map(t=><button key={t.key} className={`tab${incomeTab===t.key?" on":""}`} onClick={()=>setIncomeTab(t.key)}>{t.label}</button>)}
+    <div className="tabs" style={{ marginBottom:14 }}>
+        {[{key:"overview",label:"نظرة عامة"},{key:"clients",label:"حسب العميل"},{key:"unpaid",label:`غير محصّل (${unpaidInvoices.length})`}].map(t=><button key={t.key} className={`tab${incomeTab===t.key?" on":""}`} onClick={()=>setIncomeTab(t.key)}>{t.label}</button>)}
       </div>
 
       {incomeTab==="overview"&&(
@@ -2160,12 +2148,11 @@ const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
         <Icon name="alert" size={22} color="var(--danger)"/>
       </div>
     )}
-    <CashFlowProjection contracts={contracts}/>
-    <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
-            {stats.map((s,i)=>(
-              <div key={s.l} className="stat-card stagger-item" style={{ animationDelay:`${i*50}ms`,boxShadow:`0 4px 20px ${s.color}18`,border:`1px solid ${s.color}22` }}>
+   <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+           {stats.map((s,i)=>(
+              <div key={s.l} className="stat-card stagger-item" style={{ animationDelay:`${i*50}ms`,boxShadow:"0 4px 20px rgba(0,0,0,0.08)",border:"1px solid var(--card-border)" }}>
                 <div className="stat-lbl" style={{ color:s.color }}><Icon name={s.icon} size={12} color={s.color}/>{s.l}</div>
-                <div className={`stat-val sm${s.ac?" ac":""}`} style={{ color:s.color }}>{s.v}</div>
+                <div className={`stat-val sm${s.ac?" ac":""}`} style={{ color:s.ac?"#00ff88":"var(--text)" }}>{s.v}</div>
               </div>
             ))}
           </div>
@@ -2201,14 +2188,9 @@ const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
         </>
       )}
 
-      {incomeTab==="monthly"&&months6.map((m,i)=>(
-        <div key={i} className="card stagger-item" style={{ marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center",animationDelay:`${i*50}ms` }}>
-          <div style={{ fontSize:13,fontWeight:700,color:"var(--text)" }}>{m.label}</div>
-          <div style={{ fontSize:14,fontWeight:800,color:m.amount>0?"var(--ac)":"var(--muted)" }}>{m.amount>0?fmt(m.amount):"—"}</div>
-        </div>
-      ))}
+      
 
-      {incomeTab==="cashflow"&&<CashFlowProjection contracts={contracts}/>}
+
 
       {incomeTab==="unpaid"&&(
         <>
@@ -2406,16 +2388,13 @@ export default function App() {
     <>
       {cssEl}
       <div className="app">
-        <div className="topbar">
-          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-           <div style={{ width:36, height:36, borderRadius:11, background:"linear-gradient(135deg,#00ff88,#00c96e)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 0 14px rgba(0,255,136,0.4)", border:"1px solid rgba(0,255,136,0.3)" }}>
-  <span style={{ fontSize:16, fontWeight:700, color:"#000", letterSpacing:"-0.5px", fontFamily:"var(--font)" }}>F</span> 
-            </div>
-            <div>
-              <div style={{ fontSize:16,fontWeight:800,color:"var(--text)",lineHeight:1.1 }}>فارق</div>
-              <div style={{ fontSize:10,color:"var(--muted)",fontWeight:500 }}>للإنتاج</div>
-            </div>
-          </div>
+       <div className="topbar" style={{ position:"relative" }}>
+          <div style={{ position:"absolute",left:"50%",transform:"translateX(-50%)",display:"flex",alignItems:"center",gap:10 }}>
+  <div style={{ width:36, height:36, borderRadius:11, background:"linear-gradient(135deg,#00ff88,#00c96e)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 0 14px rgba(0,255,136,0.4)", border:"1px solid rgba(0,255,136,0.3)" }}>
+    <span style={{ fontSize:16, fontWeight:700, color:"#000", letterSpacing:"-0.5px", fontFamily:"var(--font)" }}>F</span>
+  </div>
+  <div style={{ fontSize:15, fontWeight:800, color:"var(--text)", letterSpacing:"0.2px" }}>Fareq Productions</div>
+</div>
           <div style={{ display:"flex",gap:8,alignItems:"center",marginRight:"-6px" }}>
   <NotifBell count={unreadCount} onClick={()=>{ setShowNotifs(true); setReadNotifs(notifications.map(n=>n.id)); }}/>
   <button className="tb-btn" onClick={()=>setShowSearch(true)}><Icon name="search" size={16} color="var(--text2)"/></button>
