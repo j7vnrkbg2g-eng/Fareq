@@ -1782,17 +1782,17 @@ const lastMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth(
       {upcoming&&(
   <div className="countdown-box">
     <div style={{ display:"flex",alignItems:"center",gap:12 }}>
-      <div style={{ width:40,height:40,borderRadius:12,background:"rgba(251,191,36,0.12)",border:"1px solid rgba(251,191,36,0.25)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 4px 12px rgba(251,191,36,0.15)" }}>
-        <Icon name="clock" size={18} color="var(--warn)"/>
+      <div style={{ width:40,height:40,borderRadius:12,background:"rgba(56,189,248,0.12)",border:"1px solid rgba(56,189,248,0.25)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 4px 12px rgba(56,189,248,0.15)" }}>
+        <Icon name="clock" size={18} color="#38bdf8"/>
       </div>
       <div>
-        <div style={{ fontSize:10,color:"var(--warn)",fontWeight:600,marginBottom:2,letterSpacing:"0.3px" }}>أقرب دفعة قادمة</div>
-        <div style={{ fontSize:13,fontWeight:700,color:"var(--text)",letterSpacing:"-0.2px" }}>{upcoming.name} — {upcoming.label}</div>
-        <div style={{ fontSize:11,color:"var(--warn)",fontWeight:600,marginTop:2 }}>{fmtDate(upcoming.date)} · {daysDiff(upcoming.date)===0?"اليوم!":`خلال ${daysDiff(upcoming.date)} يوم`}</div>
+        <div style={{ fontSize:10,color:"#38bdf8",fontWeight:600,marginBottom:2,letterSpacing:"0.3px" }}>أقرب دفعة قادمة</div>
+<div style={{ fontSize:13,fontWeight:700,color:"var(--text)",letterSpacing:"-0.2px" }}>{upcoming.name} — {upcoming.label}</div>
+<div style={{ fontSize:11,color:"#38bdf8",fontWeight:600,marginTop:2 }}>{fmtDate(upcoming.date)} · {daysDiff(upcoming.date)===0?"اليوم!":`خلال ${daysDiff(upcoming.date)} يوم`}</div>
       </div>
     </div>
     <div style={{ textAlign:"left" }}>
-      <div style={{ fontSize:14,fontWeight:700,color:"var(--warn)",fontVariantNumeric:"tabular-nums" }}>{fmt(upcoming.amt,upcoming.currency)}</div>
+     <div style={{ fontSize:14,fontWeight:700,color:"#38bdf8",fontVariantNumeric:"tabular-nums" }}>{fmt(upcoming.amt,upcoming.currency)}</div>
     </div>
   </div>
 )}
@@ -2260,9 +2260,9 @@ export default function App() {
         const t=new Date(); t.setHours(0,0,0,0);
         const dLeft=Math.round((new Date(contract.endDate)-t)/86400000);
         const vc=Number(contract.videoCount||0),vd=Number(contract.videoDone||0);
-        if(dLeft<0&&(!contract.final50Paid||(vc>0&&vd<vc))){
-          return {...contract, status:"active"};
-        }
+     if(dLeft<0&&(!contract.final50Paid||(vc>0&&vd<vc))){
+  return {...contract, status:"pending"};
+}
       }
       return contract;
     });
@@ -2287,9 +2287,9 @@ export default function App() {
     if(c.endDate && c.status !== "cancelled" && c.status !== "completed"){
       const dLeft = daysDiff(c.endDate);
       const vc=Number(c.videoCount||0),vd=Number(c.videoDone||0);
-      if(dLeft!==null && dLeft<0 && (!c.final50Paid||(vc>0&&vd<vc))){
-        finalStatus="active";
-      }
+    if(dLeft!==null && dLeft<0 && (!c.final50Paid||(vc>0&&vd<vc))){
+  finalStatus="pending";
+}
     }
     const mergedC = {...c, status: finalStatus};
     const hist=addHist(mergedC, finalStatus);
@@ -2322,7 +2322,14 @@ const togglePay=async(id,field)=>{
       updated.status="active";
       updated.statusHistory=addHist(c,"active");
     }
-    if(updated.deposit50Paid&&updated.final50Paid&&(vc===0||vd>=vc)){ updated.status="completed"; updated.statusHistory=addHist(c,"completed"); }
+    if(field==="final50Paid"&&updated.final50Paid){
+  updated.status="completed";
+  updated.statusHistory=addHist(c,"completed");
+  if(vc>0) updated.videoDone=vc;
+}else if(updated.deposit50Paid&&updated.final50Paid&&(vc===0||vd>=vc)){
+  updated.status="completed";
+  updated.statusHistory=addHist(c,"completed");
+}
     const {data}=await supabase.from("contracts").update(toDB(updated)).eq("id",id).select().single();
     if(data) setContracts(p=>p.map(x=>x.id===id?toApp(data):x));
   };
@@ -2427,7 +2434,7 @@ const togglePay=async(id,field)=>{
   <div style={{ fontSize:15, fontWeight:800, color:"var(--text)", letterSpacing:"0.2px" }}>Fareq Productions</div>
 </div>
           <div style={{ display:"flex",gap:8,alignItems:"center",marginRight:"-6px" }}>
-  <NotifBell count={unreadCount} onClick={()=>{ setShowNotifs(true); setReadNotifs(notifications.map(n=>n.id)); }}/>
+  
   <button className="tb-btn" onClick={()=>setShowSearch(true)}><Icon name="search" size={16} color="var(--text2)"/></button>
   <button className="tb-btn" onClick={()=>handleThemeChange(theme==="dark"?"light":"dark")}><Icon name={theme==="dark"?"sun":"moon"} size={16} color="var(--text2)"/></button>
 </div>
