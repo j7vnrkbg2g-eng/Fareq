@@ -1780,7 +1780,7 @@ const lastMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth(
       </div>
 
       {upcoming&&(
-  <div className="countdown-box">
+<div className="countdown-box" style={{ background:"rgba(56,189,248,0.08)", borderColor:"rgba(56,189,248,0.2)", boxShadow:"0 4px 16px rgba(56,189,248,0.1)" }}>
     <div style={{ display:"flex",alignItems:"center",gap:12 }}>
       <div style={{ width:40,height:40,borderRadius:12,background:"rgba(56,189,248,0.12)",border:"1px solid rgba(56,189,248,0.25)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 4px 12px rgba(56,189,248,0.15)" }}>
         <Icon name="clock" size={18} color="#38bdf8"/>
