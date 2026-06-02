@@ -4,7 +4,7 @@ import { supabase } from "./supabaseclient";
 // ─── Utilities ────────────────────────────────────────────────────
 const fmt = (n, cur = "LYD") => { const x = Number(n); if (!x) return `0.00 ${cur}`; return `${x.toLocaleString("en-US", { minimumFractionDigits: 2 })} ${cur}`; };
 const fmtDate = d => d ? new Date(d).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric" }) : "";
-const daysDiff = d => { if (!d) return null; const t = new Date(); t.setHours(0,0,0,0); return Math.round((new Date(d)-t)/86400000); };
+const daysDiff = (d, frozen = false) => { if (!d) return null; if (frozen) return null; const t = new Date(); t.setHours(0,0,0,0); return Math.round((new Date(d)-t)/86400000); };
 const addMonths = (dateStr, months) => { const d = new Date(dateStr); d.setMonth(d.getMonth()+months); return d.toISOString().split("T")[0]; };
 const getNow = () => new Date();
 const NOW = getNow();
@@ -26,13 +26,14 @@ const saveSettings = s => { try { localStorage.setItem("fareq_settings", JSON.st
 const getStoredNotifs = () => { try { return JSON.parse(localStorage.getItem("fareq_notifs") || "[]"); } catch { return []; } };
 const saveNotifs = n => { try { localStorage.setItem("fareq_notifs", JSON.stringify(n)); } catch {} };
 
-const SL = { active:"جارٍ", pending:"معلق", completed:"مكتمل", cancelled:"ملغي" };
-const SC = { active:"#00ff88", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4d4d" };
+const SL = { active:"جارٍ", pending:"معلق", completed:"مكتمل", cancelled:"ملغي", stand_by:"انتظار" };
+const SC = { active:"#00ff88", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4d4d", stand_by:"#38bdf8" };
 const CARD_ACCENT = {
   active:    { border:"rgba(0,255,136,0.35)",  glow:"rgba(0,255,136,0.10)",  bar:"#00ff88",  shadow:"rgba(0,255,136,0.20)" },
   pending:   { border:"rgba(255,214,0,0.35)",  glow:"rgba(255,214,0,0.08)",  bar:"#ffd600",  shadow:"rgba(255,214,0,0.18)" },
   completed: { border:"rgba(167,139,250,0.35)",glow:"rgba(167,139,250,0.10)",bar:"#a78bfa",  shadow:"rgba(167,139,250,0.18)" },
   cancelled: { border:"rgba(255,77,77,0.25)",  glow:"rgba(255,77,77,0.06)",  bar:"#ff4d4d",  shadow:"rgba(255,77,77,0.12)" },
+  stand_by:  { border:"rgba(56,189,248,0.35)", glow:"rgba(56,189,248,0.10)", bar:"#38bdf8",  shadow:"rgba(56,189,248,0.20)" },
 };
 
 const nameToGradient = name => {
@@ -914,8 +915,8 @@ function detectDuration(startDate, endDate) {
 function buildNotifications(contracts, dismissed=[]) {
   const notifs = [];
   const now = new Date();
-  contracts.forEach(c => {
-    if (c.status === "cancelled") return;
+ contracts.forEach(c => {
+    if (c.status === "cancelled" || c.status === "stand_by") return;
     const vc = Number(c.videoCount||0), vd = Number(c.videoDone||0);
 
     // Payment deadlines
@@ -1029,7 +1030,7 @@ function GlobalSearch({ contracts, clients, onClose, onViewContract, goToClient 
 function buildAlerts(contracts) {
   const a = [];
   contracts.forEach(c=>{
-    if (c.status==="cancelled"||c.status==="completed") return;
+    if (c.status==="cancelled"||c.status==="completed"||c.status==="stand_by") return;
     const vc=Number(c.videoCount||0),vd=Number(c.videoDone||0);
     if (!c.final50Paid&&c.final50Date) { const d=daysDiff(c.final50Date); if(d!==null&&d>=0&&d<=7) a.push({id:c.id,msg:`${d===0?"اليوم":d+" أيام"} — الدفعة الثانية لـ ${c.clientName}`,type:d<=2?"u":"w"}); }
     if (!c.deposit50Paid&&c.deposit50Date&&daysDiff(c.deposit50Date)<=0) a.push({id:c.id+"d",msg:`المقدم غير مدفوع — ${c.clientName}`,type:"u"});
@@ -1190,7 +1191,7 @@ function ContractModal({ contract, clients, onClose, onSave, defaultCurrency }) 
 {dur !== 0 && <div className="fck"><input type="checkbox" id="d1" checked={f.deposit50Paid} onChange={e=>s("deposit50Paid",e.target.checked)}/><label htmlFor="d1">تم استلام الدفعة الأولى</label></div>}
 {dur !== 0 && <div className="fck"><input type="checkbox" id="d2" checked={f.final50Paid} onChange={e=>s("final50Paid",e.target.checked)}/><label htmlFor="d2">تم استلام الدفعة الثانية</label></div>}
 {dur === 0 && <div className="fck"><input type="checkbox" id="d_full" checked={f.final50Paid} onChange={e=>{ s("final50Paid",e.target.checked); s("deposit50Paid",e.target.checked); }}/><label htmlFor="d_full">تم استلام الدفعة كاملة</label></div>}
-          <div className="fg ffl"><label className="flbl">الحالة</label><select className="fsel" value={f.status} onChange={e=>s("status",e.target.value)}><option value="pending">معلق</option><option value="active">جارٍ</option><option value="completed">مكتمل</option><option value="cancelled">ملغي</option></select></div>
+          <div className="fg ffl"><label className="flbl">الحالة</label><select className="fsel" value={f.status} onChange={e=>s("status",e.target.value)}><option value="stand_by">انتظار</option><option value="pending">معلق</option><option value="active">جارٍ</option><option value="completed">مكتمل</option><option value="cancelled">ملغي</option></select></div>
           <div className="fg ffl"><label className="flbl">ملاحظات</label><textarea className="fta" value={f.notes} onChange={e=>s("notes",e.target.value)}/></div>
         </div>
         <div className="mft"><button className="btn bgh" onClick={onClose}>إلغاء</button><button className="btn bngf" onClick={()=>{ if(!f.clientName){alert("اختر عميلاً");return;} onSave({...f,id:f.id||null}); }}>حفظ العقد</button></div>
@@ -1439,7 +1440,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
                   {vc > 0 && <VideoDots done={vd} total={vc} color={statusColor}/>}
                   {fmtDate(c.startDate) && <span style={{ color:"var(--muted)",fontSize:9 }}>{fmtDate(c.startDate)}</span>}
                 </div>
-                <UrgencyBar endDate={c.endDate}/>
+                <UrgencyBar endDate={c.status==="stand_by"?null:c.endDate}/>
               </div>
 
               <div className="cc-compact-right">
@@ -1729,7 +1730,7 @@ function Dashboard({ contracts, clients, goTo, onViewContract, onRefresh, refres
   const unpaid=contracts.filter(c=>c.status!=="cancelled").reduce((s,c)=>s+Number(c.videoAmount||0)*((!c.deposit50Paid?0.5:0)+(!c.final50Paid?0.5:0)),0);
 
   const upcoming=contracts
-    .filter(c=>c.status!=="cancelled"&&c.status!=="completed")
+    .filter(c=>c.status!=="cancelled"&&c.status!=="completed"&&c.status!=="stand_by")
     .flatMap(c=>{ const items=[]; if(!c.deposit50Paid&&c.deposit50Date) items.push({name:c.clientName,date:c.deposit50Date,label:"الدفعة الأولى",amt:Number(c.totalAmount||0)*0.5,currency:c.currency}); if(!c.final50Paid&&c.final50Date) items.push({name:c.clientName,date:c.final50Date,label:"الدفعة الثانية",amt:Number(c.totalAmount||0)*0.5,currency:c.currency}); return items; })
     .filter(i=>{ const d=daysDiff(i.date); return d!==null&&d>=0; })
     .sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
@@ -1849,6 +1850,7 @@ const [filter, setFilter] = useState("all");
 
   const tabs=[
     {key:"all",label:"الكل",count:contracts.filter(c=>c.status!=="completed"&&c.status!=="cancelled").length},
+    {key:"stand_by",label:"انتظار",count:contracts.filter(c=>c.status==="stand_by").length},
     {key:"active",label:"جارٍ",count:contracts.filter(c=>c.status==="active").length},
     {key:"pending",label:"معلق",count:contracts.filter(c=>c.status==="pending").length},
     {key:"completed",label:"مكتمل",count:contracts.filter(c=>c.status==="completed").length},
@@ -2245,12 +2247,26 @@ export default function App() {
   const handleThemeChange = t => { setTheme(t); const ns={...settings,theme:t}; setSettings(ns); saveSettings(ns); };
   const handleSettingsSave = ns => { setSettings(ns); saveSettings(ns); };
 
-  const loadData = async () => {
+ const loadData = async () => {
     const [{ data:c },{ data:cl }] = await Promise.all([
       supabase.from("contracts").select("*").order("id",{ascending:false}),
       supabase.from("clients").select("*").order("id",{ascending:false}),
     ]);
-    setContracts((c||[]).map(toApp));
+    const mapped = (c||[]).map(toApp);
+    // تحويل تلقائي: عقد منتهي التاريخ بدون إنجاز كامل أو دفعة ثانية → active
+    const autoFixed = mapped.map(contract => {
+      if(contract.status==="cancelled"||contract.status==="completed"||contract.status==="stand_by") return contract;
+      if(contract.endDate){
+        const t=new Date(); t.setHours(0,0,0,0);
+        const dLeft=Math.round((new Date(contract.endDate)-t)/86400000);
+        const vc=Number(contract.videoCount||0),vd=Number(contract.videoDone||0);
+        if(dLeft<0&&(!contract.final50Paid||(vc>0&&vd<vc))){
+          return {...contract, status:"active"};
+        }
+      }
+      return contract;
+    });
+    setContracts(autoFixed);
     setClients((cl||[]).map(toAppCl));
   };
 
@@ -2266,14 +2282,24 @@ export default function App() {
   const addHist=(c,ns)=>c.status===ns?c.statusHistory||[]:[...(c.statusHistory||[]),{status:ns,date:new Date().toISOString()}];
 
   const saveContract = async c => {
-    const hist=addHist(c,c.status);
-    const d2s={...c,statusHistory:hist};
-    if (c.id) {
-      const {data}=await supabase.from("contracts").update(toDB(d2s)).eq("id",c.id).select().single();
-      if(data) setContracts(p=>p.map(x=>x.id===c.id?toApp(data):x));
+    let finalStatus = c.status;
+    // إذا انتهى تاريخ العقد ولم تكتمل الفيديوهات أو لم تُدفع الدفعة الثانية، يبقى جارٍ
+    if(c.endDate && c.status !== "cancelled" && c.status !== "completed"){
+      const dLeft = daysDiff(c.endDate);
+      const vc=Number(c.videoCount||0),vd=Number(c.videoDone||0);
+      if(dLeft!==null && dLeft<0 && (!c.final50Paid||(vc>0&&vd<vc))){
+        finalStatus="active";
+      }
+    }
+    const mergedC = {...c, status: finalStatus};
+    const hist=addHist(mergedC, finalStatus);
+    const d2s={...mergedC,statusHistory:hist};
+   if (mergedC.id) {
+      const {data}=await supabase.from("contracts").update(toDB(d2s)).eq("id",mergedC.id).select().single();
+      if(data) setContracts(p=>p.map(x=>x.id===mergedC.id?toApp(data):x));
     } else {
-      const ih=[{status:c.status,date:new Date().toISOString()}];
-      const {data}=await supabase.from("contracts").insert(toDB({...c,statusHistory:ih})).select().single();
+      const ih=[{status:finalStatus,date:new Date().toISOString()}];
+      const {data}=await supabase.from("contracts").insert(toDB({...mergedC,statusHistory:ih})).select().single();
       if(data) setContracts(p=>[toApp(data),...p]);
     }
     setCm(null);
@@ -2287,10 +2313,15 @@ export default function App() {
     onConfirm:async()=>{ const c=contracts.find(x=>x.id===id); if(!c) return; const hist=addHist(c,"cancelled"); const updated={...c,status:"cancelled",statusHistory:hist}; const {data}=await supabase.from("contracts").update(toDB(updated)).eq("id",id).select().single(); if(data) setContracts(p=>p.map(x=>x.id===id?toApp(data):x)); setConfirm(null); }
   });
 
-  const togglePay=async(id,field)=>{
+const togglePay=async(id,field)=>{
     const c=contracts.find(x=>x.id===id); if(!c) return;
     const updated={...c,[field]:!c[field]};
     const vc=Number(updated.videoCount||0),vd=Number(updated.videoDone||0);
+    // إذا تم دفع الدفعة الأولى وكان العقد في stand_by يتحول إلى active
+    if(field==="deposit50Paid"&&updated.deposit50Paid&&updated.status==="stand_by"){
+      updated.status="active";
+      updated.statusHistory=addHist(c,"active");
+    }
     if(updated.deposit50Paid&&updated.final50Paid&&(vc===0||vd>=vc)){ updated.status="completed"; updated.statusHistory=addHist(c,"completed"); }
     const {data}=await supabase.from("contracts").update(toDB(updated)).eq("id",id).select().single();
     if(data) setContracts(p=>p.map(x=>x.id===id?toApp(data):x));
