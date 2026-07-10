@@ -6,6 +6,7 @@ const fmt = (n, cur = "LYD") => { const x = Number(n); if (!x) return `0.00 ${cu
 const fmtDate = d => d ? new Date(d).toLocaleDateString("ar-LY", { year: "numeric", month: "short", day: "numeric" }) : "";
 const daysDiff = (d, frozen = false) => { if (!d) return null; if (frozen) return null; const t = new Date(); t.setHours(0,0,0,0); return Math.round((new Date(d)-t)/86400000); };
 const addMonths = (dateStr, months) => { const d = new Date(dateStr); d.setMonth(d.getMonth()+months); return d.toISOString().split("T")[0]; };
+const addWeeks = (dateStr, weeks) => { const d = new Date(dateStr); d.setDate(d.getDate() + weeks * 7); return d.toISOString().split("T")[0]; };
 const getNow = () => new Date();
 const NOW = getNow();
 const DEFAULT_CREDENTIALS = { user: "fahed", pass: "771997" };
@@ -25,7 +26,9 @@ const saveSettings = s => { try { localStorage.setItem("fareq_settings", JSON.st
 // ─── Notification helpers ─────────────────────────────────────────
 const getStoredNotifs = () => { try { return JSON.parse(localStorage.getItem("fareq_notifs") || "[]"); } catch { return []; } };
 const saveNotifs = n => { try { localStorage.setItem("fareq_notifs", JSON.stringify(n)); } catch {} };
-
+// ─── Packages helpers ─────────────────────────────────────────────
+const getPackages = () => { try { return JSON.parse(localStorage.getItem("fareq_packages") || "[]"); } catch { return []; } };
+const savePackages = p => { try { localStorage.setItem("fareq_packages", JSON.stringify(p)); } catch {} };
 const SL = { active:"جارٍ", pending:"معلق", completed:"مكتمل", cancelled:"ملغي", stand_by:"انتظار" };
 const SC = { active:"#00ff88", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4d4d", stand_by:"#38bdf8" };
 const CARD_ACCENT = {
@@ -888,6 +891,7 @@ const toApp = r => ({
   final50Date:r.final50_date||"", final50Paid:r.final50_paid||false,
   status:r.status||"pending", notes:r.notes||"", statusHistory:r.status_history||[],
   fileUrl:r.file_url||"", fileName:r.file_name||"",
+  paymentMethod:r.payment_method||"50_50",
   updatedAt:r.updated_at||r.created_at||null,
 });
 const toDB = c => ({
@@ -901,12 +905,15 @@ const toDB = c => ({
   final50_date:c.final50Date||null, final50_paid:c.final50Paid,
   status:c.status, notes:c.notes, status_history:c.statusHistory||[],
   file_url:c.fileUrl||"", file_name:c.fileName||"",
+  payment_method:c.paymentMethod||"50_50",
 });
 const toAppCl = r => ({ id:String(r.id), name:r.name||"", phone:r.phone||"", address:r.address||"", notes:r.notes||"" });
 const toDBCl  = c => ({ name:c.name, phone:c.phone||"", address:c.address||"", notes:c.notes||"" });
 
 function detectDuration(startDate, endDate) {
   if (!startDate||!endDate) return null;
+  const days = Math.round((new Date(endDate) - new Date(startDate)) / 86400000);
+  if (days === 14) return "2w";
   const months=(new Date(endDate).getFullYear()-new Date(startDate).getFullYear())*12+(new Date(endDate).getMonth()-new Date(startDate).getMonth());
   if (months===1) return 1; if (months===3) return 3; return null;
 }
@@ -1128,52 +1135,164 @@ function ClientModal({ client, onClose, onSave }) {
 }
 
 // ─── Contract Modal ───────────────────────────────────────────────
-const EC = { clientId:"",clientName:"",clientAddress:"",clientPhone:"",videoCount:"",videoDone:0,totalAmount:"",videoAmount:"",presenterAmount:"",currency:"LYD",startDate:"",endDate:"",deposit50Date:"",deposit50Paid:false,final50Date:"",final50Paid:false,status:"pending",notes:"",statusHistory:[],fileUrl:"",fileName:"" };
+const EC = { clientId:"",clientName:"",clientAddress:"",clientPhone:"",videoCount:"",videoDone:0,totalAmount:"",videoAmount:"",presenterAmount:"",currency:"LYD",startDate:"",endDate:"",deposit50Date:"",deposit50Paid:false,final50Date:"",final50Paid:false,status:"stand_by",notes:"",statusHistory:[],fileUrl:"",fileName:"",paymentMethod:"50_50" };
 
 function ContractModal({ contract, clients, onClose, onSave, defaultCurrency }) {
-  const initDur = contract?detectDuration(contract.startDate,contract.endDate):null;
-  const [f, setF] = useState(contract?{...contract}:{ ...EC, currency:defaultCurrency||"LYD" });
+  const initDur = contract ? detectDuration(contract.startDate, contract.endDate) : null;
+  const [f, setF] = useState(contract ? {...contract} : { ...EC, currency:defaultCurrency||"LYD", status:"stand_by" });
   const [drop, setDrop] = useState(false);
+  const [clientSearch, setClientSearch] = useState("");
   const [dur, setDur] = useState(initDur);
+  const [packages, setPackages] = useState(()=>getPackages());
+  const [pkgDrop, setPkgDrop] = useState(false);
+  const [pkgForm, setPkgForm] = useState(null); // null | { id, name, videoCount } | "new"
+  const [pkgFormVal, setPkgFormVal] = useState({ name:"", videoCount:"" });
+
   const s = (k,v) => setF(p=>({...p,[k]:v}));
+
   useEffect(()=>{ const v=Number(f.videoAmount||0),p=Number(f.presenterAmount||0); if(v||p) s("totalAmount",String(v+p)); },[f.videoAmount,f.presenterAmount]);
   useEffect(()=>{ if(f.startDate) s("deposit50Date",f.startDate); },[f.startDate]);
   useEffect(()=>{ if(f.endDate) s("final50Date",f.endDate); },[f.endDate]);
+
   const handleDur = m => {
-  setDur(m);
-  if (m === 0) {
-    s("endDate", "");
-    s("deposit50Date", "");
-    s("final50Date", "");
-    s("deposit50Paid", false);
-    s("final50Paid", false);
-  } else {
-    if (f.startDate) s("endDate", addMonths(f.startDate, m));
-  }
-};
-  
-  const handleStart = v => { s("startDate",v); if(dur&&v) s("endDate",addMonths(v,dur)); };
-  const pick = c => { setF(p=>({...p,clientId:c.id,clientName:c.name,clientPhone:c.phone||"",clientAddress:c.address||""})); setDrop(false); };
+    setDur(m);
+    if (m === 0) {
+      s("endDate",""); s("deposit50Date",""); s("final50Date","");
+      s("deposit50Paid",false); s("final50Paid",false);
+    } else if (m === "2w") {
+      if (f.startDate) s("endDate", addWeeks(f.startDate, 2));
+    } else {
+      if (f.startDate) s("endDate", addMonths(f.startDate, m));
+    }
+  };
+
+  const handleStart = v => {
+    s("startDate",v);
+    if (dur === "2w" && v) s("endDate", addWeeks(v, 2));
+    else if (dur && dur !== 0 && v) s("endDate", addMonths(v, dur));
+  };
+
+  const pick = c => {
+    setF(p=>({...p,clientId:c.id,clientName:c.name,clientPhone:c.phone||"",clientAddress:c.address||""}));
+    setDrop(false); setClientSearch("");
+  };
+
+  const filteredClients = clients.filter(c =>
+    !clientSearch || c.name.includes(clientSearch) || (c.phone&&c.phone.includes(clientSearch))
+  );
+
+  // ── Package handlers ──
+  const savePkg = () => {
+    if (!pkgFormVal.name || !pkgFormVal.videoCount) { alert("أدخل اسم الباقة وعدد الفيديوهات"); return; }
+    let updated;
+    if (pkgForm === "new") {
+      updated = [...packages, { id: Date.now().toString(), name: pkgFormVal.name, videoCount: pkgFormVal.videoCount }];
+    } else {
+      updated = packages.map(p => p.id === pkgForm.id ? {...p, ...pkgFormVal} : p);
+    }
+    savePackages(updated); setPackages(updated); setPkgForm(null); setPkgFormVal({ name:"", videoCount:"" });
+  };
+
+  const deletePkg = id => {
+    const updated = packages.filter(p => p.id !== id);
+    savePackages(updated); setPackages(updated);
+  };
+
+  const pickPkg = pkg => {
+    s("videoCount", pkg.videoCount);
+    setPkgDrop(false);
+  };
+
   return (
     <div className="mov" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="mod">
-        <div className="mhd"><div className="mtitle"><Icon name={contract?"edit":"contract_plus"} size={17} color="var(--ac)"/>{contract?"تعديل":"عقد جديد"}</div><button className="mclose" onClick={onClose}>×</button></div>
+        <div className="mhd">
+          <div className="mtitle"><Icon name={contract?"edit":"contract_plus"} size={17} color="var(--ac)"/>{contract?"تعديل":"عقد جديد"}</div>
+          <button className="mclose" onClick={onClose}>×</button>
+        </div>
+
+        {/* ── Client picker with search ── */}
         <div style={{ marginBottom:14, position:"relative" }}>
-          <div style={{ display:"flex",alignItems:"center",gap:7,marginBottom:6 }}><span className="flbl">العميل</span>{f.clientName&&<span style={{ fontSize:11,color:"var(--ac)",fontWeight:700 }}>✓ {f.clientName}</span>}</div>
-          <button className="btn bng" style={{ width:"100%",justifyContent:"space-between" }} onClick={()=>setDrop(p=>!p)}><span>{f.clientName||"اختر عميلاً..."}</span><Icon name="clients" size={13} color="var(--ac)"/></button>
+          <div style={{ display:"flex",alignItems:"center",gap:7,marginBottom:6 }}>
+            <span className="flbl">العميل</span>
+            {f.clientName&&<span style={{ fontSize:11,color:"var(--ac)",fontWeight:700 }}>✓ {f.clientName}</span>}
+          </div>
+          <button className="btn bng" style={{ width:"100%",justifyContent:"space-between" }} onClick={()=>{ setDrop(p=>!p); setClientSearch(""); }}>
+            <span>{f.clientName||"اختر عميلاً..."}</span>
+            <Icon name="clients" size={13} color="var(--ac)"/>
+          </button>
           {drop && (
-            <div style={{ position:"absolute",top:"100%",insetInline:0,zIndex:50,background:"var(--glass-bg)",backdropFilter:"blur(20px)",border:"1px solid var(--card-border)",borderRadius:16,padding:8,marginTop:6,maxHeight:170,overflowY:"auto",boxShadow:"var(--shadow-float)" }}>
-              {clients.length===0&&<div style={{ padding:10,color:"var(--muted)",fontSize:12,textAlign:"center" }}>لا يوجد عملاء</div>}
-              {clients.map(c=>(
-                <div key={c.id} onClick={()=>pick(c)} style={{ padding:"9px 12px",borderRadius:10,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",gap:10 }}
+            <div style={{ position:"absolute",top:"100%",insetInline:0,zIndex:50,background:"var(--glass-bg)",backdropFilter:"blur(20px)",border:"1px solid var(--card-border)",borderRadius:16,padding:8,marginTop:6,boxShadow:"var(--shadow-float)" }}>
+              <div style={{ position:"relative",marginBottom:6 }}>
+                <span style={{ position:"absolute",right:10,top:"50%",transform:"translateY(-50%)" }}><Icon name="search" size={13} color="var(--muted)"/></span>
+                <input className="finp" value={clientSearch} onChange={e=>setClientSearch(e.target.value)} placeholder="بحث بالاسم أو الهاتف..." style={{ paddingRight:32,fontSize:12 }} autoFocus/>
+              </div>
+              <div style={{ maxHeight:150,overflowY:"auto" }}>
+                {filteredClients.length===0&&<div style={{ padding:10,color:"var(--muted)",fontSize:12,textAlign:"center" }}>لا توجد نتائج</div>}
+                {filteredClients.map(c=>(
+                  <div key={c.id} onClick={()=>pick(c)} style={{ padding:"9px 12px",borderRadius:10,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",gap:10 }}
+                    onMouseEnter={e=>e.currentTarget.style.background="var(--ac-faint)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                    <GradientAvatar name={c.name} size={28}/>
+                    <div><div style={{ fontWeight:600,fontSize:13 }}>{c.name}</div>{c.phone&&<div style={{ fontSize:10,color:"var(--muted)" }}>{c.phone}</div>}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Packages ── */}
+        <div style={{ marginBottom:14, position:"relative" }}>
+          <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6 }}>
+            <span className="flbl">الباقات</span>
+            <button onClick={()=>{ setPkgForm("new"); setPkgFormVal({ name:"", videoCount:"" }); }} style={{ fontSize:10,color:"var(--ac)",fontWeight:700,background:"none",border:"none",cursor:"pointer",fontFamily:"var(--font)",display:"flex",alignItems:"center",gap:3 }}>
+              <Icon name="plus" size={11} color="var(--ac)"/>باقة جديدة
+            </button>
+          </div>
+          {pkgForm && (
+            <div style={{ background:"var(--surface2)",border:"1px solid var(--ac-border)",borderRadius:12,padding:"10px 12px",marginBottom:8,display:"flex",flexDirection:"column",gap:8 }}>
+              <div style={{ fontSize:11,fontWeight:700,color:"var(--ac)",marginBottom:2 }}>{pkgForm==="new"?"إضافة باقة":"تعديل الباقة"}</div>
+              <input className="finp" value={pkgFormVal.name} onChange={e=>setPkgFormVal(p=>({...p,name:e.target.value}))} placeholder="اسم الباقة (مثال: باقة أساسية)"/>
+              <input className="finp" type="number" value={pkgFormVal.videoCount} onChange={e=>setPkgFormVal(p=>({...p,videoCount:e.target.value}))} placeholder="عدد الفيديوهات"/>
+              <div style={{ display:"flex",gap:8 }}>
+                <button className="btn bgh" style={{ flex:1,fontSize:11,padding:"6px" }} onClick={()=>setPkgForm(null)}>إلغاء</button>
+                <button className="btn bngf" style={{ flex:1,fontSize:11,padding:"6px" }} onClick={savePkg}>حفظ</button>
+              </div>
+            </div>
+          )}
+          <button className="btn bng" style={{ width:"100%",justifyContent:"space-between" }} onClick={()=>setPkgDrop(p=>!p)}>
+            <span style={{ fontSize:12 }}>اختر باقة لتعبئة عدد الفيديوهات تلقائياً...</span>
+            <Icon name="chevron_down" size={13} color="var(--ac)"/>
+          </button>
+          {pkgDrop && (
+            <div style={{ position:"absolute",top:"100%",insetInline:0,zIndex:50,background:"var(--glass-bg)",backdropFilter:"blur(20px)",border:"1px solid var(--card-border)",borderRadius:16,padding:8,marginTop:6,maxHeight:160,overflowY:"auto",boxShadow:"var(--shadow-float)" }}>
+              {packages.length===0&&<div style={{ padding:10,color:"var(--muted)",fontSize:12,textAlign:"center" }}>لا توجد باقات — أضف باقة أولاً</div>}
+              {packages.map(pkg=>(
+                <div key={pkg.id} style={{ padding:"8px 10px",borderRadius:10,display:"flex",alignItems:"center",gap:8,cursor:"pointer" }}
                   onMouseEnter={e=>e.currentTarget.style.background="var(--ac-faint)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                  <GradientAvatar name={c.name} size={28} />
-                  <div><div style={{ fontWeight:600,fontSize:13 }}>{c.name}</div>{c.phone&&<div style={{ fontSize:10,color:"var(--muted)" }}>{c.phone}</div>}</div>
+                  <div onClick={()=>pickPkg(pkg)} style={{ flex:1,display:"flex",alignItems:"center",gap:8 }}>
+                    <div style={{ width:28,height:28,borderRadius:8,background:"var(--ac-faint)",border:"1px solid var(--ac-border)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                      <Icon name="contracts" size={12} color="var(--ac)"/>
+                    </div>
+                    <div>
+                      <div style={{ fontSize:12,fontWeight:700,color:"var(--text)" }}>{pkg.name}</div>
+                      <div style={{ fontSize:10,color:"var(--muted)" }}>{pkg.videoCount} فيديو</div>
+                    </div>
+                  </div>
+                  <div style={{ display:"flex",gap:4 }}>
+                    <button onClick={e=>{ e.stopPropagation(); setPkgForm(pkg); setPkgFormVal({ name:pkg.name, videoCount:pkg.videoCount }); setPkgDrop(false); }} style={{ width:24,height:24,borderRadius:7,background:"rgba(96,165,250,0.12)",border:"1px solid rgba(96,165,250,0.2)",color:"#60a5fa",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}>
+                      <Icon name="edit" size={10} color="#60a5fa"/>
+                    </button>
+                    <button onClick={e=>{ e.stopPropagation(); deletePkg(pkg.id); }} style={{ width:24,height:24,borderRadius:7,background:"rgba(255,77,77,0.12)",border:"1px solid rgba(255,77,77,0.2)",color:"var(--danger)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}>
+                      <Icon name="trash" size={10} color="var(--danger)"/>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
+
         <div className="fgrid">
           <div className="fg"><label className="flbl">عدد الفيديوهات</label><input className="finp" type="number" value={f.videoCount} onChange={e=>s("videoCount",e.target.value)}/></div>
           <div className="fg"><label className="flbl">العملة</label><select className="fsel" value={f.currency} onChange={e=>s("currency",e.target.value)}><option value="LYD">دينار ليبي</option><option value="SAR">ريال سعودي</option><option value="AED">درهم إماراتي</option><option value="USD">دولار</option></select></div>
@@ -1181,16 +1300,35 @@ function ContractModal({ contract, clients, onClose, onSave, defaultCurrency }) 
           <div className="fg"><label className="flbl">قيمة الوجه الإعلامي</label><input className="finp" type="number" value={f.presenterAmount} onChange={e=>s("presenterAmount",e.target.value)}/></div>
           <div className="fg ffl"><label className="flbl">الإجمالي (تلقائي)</label><input className="finp" type="number" value={f.totalAmount} readOnly style={{ color:"var(--ac)",fontWeight:800 }}/></div>
           <div className="fg"><label className="flbl">تاريخ البدء</label><input className="finp" type="date" value={f.startDate} onChange={e=>handleStart(e.target.value)}/></div>
-          <div className="fg"><label className="flbl">المدة</label><div className="dur-btns">
-  <button className={`dur-btn${dur===1?" on":""}`} onClick={()=>handleDur(1)}>شهر</button>
-  <button className={`dur-btn${dur===3?" on":""}`} onClick={()=>handleDur(3)}>3 أشهر</button>
-  <button className={`dur-btn${dur===0?" on":""}`} onClick={()=>handleDur(0)}>بدون مدة</button>
-</div></div>
-          {dur !== 0 && <div className="fg"><label className="flbl">موعد الدفعة الأولى</label><input className="finp" type="date" value={f.deposit50Date} readOnly style={{ color:"var(--muted)" }}/></div>}
-{dur !== 0 && <div className="fg"><label className="flbl">موعد الدفعة الثانية</label><input className="finp" type="date" value={f.final50Date} readOnly style={{ color:"var(--muted)" }}/></div>}
-{dur !== 0 && <div className="fck"><input type="checkbox" id="d1" checked={f.deposit50Paid} onChange={e=>s("deposit50Paid",e.target.checked)}/><label htmlFor="d1">تم استلام الدفعة الأولى</label></div>}
-{dur !== 0 && <div className="fck"><input type="checkbox" id="d2" checked={f.final50Paid} onChange={e=>s("final50Paid",e.target.checked)}/><label htmlFor="d2">تم استلام الدفعة الثانية</label></div>}
-{dur === 0 && <div className="fck"><input type="checkbox" id="d_full" checked={f.final50Paid} onChange={e=>{ s("final50Paid",e.target.checked); s("deposit50Paid",e.target.checked); }}/><label htmlFor="d_full">تم استلام الدفعة كاملة</label></div>}
+          <div className="fg ffl"><label className="flbl">المدة</label>
+            <div className="dur-btns">
+              <button className={`dur-btn${dur==="2w"?" on":""}`} onClick={()=>handleDur("2w")}>أسبوعين</button>
+              <button className={`dur-btn${dur===1?" on":""}`} onClick={()=>handleDur(1)}>شهر</button>
+              <button className={`dur-btn${dur===3?" on":""}`} onClick={()=>handleDur(3)}>3 أشهر</button>
+              <button className={`dur-btn${dur===0?" on":""}`} onClick={()=>handleDur(0)}>بدون مدة</button>
+            </div>
+          </div>
+
+          {/* ── طريقة الدفع ── */}
+          <div className="fg ffl">
+            <label className="flbl">طريقة الدفع</label>
+            <div style={{ display:"flex",gap:8 }}>
+              <button className={`dur-btn${f.paymentMethod==="50_50"?" on":""}`} style={{ flex:1 }} onClick={()=>s("paymentMethod","50_50")}>
+                50% مقدم + 50% عند التسليم
+              </button>
+              <button className={`dur-btn${f.paymentMethod==="100"?" on":""}`} style={{ flex:1 }} onClick={()=>{ s("paymentMethod","100"); s("deposit50Paid",false); s("final50Paid",false); }}>
+                100% عند التوقيع
+              </button>
+            </div>
+          </div>
+
+          {dur !== 0 && f.paymentMethod === "50_50" && <div className="fg"><label className="flbl">موعد الدفعة الأولى</label><input className="finp" type="date" value={f.deposit50Date} readOnly style={{ color:"var(--muted)" }}/></div>}
+          {dur !== 0 && f.paymentMethod === "50_50" && <div className="fg"><label className="flbl">موعد الدفعة الثانية</label><input className="finp" type="date" value={f.final50Date} readOnly style={{ color:"var(--muted)" }}/></div>}
+          {dur !== 0 && f.paymentMethod === "50_50" && <div className="fck"><input type="checkbox" id="d1" checked={f.deposit50Paid} onChange={e=>s("deposit50Paid",e.target.checked)}/><label htmlFor="d1">تم استلام الدفعة الأولى</label></div>}
+          {dur !== 0 && f.paymentMethod === "50_50" && <div className="fck"><input type="checkbox" id="d2" checked={f.final50Paid} onChange={e=>s("final50Paid",e.target.checked)}/><label htmlFor="d2">تم استلام الدفعة الثانية</label></div>}
+          {dur === 0 && f.paymentMethod === "50_50" && <div className="fck"><input type="checkbox" id="d_full" checked={f.final50Paid} onChange={e=>{ s("final50Paid",e.target.checked); s("deposit50Paid",e.target.checked); }}/><label htmlFor="d_full">تم استلام الدفعة كاملة</label></div>}
+          {f.paymentMethod === "100" && <div className="fck"><input type="checkbox" id="d_100" checked={f.final50Paid} onChange={e=>{ s("final50Paid",e.target.checked); s("deposit50Paid",e.target.checked); }}/><label htmlFor="d_100">تم استلام المبلغ كاملاً</label></div>}
+
           <div className="fg ffl"><label className="flbl">الحالة</label><select className="fsel" value={f.status} onChange={e=>s("status",e.target.value)}><option value="stand_by">انتظار</option><option value="pending">معلق</option><option value="active">جارٍ</option><option value="completed">مكتمل</option><option value="cancelled">ملغي</option></select></div>
           <div className="fg ffl"><label className="flbl">ملاحظات</label><textarea className="fta" value={f.notes} onChange={e=>s("notes",e.target.value)}/></div>
         </div>
@@ -1301,7 +1439,7 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
     : `تبدأ من تاريخ ${sd.d}/${sd.m}/${sd.y}`
   }
 </div>
-          {opts.includePayment&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>القيمة المالية:</div><div style={{ fontFamily:"'Tajawal',sans-serif" }}><div>- قيمة الفيديوهات: {vAmt} {cur}</div><div>- قيمة الوجه الإعلامي: {pAmt} {cur}</div><div style={{ margin:"9px 0 3px",fontWeight:700 }}>طريقة الدفع: 50% مقدماً · 50% عند التسليم</div></div></>}
+          {opts.includePayment&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>القيمة المالية:</div><div style={{ fontFamily:"'Tajawal',sans-serif" }}><div>- قيمة الفيديوهات: {vAmt} {cur}</div><div>- قيمة الوجه الإعلامي: {pAmt} {cur}</div><div style={{ margin:"9px 0 3px",fontWeight:700 }}>{c.paymentMethod==="100"?"طريقة الدفع: 100% عند توقيع العقد":"طريقة الدفع: 50% مقدماً · 50% عند التسليم"}</div></div></>}
          {opts.includeTerms&&<>
   <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>الشروط والأحكام:</div>
   <div style={{ fontFamily:"'Tajawal',sans-serif",lineHeight:2,fontSize:13 }}>
@@ -1312,7 +1450,10 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
     <div>- في حالة الإلغاء بعد البدء لا يتم استرجاع الدفعة المقدمة</div>
     <div>- يحق للطرف الثاني استخدام الفيديوهات لأغراضه التسويقية</div>
     <div>- يحق للطرف الأول استخدام الفيديوهات في معرض أعماله</div>
-    <div>- يلتزم الطرف الثاني بدفع قيمة الفيديوهات وقدرها {vAmt} {cur} على أن يتم دفع 50% مقدماً و50% عند تسليم آخر فيديو</div>
+    {c.paymentMethod==="100"
+      ? <div>- يلتزم الطرف الثاني بدفع قيمة الفيديوهات وقدرها {vAmt} {cur} كاملةً عند توقيع العقد</div>
+      : <div>- يلتزم الطرف الثاني بدفع قيمة الفيديوهات وقدرها {vAmt} {cur} على أن يتم دفع 50% مقدماً و50% عند تسليم آخر فيديو</div>
+    }
     {c.presenterAmount&&<div>- يلتزم الطرف الثاني بدفع قيمة وقدرها {pAmt} {cur} للوجه الإعلامي</div>}
   </div>
 </>}
