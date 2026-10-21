@@ -876,6 +876,9 @@ body{display:block !important;place-items:unset !important;margin:0 !important;m
   .mod::before{display:none;}
   .gsearch-wrap{padding:40px max(14px,calc((100% - 640px)/2));}
 }
+.idea-go-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;margin-bottom:10px;border-radius:12px;border:1px solid rgba(251,191,36,0.45);background:linear-gradient(135deg,rgba(251,191,36,0.16),rgba(251,191,36,0.06));color:#fbbf24;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 0 16px rgba(251,191,36,0.18);}
+.idea-go-btn:hover{transform:translateY(-1px);box-shadow:0 0 24px rgba(251,191,36,0.32);}
+.idea-go-btn:active{transform:scale(.97);}
 /* ── Responsive ── */
 @media(max-width:500px){.fgrid{grid-template-columns:1fr}.ffl{grid-column:1}.pgrid{grid-template-columns:1fr}}
 `;
@@ -1409,7 +1412,7 @@ function ContractModal({ contract, clients, onClose, onSave, defaultCurrency }) 
 }
 
 // ─── Contract View Modal ──────────────────────────────────────────
-function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptions }) {
+function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptions, onGoIdeas }) {{ c, onClose, onPdfExported, companyProfile, pdfOptions }) {
   const ref = useRef();
   const opts = pdfOptions || { includeTerms:true, includePayment:true, includeSignature:true, includeLogo:true };
 
@@ -1454,6 +1457,11 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
             </div>
             <span className="badge" style={{ color:SC[c.status],background:SC[c.status]+"18",borderColor:SC[c.status]+"44" }}>{SL[c.status]}</span>
           </div>
+                    {c.clientId && onGoIdeas && (
+            <button className="idea-go-btn" onClick={()=>onGoIdeas(c.clientId)}>
+              <Icon name="bulb" size={15} color="#fbbf24"/>أفكار وسكربتات العميل<Icon name="chevron_left" size={13} color="#fbbf24"/>
+            </button>
+          )}
           <div className="amt-box payment-amt-shadow"><div className="amt-lbl">الإجمالي</div><div className="amt-val">{fmt(c.totalAmount,c.currency)}</div></div>
           <div className="psec">
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8 }}>
@@ -2629,7 +2637,9 @@ function IdeasScreen({ clients, contracts, ideas, onAddIdea, onUpdateIdea, onDel
   }
 
   // ── قائمة العملاء ──
-  const filteredClients = clients.filter(c => !search || c.name.includes(search) || c.phone?.includes(search));
+    const filteredClients = clients
+    .filter(c => contracts.some(ct => ct.clientId === c.id && (ct.status === "active" || ct.status === "pending")))
+    .filter(c => !search || c.name.includes(search) || c.phone?.includes(search));
   return (
     <div className="screen" style={{ paddingTop:8 }} {...handlers}>
       {ptr}
