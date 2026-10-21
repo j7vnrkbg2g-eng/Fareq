@@ -822,7 +822,24 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 
 /* ── Stagger ── */
 .stagger-item{animation:stagger-in .4s cubic-bezier(.4,0,.2,1) both;}
-
+/* ── Ideas ── */
+.idea-card{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:16px;margin-bottom:10px;overflow:hidden;position:relative;transition:border-color .25s,box-shadow .25s;box-shadow:var(--shadow-card);animation:stagger-in .4s cubic-bezier(.4,0,.2,1) both;}
+.idea-card.open{border-color:var(--ac-border);}
+.idea-card.done{border-color:rgba(0,255,136,0.35);box-shadow:0 6px 24px rgba(0,255,136,0.14),0 0 18px rgba(0,255,136,0.08);}
+.idea-head{display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;}
+.idea-num{width:34px;height:34px;border-radius:10px;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0;}
+.idea-title{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.idea-sub{font-size:10px;color:var(--muted);margin-top:2px;font-weight:500;}
+.idea-body{border-top:1px solid var(--muted2);padding:12px 14px 14px;animation:expandCard .32s cubic-bezier(.34,1.2,.64,1) both;}
+.idea-script{min-height:140px;line-height:1.9;font-size:13px;}
+.idea-done-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 14px;border-radius:12px;border:1px solid rgba(0,255,136,0.5);background:linear-gradient(135deg,#00ff88,#00c96e);color:#000;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 0 18px rgba(0,255,136,0.45),0 4px 18px rgba(0,201,110,0.35);}
+.idea-done-btn:hover{transform:translateY(-1px);box-shadow:0 0 26px rgba(0,255,136,0.6),0 6px 24px rgba(0,201,110,0.45);}
+.idea-done-btn:active{transform:scale(.97);}
+.idea-done-btn.undo{background:rgba(0,255,136,0.08);color:var(--ac);box-shadow:0 0 12px rgba(0,255,136,0.15);}
+.idea-done-btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none;}
+.idea-stat{background:var(--surface2);border:1px solid var(--card-border);border-radius:12px;padding:9px 6px;text-align:center;}
+.idea-stat-v{font-size:17px;font-weight:900;font-variant-numeric:tabular-nums;}
+.idea-stat-l{font-size:9px;color:var(--muted);font-weight:700;margin-top:2px;}
 /* ── Responsive ── */
 @media(max-width:500px){.fgrid{grid-template-columns:1fr}.ffl{grid-column:1}.pgrid{grid-template-columns:1fr}}
 `;
@@ -876,6 +893,7 @@ const Icon = ({ name, size=20, color="currentColor" }) => {
     cash_flow:<><polyline points="1,12 5,12"/><polyline points="7,6 12,1 17,6"/><polyline points="12,1 12,15"/><path d="M22 12a10 10 0 01-10 10"/><path d="M14 19l-2 2-2-2"/></>,
     bell:<><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></>,
     zap:<><polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/></>,
+        bulb:<><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 00-4 12.7c.6.5 1 1.2 1 2V17h6v-.3c0-.8.4-1.5 1-2A7 7 0 0012 2z"/></>,
   };
   return <svg style={s} viewBox="0 0 24 24">{p[name]||null}</svg>;
 };
@@ -909,7 +927,23 @@ const toDB = c => ({
 });
 const toAppCl = r => ({ id:String(r.id), name:r.name||"", phone:r.phone||"", address:r.address||"", notes:r.notes||"" });
 const toDBCl  = c => ({ name:c.name, phone:c.phone||"", address:c.address||"", notes:c.notes||"" });
-
+const toAppIdea = r => ({
+  id:String(r.id), clientId:r.client_id?String(r.client_id):"", contractId:r.contract_id?String(r.contract_id):"",
+  title:r.title||"", script:r.script||"", done:r.done||false, doneAt:r.done_at||null, createdAt:r.created_at||null,
+});
+const toDBIdea = i => ({
+  client_id:i.clientId?Number(i.clientId):null, contract_id:i.contractId?Number(i.contractId):null,
+  title:i.title||"", script:i.script||"", done:i.done||false, done_at:i.doneAt||null,
+});
+const toDBIdeaPatch = p => {
+  const o = {};
+  if ("title" in p) o.title = p.title;
+  if ("script" in p) o.script = p.script;
+  if ("done" in p) o.done = p.done;
+  if ("doneAt" in p) o.done_at = p.doneAt;
+  if ("contractId" in p) o.contract_id = p.contractId ? Number(p.contractId) : null;
+  return o;
+};
 function detectDuration(startDate, endDate) {
   if (!startDate||!endDate) return null;
   const days = Math.round((new Date(endDate) - new Date(startDate)) / 86400000);
@@ -2357,12 +2391,250 @@ const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
     </div>
   );
 }
+// ─── Ideas Screen ─────────────────────────────────────────────────
+// يختار العقد الجاري للعميل (جارٍ ← معلق ← انتظار) لاحتساب الفيديوهات عليه
+function pickClientContract(contracts, clientId) {
+  const rank = { active:0, pending:1, stand_by:2 };
+  return contracts
+    .filter(c => c.clientId === clientId && c.status !== "cancelled" && c.status !== "completed")
+    .sort((a,b) => (rank[a.status] ?? 3) - (rank[b.status] ?? 3) || Number(b.id) - Number(a.id))[0] || null;
+}
 
+function IdeaCard({ idea, index, canCount, busy, onChange, onToggleDone, onDelete, delay=0 }) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState(idea.title || "");
+  const [script, setScript] = useState(idea.script || "");
+  const [saved, setSaved] = useState(false);
+  const color = idea.done ? "#00ff88" : "#fbbf24";
+  const dirty = title !== (idea.title || "") || script !== (idea.script || "");
+
+  // حفظ تلقائي في Supabase بعد ما تتوقف عن الكتابة
+  useEffect(() => {
+    if (!dirty) return;
+    const t = setTimeout(() => { onChange({ title, script }); setSaved(true); setTimeout(()=>setSaved(false), 1500); }, 800);
+    return () => clearTimeout(t);
+  }, [title, script]);
+
+  const flush = () => { if (dirty) onChange({ title, script }); };
+
+  return (
+    <div className={`idea-card${idea.done?" done":""}${open?" open":""}`} style={{ animationDelay:`${delay}ms` }}>
+      <div style={{ position:"absolute",right:0,top:0,bottom:0,width:3,background:color,boxShadow:`0 0 10px ${color}88`,zIndex:1 }}/>
+      <div className="idea-head" onClick={()=>{ if (open) flush(); setOpen(p=>!p); }}>
+        <div className="idea-num" style={{ color, borderColor:`${color}55`, background:`${color}14`, boxShadow:`0 0 12px ${color}33` }}>{index+1}</div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div className="idea-title" style={{ textDecoration:idea.done?"line-through":"none", opacity:idea.done?0.7:1 }}>{idea.title||"فكرة بدون عنوان"}</div>
+          <div className="idea-sub">{idea.script?"السكريبت جاهز":"بدون سكريبت"}{idea.doneAt?` · نُفذت ${fmtDate(idea.doneAt)}`:""}</div>
+        </div>
+        <span className="badge" style={{ color, background:`${color}18`, borderColor:`${color}44`, boxShadow:`0 2px 8px ${color}22` }}>{idea.done?"تم التنفيذ":"قيد التنفيذ"}</span>
+        <div className={`cc-expand-btn${open?" open":""}`}><Icon name="chevron_down" size={14} color="currentColor"/></div>
+      </div>
+
+      {open && (
+        <div className="idea-body">
+          <div className="fg" style={{ marginBottom:10 }}>
+            <label className="flbl">عنوان الفكرة</label>
+            <input className="finp" value={title} onChange={e=>setTitle(e.target.value)} onBlur={flush} placeholder="عنوان الفكرة"/>
+          </div>
+          <div className="fg" style={{ marginBottom:12 }}>
+            <label className="flbl" style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <Icon name="pen" size={11} color="var(--ac)"/>السكريبت
+              <span style={{ marginRight:"auto", fontSize:9, fontWeight:700, color:dirty?"var(--warn)":saved?"var(--ac)":"transparent", transition:"color .2s" }}>{dirty?"جارٍ الحفظ...":"✓ تم الحفظ"}</span>
+            </label>
+            <textarea className="fta idea-script" value={script} onChange={e=>setScript(e.target.value)} onBlur={flush} placeholder="اكتب السكريبت هنا..."/>
+          </div>
+          {!idea.done && !canCount && (
+            <div style={{ fontSize:10, color:"var(--warn)", fontWeight:700, marginBottom:8, display:"flex", alignItems:"center", gap:5 }}>
+              <Icon name="alert" size={11} color="var(--warn)"/>لا يوجد عقد جارٍ أو اكتملت فيديوهات العقد
+            </div>
+          )}
+          <div style={{ display:"flex", gap:8 }}>
+            <button className={`idea-done-btn${idea.done?" undo":""}`} onClick={onToggleDone} disabled={busy || (!idea.done && !canCount)}>
+              <Icon name={idea.done?"refresh":"check"} size={14} color={idea.done?"var(--ac)":"#000"}/>
+              {idea.done ? "تراجع عن التنفيذ" : "تم التنفيذ"}
+            </button>
+            <button className="ico-btn red" style={{ width:42, height:42, borderRadius:12 }} onClick={onDelete}><Icon name="trash" size={14} color="var(--danger)"/></button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IdeasScreen({ clients, contracts, ideas, onAddIdea, onUpdateIdea, onDeleteIdea, onVideoUpdate, onRefresh }) {
+  const [sel, setSel] = useState(null);
+  const [search, setSearch] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [confirmDel, setConfirmDel] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
+
+  const addIdea = async clientId => {
+    if (!newTitle.trim()) return;
+    haptic("light");
+    const t = newTitle.trim();
+    setNewTitle("");
+    await onAddIdea(clientId, t);
+  };
+
+  // ربط "تم التنفيذ" بعداد الفيديوهات في العقد (كله يتحفظ في Supabase)
+  const toggleDone = async idea => {
+    if (busy) return;
+    if (!idea.done) {
+      const ct = pickClientContract(contracts, idea.clientId);
+      if (!ct) { alert("لا يوجد عقد جارٍ لهذا العميل"); return; }
+      const vc = Number(ct.videoCount||0), vd = Number(ct.videoDone||0);
+      if (vc > 0 && vd >= vc) { alert("اكتملت كل فيديوهات العقد"); return; }
+      setBusy(true); haptic("medium");
+      await onVideoUpdate(ct.id, vd + 1);
+      await onUpdateIdea(idea.id, { done:true, doneAt:new Date().toISOString(), contractId:ct.id });
+      setBusy(false);
+    } else {
+      setBusy(true);
+      const ct = contracts.find(c => c.id === idea.contractId) || pickClientContract(contracts, idea.clientId);
+      if (ct) await onVideoUpdate(ct.id, Math.max(0, Number(ct.videoDone||0) - 1));
+      await onUpdateIdea(idea.id, { done:false, doneAt:null, contractId:null });
+      setBusy(false);
+    }
+  };
+
+  const ptr = pulling && (
+    <div className="ptr-indicator" style={{ opacity:progress, transform:`translateY(${(1-progress)*-20}px)` }}>
+      <Icon name="refresh" size={14} color="var(--ac)"/>{progress>=1?"إطلاق للتحديث":"اسحب للتحديث"}
+    </div>
+  );
+
+  const cl = sel ? clients.find(c => c.id === sel) : null;
+
+  // ── صفحة العميل ──
+  if (sel && cl) {
+    const [c1, c2] = nameToGradient(cl.name);
+    const ct = pickClientContract(contracts, cl.id);
+    const vc = Number(ct?.videoCount||0), vd = Number(ct?.videoDone||0);
+    const vpct = vc > 0 ? Math.round((vd/vc)*100) : 0;
+    const canCount = !!ct && !(vc > 0 && vd >= vc);
+    const clIdeas = ideas.filter(i => i.clientId === cl.id);
+    const doneN = clIdeas.filter(i => i.done).length;
+    const shown = clIdeas.filter(i => filter==="all" ? true : filter==="done" ? i.done : !i.done);
+    const tabs = [
+      { key:"all", label:"الكل", count:clIdeas.length },
+      { key:"todo", label:"قيد التنفيذ", count:clIdeas.length-doneN },
+      { key:"done", label:"منفذة", count:doneN },
+    ];
+    return (
+      <div className="screen" style={{ paddingTop:8 }} {...handlers}>
+        {ptr}
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
+          <button className="btn bng" style={{ padding:"6px 10px", fontSize:12 }} onClick={()=>{ setSel(null); setFilter("all"); setNewTitle(""); }}>
+            <Icon name="back" size={13} color="var(--text2)"/>رجوع
+          </button>
+          <div className="pt" style={{ flex:1 }}>{cl.name}</div>
+        </div>
+
+        <div style={{ background:`linear-gradient(135deg,${c1}18,${c2}0d)`, border:`1px solid ${c1}33`, borderRadius:20, padding:"18px 16px", marginBottom:14, boxShadow:`0 8px 32px ${c1}22` }}>
+          <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
+            <GradientAvatar name={cl.name} size={50}/>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:16, fontWeight:800, color:"var(--text)" }}>{cl.name}</div>
+              <div style={{ fontSize:10, color:"var(--muted)", marginTop:3 }}>{ct ? `عقد ${SL[ct.status]}` : "لا يوجد عقد جارٍ"}</div>
+            </div>
+            {vc > 0 && <ProgressRing pct={vpct} size={52} stroke={4} color={vpct===100?"var(--ac)":c1}/>}
+          </div>
+
+          {ct ? (
+            <div className="vpsec" style={{ marginTop:0 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                <span style={{ fontSize:10, color:"var(--muted)", fontWeight:700 }}>الفيديوهات المنجزة (من العقد)</span>
+                <span style={{ fontSize:12, fontWeight:900, color:"var(--ac)" }}>{vd}{vc>0?`/${vc}`:""}</span>
+              </div>
+              {vc > 0 && <VideoDots done={vd} total={vc} color={SC[ct.status]}/>}
+            </div>
+          ) : (
+            <div className="alr aw" style={{ marginBottom:0 }}><Icon name="alert" size={13} color="currentColor"/>أضف عقداً لهذا العميل حتى يُحتسب التنفيذ</div>
+          )}
+
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, marginTop:12 }}>
+            <div className="idea-stat"><div className="idea-stat-v" style={{ color:"var(--text)" }}>{clIdeas.length}</div><div className="idea-stat-l">الأفكار</div></div>
+            <div className="idea-stat"><div className="idea-stat-v" style={{ color:"#00ff88", textShadow:"0 0 10px rgba(0,255,136,0.5)" }}>{doneN}</div><div className="idea-stat-l">منفذة</div></div>
+            <div className="idea-stat"><div className="idea-stat-v" style={{ color:"#fbbf24" }}>{clIdeas.length-doneN}</div><div className="idea-stat-l">متبقية</div></div>
+          </div>
+        </div>
+
+        <div className="card" style={{ padding:12, marginBottom:12 }}>
+          <div style={{ display:"flex", gap:8 }}>
+            <input className="finp" value={newTitle} onChange={e=>setNewTitle(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addIdea(cl.id)} placeholder="عنوان فكرة جديدة..."/>
+            <button className="btn bngf" style={{ flexShrink:0 }} onClick={()=>addIdea(cl.id)}><Icon name="plus" size={14} color="#000"/>إضافة</button>
+          </div>
+        </div>
+
+        <div className="tabs">
+          {tabs.map(t=><button key={t.key} className={`tab${filter===t.key?" on":""}`} onClick={()=>setFilter(t.key)}>{t.label}<span style={{ marginRight:5, background:filter===t.key?"rgba(0,0,0,0.2)":"var(--surface2)", color:filter===t.key?"#000":"var(--muted)", borderRadius:20, padding:"0 6px", fontSize:9, fontWeight:800 }}>{t.count}</span></button>)}
+        </div>
+
+        {shown.length === 0 ? (
+          <div style={{ textAlign:"center", padding:"36px 16px" }}>
+            <div style={{ width:64, height:64, borderRadius:20, margin:"0 auto 14px", background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.3)", boxShadow:"0 0 24px rgba(251,191,36,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <Icon name="bulb" size={28} color="#fbbf24"/>
+            </div>
+            <div style={{ fontWeight:700, color:"var(--text)", fontSize:15, marginBottom:6 }}>لا توجد أفكار هنا</div>
+            <div style={{ color:"var(--muted)", fontSize:12 }}>أضف أول فكرة لهذا العميل من الأعلى</div>
+          </div>
+        ) : shown.map((idea, i) => (
+          <IdeaCard key={idea.id} idea={idea} index={clIdeas.findIndex(x=>x.id===idea.id)} canCount={canCount} busy={busy} delay={i*40}
+            onChange={patch=>onUpdateIdea(idea.id, patch)}
+            onToggleDone={()=>toggleDone(idea)}
+            onDelete={()=>setConfirmDel(idea.id)}/>
+        ))}
+
+        {confirmDel && <ConfirmDialog msg="حذف هذه الفكرة؟" onCancel={()=>setConfirmDel(null)} onConfirm={async()=>{ await onDeleteIdea(confirmDel); setConfirmDel(null); }}/>}
+      </div>
+    );
+  }
+
+  // ── قائمة العملاء ──
+  const filteredClients = clients.filter(c => !search || c.name.includes(search) || c.phone?.includes(search));
+  return (
+    <div className="screen" style={{ paddingTop:8 }} {...handlers}>
+      {ptr}
+      <div style={{ marginBottom:16 }}>
+        <div className="screen-title-wrap"><div className="screen-title-glow"/><div className="pt">الأفكار</div></div>
+        <div className="ps">{ideas.length} فكرة · {ideas.filter(i=>i.done).length} منفذة</div>
+      </div>
+      <div className="sb-wrap"><span className="sb-ico"><Icon name="search" size={14} color="var(--muted)"/></span><input className="sb" value={search} onChange={e=>setSearch(e.target.value)} placeholder="بحث عن عميل..." style={{ paddingRight:36 }}/></div>
+
+      {filteredClients.length === 0
+        ? <EmptyState type={clients.length===0?"clients":"search"}/>
+        : filteredClients.map((c, i) => {
+          const [g1] = nameToGradient(c.name);
+          const clIdeas = ideas.filter(x => x.clientId === c.id);
+          const doneN = clIdeas.filter(x => x.done).length;
+          const ct = pickClientContract(contracts, c.id);
+          const vc = Number(ct?.videoCount||0), vd = Number(ct?.videoDone||0);
+          return (
+            <div key={c.id} className="clic stagger-item" style={{ animationDelay:`${i*40}ms`, borderColor:`${g1}33`, boxShadow:`0 4px 20px ${g1}14`, flexDirection:"column", alignItems:"stretch", gap:10 }} onClick={()=>setSel(c.id)}>
+              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                <GradientAvatar name={c.name} size={42}/>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div className="clic-name">{c.name}</div>
+                  <div className="clic-sub">{clIdeas.length} فكرة · {doneN} منفذة</div>
+                </div>
+                {ct && vc > 0 && <span className="badge" style={{ color:"#00ff88", background:"rgba(0,255,136,0.1)", borderColor:"rgba(0,255,136,0.3)", boxShadow:"0 0 10px rgba(0,255,136,0.15)" }}>{vd}/{vc} فيديو</span>}
+                <Icon name="chevron_left" size={14} color="var(--muted)"/>
+              </div>
+              {clIdeas.length > 0 && <div className="pbar" style={{ margin:0 }}><div className="pfill" style={{ width:`${(doneN/clIdeas.length)*100}%` }}/></div>}
+            </div>
+          );
+        })}
+    </div>
+  );
+}
 // ─── App Root ─────────────────────────────────────────────────────
 export default function App() {
   const initSettings = getSettings();
   const [contracts, setContracts] = useState([]);
   const [clients, setClients] = useState([]);
+    const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState("dashboard");
@@ -2389,9 +2661,10 @@ export default function App() {
   const handleSettingsSave = ns => { setSettings(ns); saveSettings(ns); };
 
  const loadData = async () => {
-    const [{ data:c },{ data:cl }] = await Promise.all([
+        const [{ data:c },{ data:cl },{ data:ig }] = await Promise.all([
       supabase.from("contracts").select("*").order("id",{ascending:false}),
       supabase.from("clients").select("*").order("id",{ascending:false}),
+      supabase.from("ideas").select("*").order("id",{ascending:false}),
     ]);
     const mapped = (c||[]).map(toApp);
     // تحويل تلقائي: عقد منتهي التاريخ بدون إنجاز كامل أو دفعة ثانية → active
@@ -2410,7 +2683,7 @@ export default function App() {
     setContracts(autoFixed);
     setClients((cl||[]).map(toAppCl));
   };
-
+    setIdeas((ig||[]).map(toAppIdea));
   useEffect(()=>{ if(!auth) return; loadData().then(()=>setLoading(false)); },[auth]);
   const handleRefresh = async () => { setRefreshing(true); await loadData(); setRefreshing(false); };
 
@@ -2490,7 +2763,23 @@ const togglePay=async(id,field)=>{
   };
 
   const saveClient=async c=>{ if(c.id){ const {data}=await supabase.from("clients").update(toDBCl(c)).eq("id",c.id).select().single(); if(data) setClients(p=>p.map(x=>x.id===c.id?toAppCl(data):x)); } else { const {data}=await supabase.from("clients").insert(toDBCl(c)).select().single(); if(data) setClients(p=>[toAppCl(data),...p]); } setClm(null); };
-  const delClient=async id=>{ await supabase.from("clients").delete().eq("id",id); setClients(p=>p.filter(c=>c.id!==id)); };
+    const delClient=async id=>{ await supabase.from("clients").delete().eq("id",id); setClients(p=>p.filter(c=>c.id!==id)); setIdeas(p=>p.filter(i=>i.clientId!==id)); };
+
+  // ── الأفكار (Supabase) ──
+  const addIdea=async(clientId,title)=>{
+    const {data,error}=await supabase.from("ideas").insert(toDBIdea({clientId,title,script:"",done:false,doneAt:null,contractId:null})).select().single();
+    if(error){ alert("تعذر حفظ الفكرة"); return; }
+    if(data) setIdeas(p=>[toAppIdea(data),...p]);
+  };
+  const updateIdea=async(id,patch)=>{
+    setIdeas(p=>p.map(i=>i.id===id?{...i,...patch}:i));
+    const {error}=await supabase.from("ideas").update(toDBIdeaPatch(patch)).eq("id",id);
+    if(error) alert("تعذر حفظ التعديل");
+  };
+  const delIdea=async id=>{
+    await supabase.from("ideas").delete().eq("id",id);
+    setIdeas(p=>p.filter(i=>i.id!==id));
+  };
   const goToClient=id=>{ setSelClient(id); setTab("clients"); };
   const goTo=t=>{ if(t==="contracts_new"){setTab("contracts");setTimeout(()=>setCm("new"),100);} else if(t==="clients_new"){setTab("clients");setTimeout(()=>setClm("new"),100);} else setTab(t); };
 
@@ -2517,6 +2806,7 @@ const togglePay=async(id,field)=>{
   const nav=[
     {key:"dashboard",label:"الرئيسية",icon:"dashboard"},
     {key:"clients",label:"العملاء",icon:"clients"},
+        {key:"ideas",label:"الأفكار",icon:"bulb"},
     {key:"contracts",label:"العقود",icon:"contracts"},
     {key:"income",label:"الدخل",icon:"income"},
     {key:"settings",label:"الإعدادات",icon:"settings"},
@@ -2586,7 +2876,7 @@ const togglePay=async(id,field)=>{
 {tab==="clients"&&<ClientsScreen clients={clients} contracts={contracts} onAdd={()=>setClm("new")} onEdit={c=>setClm(c)} onDelete={delClient} initialSel={selClient} onRefresh={handleRefresh}/>}
 {tab==="income"&&<IncomeScreen contracts={contracts} clients={clients} onRefresh={handleRefresh}/>}
 {tab==="settings"&&<SettingsScreen settings={settings} onSave={handleSettingsSave} theme={theme} onThemeChange={handleThemeChange} onRefresh={handleRefresh}/>}
-
+{tab==="ideas"&&<IdeasScreen clients={clients} contracts={contracts} ideas={ideas} onAddIdea={addIdea} onUpdateIdea={updateIdea} onDeleteIdea={delIdea} onVideoUpdate={updateVideoDone} onRefresh={handleRefresh}/>}
         <nav className="bnav">
           {nav.map(n=>(
             <div key={n.key} className={`bni${tab===n.key?" on":""}`}
