@@ -30,23 +30,23 @@ const saveNotifs = n => { try { localStorage.setItem("fareq_notifs", JSON.string
 const getPackages = () => { try { return JSON.parse(localStorage.getItem("fareq_packages") || "[]"); } catch { return []; } };
 const savePackages = p => { try { localStorage.setItem("fareq_packages", JSON.stringify(p)); } catch {} };
 const SL = { active:"جارٍ", pending:"معلق", completed:"مكتمل", cancelled:"ملغي", stand_by:"انتظار" };
-const SC = { active:"#00ff88", pending:"#ffd600", completed:"#a78bfa", cancelled:"#ff4d4d", stand_by:"#38bdf8" };
+const SC = { active:"#8fd9ae", pending:"#d9b86c", completed:"#a99bd6", cancelled:"#d98282", stand_by:"#86bcd6" };
 const CARD_ACCENT = {
-  active:    { border:"rgba(0,255,136,0.35)",  glow:"rgba(0,255,136,0.10)",  bar:"#00ff88",  shadow:"rgba(0,255,136,0.20)" },
-  pending:   { border:"rgba(255,214,0,0.35)",  glow:"rgba(255,214,0,0.08)",  bar:"#ffd600",  shadow:"rgba(255,214,0,0.18)" },
-  completed: { border:"rgba(167,139,250,0.35)",glow:"rgba(167,139,250,0.10)",bar:"#a78bfa",  shadow:"rgba(167,139,250,0.18)" },
-  cancelled: { border:"rgba(255,77,77,0.25)",  glow:"rgba(255,77,77,0.06)",  bar:"#ff4d4d",  shadow:"rgba(255,77,77,0.12)" },
-  stand_by:  { border:"rgba(56,189,248,0.35)", glow:"rgba(56,189,248,0.10)", bar:"#38bdf8",  shadow:"rgba(56,189,248,0.20)" },
+  active:    { border:"rgba(143,217,174,0.35)",  glow:"rgba(143,217,174,0.10)",  bar:"#8fd9ae",  shadow:"rgba(143,217,174,0.20)" },
+  pending:   { border:"#rgba(217,184,108,0.35)",  glow:"#rgba(217,184,108,0.08)",  bar:"#d9b86c",  shadow:"#rgba(217,184,108,0.18)" },
+  completed: { border:"rgba(169,155,214,0.35)",glow:"rgba(169,155,214,0.10)",bar:"#a99bd6",  shadow:"rgba(169,155,214,0.18)" },
+  cancelled: { border:"rgba(217,130,130,0.25)",  glow:"rgba(217,130,130,0.06)",  bar:"#d98282",  shadow:"rgba(217,130,130,0.12)" },
+  stand_by:  { border:"rgba(134,188,214,0.35)", glow:"rgba(134,188,214,0.10)", bar:"#86bcd6",  shadow:"rgba(134,188,214,0.20)" },
 };
 
 const nameToGradient = name => {
-  if (!name) return ["#00ff88","#00c96e"];
+  if (!name) return ["#8fd9ae","#6fbf93"];
   let h = 0;
   for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
-  const palettes = [
-    ["#00ff88","#00bfff"],["#ff6b6b","#ffd600"],["#a78bfa","#38bdf8"],
-    ["#fb923c","#f43f5e"],["#34d399","#06b6d4"],["#f472b6","#a78bfa"],
-    ["#fbbf24","#34d399"],["#60a5fa","#a78bfa"],
+   const palettes = [
+    ["#8fd9ae","#86bcd6"],["#d98a8a","#d9b86c"],["#a99bd6","#86bcd6"],
+    ["#d9a06c","#d98289"],["#8fd9ae","#86c8c8"],["#d996b8","#a99bd6"],
+    ["#d9b86c","#8fd9ae"],["#86a8d9","#a99bd6"],
   ];
   return palettes[Math.abs(h) % palettes.length];
 };
@@ -117,7 +117,7 @@ function SkeletonCard() {
 }
 function SkeletonHero() {
   return (
-    <div style={{ background:"linear-gradient(135deg,#0f1e3a,#0a1428 50%,#060e1f)", borderRadius:24, padding:"24px 20px 20px", margin:"14px 0 16px", border:"1px solid rgba(0,255,136,0.12)" }}>
+    <div style={{ background:"linear-gradient(135deg,#0f1e3a,#0a1428 50%,#060e1f)", borderRadius:24, padding:"24px 20px 20px", margin:"14px 0 16px", border:"1px solid rgba(143,217,174,0.12)" }}>
       <Skeleton w="40%" h={12} style={{ marginBottom:8 }} />
       <Skeleton w="70%" h={36} style={{ marginBottom:6 }} />
       <Skeleton w="30%" h={10} style={{ marginBottom:20 }} />
@@ -149,7 +149,7 @@ function ProgressRing({ pct, size=52, stroke=4, color="var(--ac)", track="var(--
 function PieChart({ data }) {
   if (!data||data.length===0) return null;
   const total=data.reduce((s,d)=>s+d.value,0); if(!total) return null;
-  const colors=["#00ff88","#a78bfa","#ffd600","#ff4d6d","#38bdf8","#fb923c","#34d399","#f472b6"];
+  const colors=["#8fd9ae","#a99bd6","#d9b86c","#d98289","#86bcd6","#fb923c","#34d399","#f472b6"];
   let cum=0;
   const slices=data.map((d,i)=>{ const pct=d.value/total; const start=cum; cum+=pct; return {...d,pct,start,color:colors[i%colors.length]}; });
   const size=120,cx=60,cy=60,r=48,inner=28;
@@ -221,8 +221,8 @@ function SwipeableCard({ onDelete, onCancel, onEdit, onLongPress, children }) {
     <div style={{ position:"relative", overflow:"hidden", borderRadius:16, marginBottom:10 }}>
       <div style={{ position:"absolute", left:0, top:0, bottom:0, width:SNAP, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
         <button onClick={()=>{ onEdit(); close(); }} style={{ width:34,height:34,borderRadius:10,background:"rgba(96,165,250,0.18)",border:"1px solid rgba(96,165,250,0.3)",color:"#60a5fa",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}><Icon name="edit" size={13} color="#60a5fa" /></button>
-        <button onClick={()=>{ onCancel(); close(); }} style={{ width:34,height:34,borderRadius:10,background:"rgba(255,214,0,0.15)",border:"1px solid rgba(255,214,0,0.3)",color:"#ffd600",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}><Icon name="cancel" size={13} color="#ffd600" /></button>
-        <button onClick={()=>{ onDelete(); close(); }} style={{ width:34,height:34,borderRadius:10,background:"rgba(255,77,77,0.15)",border:"1px solid rgba(255,77,77,0.3)",color:"#ff4d4d",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}><Icon name="trash" size={13} color="#ff4d4d" /></button>
+        <button onClick={()=>{ onCancel(); close(); }} style={{ width:34,height:34,borderRadius:10,background:"#rgba(217,184,108,0.15)",border:"1px solid #rgba(217,184,108,0.3)",color:"#d9b86c",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}><Icon name="cancel" size={13} color="#d9b86c" /></button>
+        <button onClick={()=>{ onDelete(); close(); }} style={{ width:34,height:34,borderRadius:10,background:"rgba(217,130,130,0.15)",border:"1px solid rgba(217,130,130,0.3)",color:"#d98282",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}><Icon name="trash" size={13} color="#d98282" /></button>
       </div>
       <div style={{ transform:`translateX(${offset}px)`, transition:startX.current?"none":"transform .25s cubic-bezier(.4,0,.2,1)", position:"relative", zIndex:1 }}
         onTouchStart={onTStart} onTouchMove={onTMove} onTouchEnd={onTEnd}>
@@ -244,9 +244,9 @@ function NotificationCenter({ notifications, onClose, onMarkAllRead, onDismiss }
   }, [notifications]);
 
   const groupLabels = {
-    payments:{ label:"الدفعات", icon:"income", color:"#00ff88" },
+    payments:{ label:"الدفعات", icon:"income", color:"#8fd9ae" },
     deadlines:{ label:"المواعيد النهائية", icon:"clock", color:"var(--warn)" },
-    completions:{ label:"المكتملة", icon:"check", color:"#a78bfa" },
+    completions:{ label:"المكتملة", icon:"check", color:"#a99bd6" },
     smart:{ label:"تنبيهات ذكية", icon:"zap", color:"#60a5fa" },
   };
   const unread = notifications.filter(n => !n.read).length;
@@ -351,12 +351,12 @@ function NotifBell({ count, onClick }) {
 
 // ─── Activity Feed ────────────────────────────────────────────────
 const ACTIVITY_ICONS = {
-  payment: { icon:"income", color:"#00ff88" },
+  payment: { icon:"income", color:"#8fd9ae" },
   contract: { icon:"contracts", color:"#60a5fa" },
-  complete: { icon:"check", color:"#a78bfa" },
-  cancel: { icon:"cancel", color:"#ff4d6d" },
-  video: { icon:"zap", color:"#fbbf24" },
-  client: { icon:"person", color:"#38bdf8" },
+  complete: { icon:"check", color:"#a99bd6" },
+  cancel: { icon:"cancel", color:"#d98289" },
+  video: { icon:"zap", color:"#d9b86c" },
+  client: { icon:"person", color:"#86bcd6" },
 };
 
 function ActivityFeed({ activities }) {
@@ -367,7 +367,7 @@ function ActivityFeed({ activities }) {
     <div className="card" style={{ marginBottom:16 }}>
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
         <div style={{ fontSize:14,fontWeight:700,color:"var(--text)",display:"flex",alignItems:"center",gap:8,letterSpacing:"-0.2px" }}>
-          <div style={{ width:28,height:28,borderRadius:9,background:"rgba(0,255,136,0.12)",border:"1px solid rgba(0,255,136,0.2)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+          <div style={{ width:28,height:28,borderRadius:9,background:"rgba(143,217,174,0.12)",border:"1px solid rgba(143,217,174,0.2)",display:"flex",alignItems:"center",justifyContent:"center" }}>
             <Icon name="history" size={13} color="var(--ac)"/>
           </div>
           آخر النشاطات
@@ -497,16 +497,21 @@ function EmptyState({ type, onAdd }) {
 
 // ─── CSS ──────────────────────────────────────────────────────────
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
+
+@font-face{font-family:'Thmanyah Sans';src:url('/fonts/thmanyah-sans-regular.woff2') format('woff2');font-weight:400;font-display:swap;}
+@font-face{font-family:'Thmanyah Sans';src:url('/fonts/thmanyah-sans-medium.woff2') format('woff2');font-weight:500;font-display:swap;}
+@font-face{font-family:'Thmanyah Sans';src:url('/fonts/thmanyah-sans-bold.woff2') format('woff2');font-weight:700;font-display:swap;}
+@font-face{font-family:'Thmanyah Display';src:url('/fonts/thmanyah-display-bold.woff2') format('woff2');font-weight:700;font-display:swap;}
 *{box-sizing:border-box;margin:0;padding:0;}
 :root {
   --bg:#f0f2f7; --surface:#ffffff; --surface2:#e8ebf4; --surface3:#dde1ef;
   --glass-bg:rgba(255,255,255,0.72); --glass-blur:blur(20px);
-  --ac:#00c96e; --ac2:#00a85a; --ac-glow:rgba(0,201,110,0.25); --ac-faint:rgba(0,201,110,0.10); --ac-border:rgba(0,201,110,0.35);
+  --ac:#6fbf93; --ac2:#00a85a; --ac-glow:rgba(111,191,147,0.25); --ac-faint:rgba(111,191,147,0.10); --ac-border:rgba(111,191,147,0.35);
   --text:#0d1b2a; --text2:#4a5568; --muted:#94a3b8; --muted2:#e2e8f0;
-  --danger:#ff4d6d; --warn:#f59e0b; --card-border:rgba(255,255,255,0.8); --card-gap:10px; --font:'IBM Plex Sans Arabic',sans-serif;
+  --danger:#d98289; --warn:#f59e0b; --card-border:rgba(255,255,255,0.8); --card-gap:10px; --font:'IBM Plex Sans Arabic',sans-serif;
   --grad-card:linear-gradient(135deg,#1a2340 0%,#0f1829 60%,#0a1020 100%);
-  --grad-accent:linear-gradient(135deg,#00ff88,#00c96e);
+  --grad-accent:linear-gradient(135deg,#8fd9ae,#6fbf93);
   --shadow-card:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.08);
   --shadow-float:0 20px 60px rgba(0,0,0,0.15),0 4px 16px rgba(0,0,0,0.1);
   --shadow-inner:inset 0 2px 8px rgba(0,0,0,0.06); --nav-bg:rgba(255,255,255,0.85);
@@ -515,9 +520,9 @@ const CSS = `
 [data-theme="dark"] {
   --bg:#0a0f1e; --surface:#111827; --surface2:#1a2340; --surface3:#1e2a4a;
   --glass-bg:rgba(17,24,39,0.75); --glass-blur:blur(20px);
-  --ac:#00ff88; --ac2:#00e07a; --ac-glow:rgba(0,255,136,0.30); --ac-faint:rgba(0,255,136,0.08); --ac-border:rgba(0,255,136,0.35);
+  --ac:#8fd9ae; --ac2:#6fbf93; --ac-glow:rgba(143,217,174,0.30); --ac-faint:rgba(143,217,174,0.08); --ac-border:rgba(143,217,174,0.35);
   --text:#f0f4ff; --text2:#94a3b8; --muted:#4a5568; --muted2:#1e2a4a;
-  --danger:#ff4d6d; --warn:#fbbf24; --card-border:rgba(255,255,255,0.06);
+  --danger:#d98289; --warn:#d9b86c; --card-border:rgba(255,255,255,0.06);
   --grad-card:linear-gradient(135deg,#1e2d50 0%,#151f38 60%,#0f1829 100%);
   --shadow-card:0 8px 32px rgba(0,0,0,0.4),0 2px 8px rgba(0,0,0,0.3);
   --shadow-float:0 20px 60px rgba(0,0,0,0.5),0 4px 16px rgba(0,0,0,0.4);
@@ -529,7 +534,7 @@ const CSS = `
 @keyframes skel { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 @keyframes fu { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
 @keyframes fu-fast { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:none} }
-@keyframes pulse-glow { 0%,100%{box-shadow:0 0 0 0 rgba(255,77,109,0.4)} 50%{box-shadow:0 0 0 5px rgba(255,77,109,0)} }
+@keyframes pulse-glow { 0%,100%{box-shadow:0 0 0 0 rgba(217,130,137,0.4)} 50%{box-shadow:0 0 0 5px rgba(217,130,137,0)} }
 @keyframes expandCard { from{opacity:0;max-height:0;transform:translateY(-6px)} to{opacity:1;max-height:700px;transform:none} }
 @keyframes spinIn { from{opacity:0;transform:scale(.85)} to{opacity:1;transform:scale(1)} }
 @keyframes stagger-in { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
@@ -556,22 +561,22 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .tb-btn:hover{border-color:var(--ac-border);color:var(--ac);}
 
 /* ── Hero card with animated wave ── */
-.hero-card{background:linear-gradient(135deg,#0f1e3a 0%,#0a1428 50%,#060e1f 100%);border-radius:24px;padding:24px 20px 20px;margin:14px 0 16px;position:relative;overflow:hidden;border:1px solid rgba(0,255,136,0.12);}
+.hero-card{background:linear-gradient(135deg,#0f1e3a 0%,#0a1428 50%,#060e1f 100%);border-radius:24px;padding:24px 20px 20px;margin:14px 0 16px;position:relative;overflow:hidden;border:1px solid rgba(143,217,174,0.12);}
 /* Colored shadow for hero */
-.hero-card-shadow{box-shadow:0 20px 60px rgba(0,255,136,0.12),0 8px 24px rgba(0,0,0,0.5),0 0 0 1px rgba(0,255,136,0.08);}
-.hero-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,255,136,0.15) 0%,rgba(0,100,255,0.08) 50%,rgba(0,255,136,0.05) 100%);background-size:400% 400%;animation:wave-shift 8s ease infinite;z-index:0;}
+.hero-card-shadow{box-shadow:0 20px 60px rgba(143,217,174,0.12),0 8px 24px rgba(0,0,0,0.5),0 0 0 1px rgba(143,217,174,0.08);}
+.hero-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(143,217,174,0.15) 0%,rgba(0,100,255,0.08) 50%,rgba(143,217,174,0.05) 100%);background-size:400% 400%;animation:wave-shift 8s ease infinite;z-index:0;}
 .hero-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(0,150,255,0.08) 0%,transparent 70%);border-radius:50%;z-index:0;}
-.hero-dots{position:absolute;inset:0;opacity:0.1;background-image:radial-gradient(circle,rgba(0,255,136,0.6) 1px,transparent 1px);background-size:20px 20px;pointer-events:none;z-index:0;}
+.hero-dots{position:absolute;inset:0;opacity:0.1;background-image:radial-gradient(circle,rgba(143,217,174,0.6) 1px,transparent 1px);background-size:20px 20px;pointer-events:none;z-index:0;}
 .hero-lbl{font-size:12px;color:rgba(255,255,255,0.55);font-weight:500;margin-bottom:6px;letter-spacing:0.5px;position:relative;z-index:1;}
 .hero-greeting{font-size:11px;color:rgba(255,255,255,0.45);font-weight:400;margin-bottom:8px;position:relative;z-index:1;}
 .hero-amount{font-size:34px;font-weight:900;line-height:1.1;margin-bottom:4px;position:relative;z-index:1;
-  background:linear-gradient(135deg,#ffffff 0%,#00ff88 50%,#00ffcc 100%);background-size:200% 200%;
+  background:linear-gradient(135deg,#ffffff 0%,#8fd9ae 50%,#a8e6c3 100%);background-size:200% 200%;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   animation:shimmer-text 4s ease infinite;}
 .hero-change{font-size:11px;color:var(--ac);font-weight:600;display:flex;align-items:center;gap:4px;}
 .quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px;position:relative;z-index:1;}
 .qa-btn{display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:12px 6px;cursor:pointer;transition:all .2s;backdrop-filter:blur(10px);}
-.qa-btn:hover{background:rgba(0,255,136,0.15);border-color:rgba(0,255,136,0.3);transform:translateY(-2px);}
+.qa-btn:hover{background:rgba(143,217,174,0.15);border-color:rgba(143,217,174,0.3);transform:translateY(-2px);}
 .qa-btn:active{transform:scale(.96);}
 .qa-icon{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;}
 .qa-lbl{font-size:10px;color:rgba(255,255,255,0.7);font-weight:600;}
@@ -596,7 +601,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 @keyframes border-draw { from{stroke-dashoffset:1000} to{stroke-dashoffset:0} }
 .urgent-ring{position:absolute;inset:0;border-radius:16px;pointer-events:none;z-index:0;overflow:hidden;}
 .urgent-ring svg{position:absolute;inset:0;width:100%;height:100%;}
-.urgent-stroke{fill:none;stroke:#ff4d4d;stroke-width:2;animation:urgent-border 1.5s ease-in-out infinite;stroke-dasharray:8 4;}
+.urgent-stroke{fill:none;stroke:#d98282;stroke-width:2;animation:urgent-border 1.5s ease-in-out infinite;stroke-dasharray:8 4;}
 
 /* Days remaining watermark */
 .days-watermark{position:absolute;bottom:6px;left:10px;font-size:52px;font-weight:900;opacity:0.04;line-height:1;pointer-events:none;color:var(--text);font-family:var(--font);z-index:0;user-select:none;}
@@ -614,24 +619,24 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .amt-box{background:var(--surface2);border-radius:10px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--card-border);}
 .amt-lbl{font-size:9px;color:var(--muted);font-weight:600;}
 .amt-val{font-size:15px;font-weight:700;color:var(--ac);font-variant-numeric:tabular-nums;font-feature-settings:"tnum";}
-.payment-amt-shadow{box-shadow:0 4px 14px rgba(0,255,136,0.15);}
+.payment-amt-shadow{box-shadow:0 4px 14px rgba(143,217,174,0.15);}
 
 /* Payment sections */
 .psec{background:var(--surface2);border-radius:12px;padding:10px 12px;border:1px solid var(--card-border);margin-top:6px;}
 .pbar{height:4px;background:var(--muted2);border-radius:4px;margin:6px 0 8px;overflow:hidden;}
-.pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);box-shadow:0 0 8px var(--ac-glow);transition:width .8s cubic-bezier(.34,1.56,.64,1);}
+.pfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#a8e6c3);box-shadow:0 0 8px var(--ac-glow);transition:width .8s cubic-bezier(.34,1.56,.64,1);}
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
 .pitem{background:var(--surface);border-radius:10px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:6px;border:1px solid var(--card-border);box-shadow:var(--shadow-card);}
 
 /* Payment toggle */
 .ptog{padding:4px 10px;border-radius:7px;border:none;font-size:9px;font-weight:800;cursor:pointer;font-family:var(--font);transition:all .25s;white-space:nowrap;position:relative;overflow:hidden;}
-.ptog.ok{background:rgba(0,255,136,0.15);color:var(--ac);box-shadow:0 2px 8px rgba(0,255,136,0.2);}
+.ptog.ok{background:rgba(143,217,174,0.15);color:var(--ac);box-shadow:0 2px 8px rgba(143,217,174,0.2);}
 .ptog.no{background:var(--surface2);color:var(--muted);}
 
 /* Video progress */
 .vpsec{background:var(--surface2);border-radius:12px;padding:10px 12px;border:1px solid var(--card-border);margin-top:8px;}
 .vpbar{height:4px;background:var(--muted2);border-radius:4px;margin:6px 0 8px;overflow:hidden;}
-.vpfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#00ffcc);transition:width .8s cubic-bezier(.34,1.56,.64,1);}
+.vpfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),#a8e6c3);transition:width .8s cubic-bezier(.34,1.56,.64,1);}
 .vp-btn{padding:5px 13px;border-radius:8px;border:none;background:var(--surface);color:var(--ac);font-size:10px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s;border:1px solid var(--card-border);box-shadow:var(--shadow-card);}
 .vp-btn:hover{border-color:var(--ac-border);}
 
@@ -652,8 +657,8 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .bni:hover{background:var(--ac-faint);}
 .bni-lbl{font-size:9px;color:var(--muted);font-weight:700;transition:color .2s;}
 .bni.on .bni-lbl{color:var(--ac);animation:neon-pulse 2s ease-in-out infinite;}
-.bni-fab{width:50px;height:50px;border-radius:16px;background:linear-gradient(135deg,#00ff88,#00c96e);display:flex;align-items:center;justify-content:center;margin-bottom:2px;transition:all .2s;cursor:pointer;box-shadow:0 0 20px rgba(0,255,136,0.4),0 4px 20px rgba(0,201,110,0.5);position:relative;overflow:hidden;}
-.bni-fab:hover{transform:scale(1.08);box-shadow:0 0 30px rgba(0,255,136,0.5),0 8px 28px rgba(0,201,110,0.6);}
+.bni-fab{width:50px;height:50px;border-radius:16px;background:linear-gradient(135deg,#8fd9ae,#6fbf93);display:flex;align-items:center;justify-content:center;margin-bottom:2px;transition:all .2s;cursor:pointer;box-shadow:0 0 20px rgba(143,217,174,0.4),0 4px 20px rgba(111,191,147,0.5);position:relative;overflow:hidden;}
+.bni-fab:hover{transform:scale(1.08);box-shadow:0 0 30px rgba(143,217,174,0.5),0 8px 28px rgba(111,191,147,0.6);}
 .bni-fab:active{transform:scale(.95);}
 
 /* ── Core card ── */
@@ -686,10 +691,10 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .bngf:hover{box-shadow:0 6px 28px var(--ac-glow);}
 .bgh{background:var(--surface2);color:var(--muted);border:1px solid var(--card-border);}
 .bgh:hover{color:var(--text);}
-.btn-danger{background:rgba(255,77,109,0.12);color:var(--danger);border:1px solid rgba(255,77,109,0.2);}
+.btn-danger{background:rgba(217,130,137,0.12);color:var(--danger);border:1px solid rgba(217,130,137,0.2);}
 .ico-btn{width:32px;height:32px;border-radius:9px;background:var(--surface2);border:1px solid var(--card-border);color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;box-shadow:var(--shadow-card);}
 .ico-btn:hover{color:var(--ac);border-color:var(--ac-border);}
-.ico-btn.red:hover{color:var(--danger);border-color:rgba(255,77,109,0.3);}
+.ico-btn.red:hover{color:var(--danger);border-color:rgba(217,130,137,0.3);}
 .ico-btn.wa:hover{color:#25D366;border-color:rgba(37,211,102,0.3);}
 
 /* ── Modals ── */
@@ -699,7 +704,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
 .mtitle{font-size:17px;font-weight:900;color:var(--text);display:flex;align-items:center;gap:8px;}
 .mclose{width:30px;height:30px;border-radius:9px;background:var(--surface2);border:1px solid var(--card-border);color:var(--muted);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;}
-.mclose:hover{color:var(--danger);border-color:rgba(255,77,109,0.3);}
+.mclose:hover{color:var(--danger);border-color:rgba(217,130,137,0.3);}
 .mft{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--muted2);}
 
 /* ── Forms ── */
@@ -731,8 +736,8 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 
 /* ── Alerts ── */
 .alr{display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:14px;margin-bottom:8px;font-size:11px;font-weight:700;border:1px solid;animation:fu .3s;}
-.au{background:rgba(255,77,109,.06);border-color:rgba(255,77,109,.2);color:var(--danger);}
-.aw{background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.2);color:var(--warn);}
+.au{background:rgba(217,130,137,.06);border-color:rgba(217,130,137,.2);color:var(--danger);}
+.aw{background:rgba(217,184,108,.06);border-color:rgba(217,184,108,.2);color:var(--warn);}
 
 /* ── Clients ── */
 .clic{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:16px;padding:12px 14px;margin-bottom:var(--card-gap);display:flex;align-items:center;gap:12px;transition:all .25s;cursor:pointer;box-shadow:var(--shadow-card);}
@@ -752,43 +757,43 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .gresult:hover{box-shadow:var(--shadow-float);border-color:var(--ac-border);}
 
 /* ── Wallet ── */
-.wallet-hero{background:linear-gradient(135deg,#0f1e3a 0%,#0a1428 50%,#060e1f 100%);border-radius:24px;padding:22px 20px 20px;margin:14px 0 16px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(167,139,250,0.15),0 8px 24px rgba(0,0,0,0.5);border:1px solid rgba(167,139,250,0.15);}
-.wallet-hero::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(167,139,250,0.15) 0%,transparent 70%);border-radius:50%;}
+.wallet-hero{background:linear-gradient(135deg,#0f1e3a 0%,#0a1428 50%,#060e1f 100%);border-radius:24px;padding:22px 20px 20px;margin:14px 0 16px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(169,155,214,0.15),0 8px 24px rgba(0,0,0,0.5);border:1px solid rgba(169,155,214,0.15);}
+.wallet-hero::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(169,155,214,0.15) 0%,transparent 70%);border-radius:50%;}
 .wallet-tabs{display:flex;background:rgba(255,255,255,0.07);border-radius:12px;padding:3px;margin-bottom:18px;position:relative;z-index:1;border:1px solid rgba(255,255,255,0.1);}
 .wallet-tab-btn{flex:1;padding:8px;border:none;border-radius:9px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:700;transition:all .2s;background:transparent;color:rgba(255,255,255,0.5);}
-.wallet-tab-btn.on{background:rgba(167,139,250,0.2);color:#a78bfa;box-shadow:0 0 12px rgba(167,139,250,0.2);}
+.wallet-tab-btn.on{background:rgba(169,155,214,0.2);color:#a99bd6;box-shadow:0 0 12px rgba(169,155,214,0.2);}
 .wallet-balance-lbl{font-size:12px;color:rgba(255,255,255,0.5);font-weight:500;margin-bottom:4px;position:relative;z-index:1;}
 .wallet-balance-amt{font-size:36px;font-weight:900;color:#fff;margin-bottom:16px;position:relative;z-index:1;line-height:1;}
 .wallet-actions{display:flex;gap:10px;position:relative;z-index:1;}
 .wa-btn{flex:1;padding:11px;border:none;border-radius:14px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}
-.wa-btn.income-btn{background:rgba(0,255,136,0.18);color:var(--ac);border:1px solid rgba(0,255,136,0.3);}
-.wa-btn.expense-btn{background:rgba(255,77,109,0.15);color:#ff4d6d;border:1px solid rgba(255,77,109,0.25);box-shadow:0 4px 12px rgba(255,77,109,0.15);}
-.wa-btn.savings-btn{background:rgba(167,139,250,0.15);color:#a78bfa;border:1px solid rgba(167,139,250,0.25);}
+.wa-btn.income-btn{background:rgba(143,217,174,0.18);color:var(--ac);border:1px solid rgba(143,217,174,0.3);}
+.wa-btn.expense-btn{background:rgba(217,130,137,0.15);color:#d98289;border:1px solid rgba(217,130,137,0.25);box-shadow:0 4px 12px rgba(217,130,137,0.15);}
+.wa-btn.savings-btn{background:rgba(169,155,214,0.15);color:#a99bd6;border:1px solid rgba(169,155,214,0.25);}
 .wa-btn:hover{transform:translateY(-1px);} .wa-btn:active{transform:scale(.97);}
 .wallet-tx-card{background:var(--glass-bg);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:16px;padding:13px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-card);transition:all .2s;animation:fu .3s;}
 .wallet-tx-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-float);}
 .wtx-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.wtx-icon.green{background:rgba(0,255,136,0.12);box-shadow:0 4px 12px rgba(0,255,136,0.15);}
-.wtx-icon.red{background:rgba(255,77,109,0.12);box-shadow:0 4px 12px rgba(255,77,109,0.12);}
-.wtx-icon.purple{background:rgba(167,139,250,0.12);box-shadow:0 4px 12px rgba(167,139,250,0.12);}
+.wtx-icon.green{background:rgba(143,217,174,0.12);box-shadow:0 4px 12px rgba(143,217,174,0.15);}
+.wtx-icon.red{background:rgba(217,130,137,0.12);box-shadow:0 4px 12px rgba(217,130,137,0.12);}
+.wtx-icon.purple{background:rgba(169,155,214,0.12);box-shadow:0 4px 12px rgba(169,155,214,0.12);}
 .wtx-name{font-size:13px;font-weight:700;color:var(--text);}
 .wtx-sub{font-size:10px;color:var(--muted);margin-top:2px;}
-.wtx-amt{font-size:14px;font-weight:800;} .wtx-amt.pos{color:var(--ac);} .wtx-amt.neg{color:var(--danger);} .wtx-amt.purple{color:#a78bfa;}
+.wtx-amt{font-size:14px;font-weight:800;} .wtx-amt.pos{color:var(--ac);} .wtx-amt.neg{color:var(--danger);} .wtx-amt.purple{color:#a99bd6;}
 
 /* ── Typography ── */
 .pt{font-size:22px;font-weight:900;color:var(--text);margin-bottom:2px;}
 .ps{font-size:12px;color:var(--muted);}
 .screen-title-wrap{display:inline-flex;align-items:center;position:relative;margin-bottom:2px;}
-.screen-title-glow{position:absolute;inset:-8px -16px;background:linear-gradient(135deg,rgba(0,255,136,0.22),rgba(0,201,110,0.08));border-radius:14px;filter:blur(10px);z-index:0;pointer-events:none;}
+.screen-title-glow{position:absolute;inset:-8px -16px;background:linear-gradient(135deg,rgba(143,217,174,0.22),rgba(111,191,147,0.08));border-radius:14px;filter:blur(10px);z-index:0;pointer-events:none;}
 .pt{font-size:28px;font-weight:700;letter-spacing:-0.5px;color:var(--text);margin-bottom:2px;position:relative;z-index:1;}
 .sh{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin:24px 0 10px;}
 .lmark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#000;box-shadow:0 4px 14px var(--ac-glow);}
 
 /* ── Misc UI ── */
 .ptr-indicator{display:flex;justify-content:center;align-items:center;padding:8px 0;color:var(--ac);font-size:12px;font-weight:700;gap:8px;transition:all .2s;}
-.unpaid-banner{background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.25);border-radius:16px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 16px rgba(255,77,109,0.12);}
+.unpaid-banner{background:rgba(217,130,137,0.1);border:1px solid rgba(217,130,137,0.25);border-radius:16px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 16px rgba(217,130,137,0.12);}
 .today-task{background:var(--glass-bg);backdrop-filter:blur(8px);border:1px solid var(--card-border);border-radius:14px;padding:10px 12px;margin-bottom:6px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow-card);}
-.countdown-box{background:rgba(255,214,0,0.08);border:1px solid rgba(255,214,0,0.2);border-radius:14px;padding:11px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 16px rgba(255,214,0,0.1);}
+.countdown-box{background:#rgba(217,184,108,0.08);border:1px solid #rgba(217,184,108,0.2);border-radius:14px;padding:11px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 16px #rgba(217,184,108,0.1);}
 .unpaid-row{background:var(--glass-bg);backdrop-filter:blur(8px);border:1px solid var(--card-border);border-radius:14px;padding:11px 14px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-card);animation:fu .3s;}
 
 /* ── Selection mode ── */
@@ -808,9 +813,9 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 
 /* ── Cash flow projection ── */
 .cashflow-card{border-radius:16px;padding:14px;margin-bottom:8px;border:1px solid;display:flex;justify-content:space-between;align-items:center;}
-.cashflow-30{background:rgba(0,255,136,0.06);border-color:rgba(0,255,136,0.2);box-shadow:0 4px 16px rgba(0,255,136,0.08);}
-.cashflow-60{background:rgba(56,189,248,0.06);border-color:rgba(56,189,248,0.2);box-shadow:0 4px 16px rgba(56,189,248,0.08);}
-.cashflow-90{background:rgba(167,139,250,0.06);border-color:rgba(167,139,250,0.2);box-shadow:0 4px 16px rgba(167,139,250,0.08);}
+.cashflow-30{background:rgba(143,217,174,0.06);border-color:rgba(143,217,174,0.2);box-shadow:0 4px 16px rgba(143,217,174,0.08);}
+.cashflow-60{background:rgba(134,188,214,0.06);border-color:rgba(134,188,214,0.2);box-shadow:0 4px 16px rgba(134,188,214,0.08);}
+.cashflow-90{background:rgba(169,155,214,0.06);border-color:rgba(169,155,214,0.2);box-shadow:0 4px 16px rgba(169,155,214,0.08);}
 
 /* ── Status history timeline ── */
 .timeline-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
@@ -826,17 +831,17 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 /* ── Ideas ── */
 .idea-card{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:16px;margin-bottom:10px;overflow:hidden;position:relative;transition:border-color .25s,box-shadow .25s;box-shadow:var(--shadow-card);animation:stagger-in .4s cubic-bezier(.4,0,.2,1) both;}
 .idea-card.open{border-color:var(--ac-border);}
-.idea-card.done{border-color:rgba(0,255,136,0.35);box-shadow:0 6px 24px rgba(0,255,136,0.14),0 0 18px rgba(0,255,136,0.08);}
+.idea-card.done{border-color:rgba(143,217,174,0.35);box-shadow:0 6px 24px rgba(143,217,174,0.14),0 0 18px rgba(143,217,174,0.08);}
 .idea-head{display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;}
 .idea-num{width:34px;height:34px;border-radius:10px;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0;}
 .idea-title{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .idea-sub{font-size:10px;color:var(--muted);margin-top:2px;font-weight:500;}
 .idea-body{border-top:1px solid var(--muted2);padding:12px 14px 14px;animation:expandCard .32s cubic-bezier(.34,1.2,.64,1) both;}
 .idea-script{min-height:140px;line-height:1.9;font-size:13px;}
-.idea-done-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 14px;border-radius:12px;border:1px solid rgba(0,255,136,0.5);background:linear-gradient(135deg,#00ff88,#00c96e);color:#000;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 0 18px rgba(0,255,136,0.45),0 4px 18px rgba(0,201,110,0.35);}
-.idea-done-btn:hover{transform:translateY(-1px);box-shadow:0 0 26px rgba(0,255,136,0.6),0 6px 24px rgba(0,201,110,0.45);}
+.idea-done-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 14px;border-radius:12px;border:1px solid rgba(143,217,174,0.5);background:linear-gradient(135deg,#8fd9ae,#6fbf93);color:#000;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 0 18px rgba(143,217,174,0.45),0 4px 18px rgba(111,191,147,0.35);}
+.idea-done-btn:hover{transform:translateY(-1px);box-shadow:0 0 26px rgba(143,217,174,0.6),0 6px 24px rgba(111,191,147,0.45);}
 .idea-done-btn:active{transform:scale(.97);}
-.idea-done-btn.undo{background:rgba(0,255,136,0.08);color:var(--ac);box-shadow:0 0 12px rgba(0,255,136,0.15);}
+.idea-done-btn.undo{background:rgba(143,217,174,0.08);color:var(--ac);box-shadow:0 0 12px rgba(143,217,174,0.15);}
 .idea-done-btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none;}
 .idea-stat{background:var(--surface2);border:1px solid var(--card-border);border-radius:12px;padding:9px 6px;text-align:center;}
 .idea-stat-v{font-size:17px;font-weight:900;font-variant-numeric:tabular-nums;}
@@ -876,8 +881,8 @@ body{display:block !important;place-items:unset !important;margin:0 !important;m
   .mod::before{display:none;}
   .gsearch-wrap{padding:40px max(14px,calc((100% - 640px)/2));}
 }
-.idea-go-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;margin-bottom:10px;border-radius:12px;border:1px solid rgba(251,191,36,0.45);background:linear-gradient(135deg,rgba(251,191,36,0.16),rgba(251,191,36,0.06));color:#fbbf24;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 0 16px rgba(251,191,36,0.18);}
-.idea-go-btn:hover{transform:translateY(-1px);box-shadow:0 0 24px rgba(251,191,36,0.32);}
+.idea-go-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;margin-bottom:10px;border-radius:12px;border:1px solid rgba(217,184,108,0.45);background:linear-gradient(135deg,rgba(217,184,108,0.16),rgba(217,184,108,0.06));color:#d9b86c;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 0 16px rgba(217,184,108,0.18);}
+.idea-go-btn:hover{transform:translateY(-1px);box-shadow:0 0 24px rgba(217,184,108,0.32);}
 .idea-go-btn:active{transform:scale(.97);}
 /* ── Premium polish ── */
 :root{
@@ -981,6 +986,110 @@ body{display:block !important;place-items:unset !important;margin:0 !important;m
 }
 /* ── Responsive ── */
 @media(max-width:500px){.fgrid{grid-template-columns:1fr}.ffl{grid-column:1}.pgrid{grid-template-columns:1fr}}
+/* ═══════ Glass Brown Minimal ═══════ */
+:root,[data-theme="dark"],[data-theme="light"]{
+  --font:'Sora','Thmanyah Sans',sans-serif;
+  --font-head:'Sora','Thmanyah Sans',sans-serif;
+  --bg:#120c09;--surface:rgba(255,255,255,0.04);--surface2:rgba(255,255,255,0.06);--surface3:rgba(255,255,255,0.09);
+  --text:#f5efe9;--text2:rgba(245,239,233,0.70);--muted:rgba(245,239,233,0.45);--muted2:rgba(255,255,255,0.06);
+  --line:rgba(255,255,255,0.05);--card-border:rgba(255,255,255,0.05);
+  --ac:#9fd9b4;--ac2:#86c79f;--ac-glow:rgba(159,217,180,0.12);--ac-faint:rgba(159,217,180,0.09);--ac-border:rgba(159,217,180,0.22);
+  --danger:#e0908f;--warn:#dcc08a;
+  --glass-bg:rgba(255,255,255,0.035);--nav-bg:rgba(40,27,20,0.55);
+  --shadow-card:none;--shadow-float:0 20px 50px rgba(0,0,0,0.5);--shadow-inner:none;
+  --skel-bg:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.09) 50%,rgba(255,255,255,0.04) 75%);
+}
+html,body,input,select,textarea,button{font-family:var(--font) !important;color-scheme:dark;}
+html,body{background:#120c09;}
+.app{background:linear-gradient(180deg,#563520 0%,#2e1d13 32%,#150e0a 62%,#0c0806 100%) fixed !important;}
+
+.topbar{background:transparent !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;border-bottom:none !important;}
+.tb-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.06) !important;border:1px solid rgba(255,255,255,0.07) !important;box-shadow:none;}
+.app svg{stroke:rgba(255,255,255,0.92);}
+.app svg[stroke="none"]{stroke:none;}
+
+.pt{font-size:26px;font-weight:500;letter-spacing:0;color:#fff;}
+.ps,.sh,.stat-lbl,.tx-sub,.clic-sub,.cc-compact-sub,.flbl{color:var(--muted);}
+.sh{text-transform:none;letter-spacing:0;font-size:13px;font-weight:500;}
+.sec-title,.mtitle{font-weight:500;letter-spacing:0;color:#fff;}
+.screen-title-glow{display:none;}
+
+.hero-card,.hero-card-shadow{background:transparent !important;border:none !important;box-shadow:none !important;padding:10px 4px 6px;text-align:center;}
+.hero-card::before,.hero-card::after,.hero-dots{display:none !important;}
+.hero-lbl,.hero-greeting{color:var(--text2);}
+.hero-amount{-webkit-text-fill-color:#fff;color:#fff;background:none;font-size:46px;font-weight:200;letter-spacing:-1px;animation:none;}
+.hero-amount span{-webkit-text-fill-color:rgba(255,255,255,0.4) !important;color:rgba(255,255,255,0.4) !important;}
+.hero-change{color:var(--ac);justify-content:center;}
+
+.qa-btn{flex-direction:row;justify-content:center;gap:10px;border-radius:999px;padding:13px 14px !important;background:rgba(255,255,255,0.05) !important;border:1px solid rgba(255,255,255,0.07) !important;backdrop-filter:blur(14px);}
+.qa-lbl{color:#fff;font-weight:500;font-size:12px !important;}
+
+.card,.stat-card,.tx-card,.clic,.wallet-tx-card,.today-task,.unpaid-row,.cc,.idea-card,.cashflow-card,.gresult{
+  background:rgba(255,255,255,0.035) !important;
+  border:1px solid rgba(255,255,255,0.05) !important;
+  border-radius:26px !important;
+  box-shadow:none !important;
+  backdrop-filter:blur(24px) !important;-webkit-backdrop-filter:blur(24px) !important;
+}
+.pitem,.amt-box,.idea-stat,.psec,.vpsec{background:rgba(255,255,255,0.03) !important;border:1px solid rgba(255,255,255,0.04) !important;border-radius:18px !important;box-shadow:none !important;}
+.tx-card,.clic{border-right:1px solid rgba(255,255,255,0.05) !important;}
+.cc>div[style*="width: 3px"],.idea-card>div[style*="width: 3px"]{display:none !important;}
+.days-watermark,.urgent-ring{display:none;}
+
+.tx-icon,.cc-compact-icon,.wtx-icon,.idea-num,.qa-icon{background:rgba(255,255,255,0.06) !important;border:none !important;box-shadow:none !important;border-radius:50% !important;}
+
+.countdown-box{background:linear-gradient(270deg,rgba(159,217,180,0.10),rgba(255,255,255,0.02)) !important;border:1px solid rgba(159,217,180,0.14) !important;border-radius:24px !important;box-shadow:none !important;}
+.unpaid-banner,.au{background:linear-gradient(270deg,rgba(224,144,143,0.09),rgba(255,255,255,0.02)) !important;border:1px solid rgba(224,144,143,0.14) !important;border-radius:24px !important;box-shadow:none !important;}
+.aw{background:linear-gradient(270deg,rgba(220,192,138,0.09),rgba(255,255,255,0.02)) !important;border:1px solid rgba(220,192,138,0.14) !important;border-radius:24px !important;box-shadow:none !important;}
+.cashflow-30,.cashflow-60,.cashflow-90{background:rgba(255,255,255,0.04) !important;border-color:rgba(255,255,255,0.06) !important;box-shadow:none !important;}
+
+.badge{border-color:transparent !important;box-shadow:none !important;background:rgba(255,255,255,0.06) !important;font-weight:500;}
+
+.btn{border-radius:999px;font-weight:500;box-shadow:none;}
+.bng,.bgh,.wa-btn{background:rgba(255,255,255,0.05) !important;color:#fff !important;border:1px solid rgba(255,255,255,0.07) !important;box-shadow:none !important;}
+.bngf,.idea-done-btn,.idea-go-btn{background:rgba(159,217,180,0.09) !important;color:var(--ac) !important;border:1px solid rgba(159,217,180,0.18) !important;box-shadow:none !important;}
+.bngf svg,.idea-done-btn svg,.idea-go-btn svg{stroke:var(--ac) !important;}
+.btn-danger{background:rgba(224,144,143,0.10) !important;color:var(--danger) !important;border:1px solid rgba(224,144,143,0.20) !important;}
+.btn-danger svg,.ico-btn.red svg{stroke:var(--danger) !important;}
+.ico-btn.wa svg{stroke:var(--ac) !important;}
+.ico-btn,.mclose{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);box-shadow:none;color:#fff;}
+
+.tab{border-radius:999px;background:rgba(255,255,255,0.05) !important;border:1px solid rgba(255,255,255,0.07) !important;color:var(--text2);box-shadow:none;font-weight:500;}
+.tab.on,.dur-btn.on,.wallet-tab-btn.on{background:rgba(255,255,255,0.11) !important;color:#fff;border-color:rgba(255,255,255,0.12) !important;box-shadow:none;}
+.dur-btn{border-radius:999px;background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.07);color:var(--text2);}
+
+.finp,.fsel,.fta,.sb,.gsearch-inp{background:rgba(255,255,255,0.04) !important;border:1px solid rgba(255,255,255,0.06) !important;border-radius:16px;color:#fff;box-shadow:none;}
+.finp:focus,.fsel:focus,.fta:focus,.sb:focus{border-color:rgba(255,255,255,0.25) !important;box-shadow:none !important;}
+.finp::placeholder,.sb::placeholder,.fta::placeholder{color:var(--muted);}
+.fsel option{background:#2a1c14;color:#fff;}
+
+.mov{background:rgba(8,5,3,0.65);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+.mod,.conf-box{background:linear-gradient(180deg,#2e1d13,#15100c) !important;border:1px solid rgba(255,255,255,0.06);box-shadow:var(--shadow-float);backdrop-filter:none;border-radius:30px 30px 0 0;}
+.conf-box{border-radius:26px;}
+.gsearch-wrap{background:rgba(10,6,4,0.9);}
+
+.bnav{background:rgba(40,27,20,0.55) !important;border:1px solid rgba(255,255,255,0.06) !important;border-radius:32px !important;box-shadow:0 14px 40px rgba(0,0,0,0.5) !important;backdrop-filter:blur(30px) !important;-webkit-backdrop-filter:blur(30px) !important;}
+.bni{border-radius:24px;}
+.bni-lbl{color:var(--muted);font-weight:500;font-size:10px;}
+.bni.on{background:rgba(255,255,255,0.08);box-shadow:none;}
+.bni.on .bni-lbl{color:#fff;animation:none;text-shadow:none;}
+.bni svg{stroke:rgba(255,255,255,0.45) !important;}
+.bni.on svg{stroke:#fff !important;}
+.bni-fab{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,0.09) !important;border:1px solid rgba(255,255,255,0.10);box-shadow:none !important;}
+.bni-fab svg{stroke:#fff !important;}
+
+.wallet-hero{background:transparent !important;border:none !important;box-shadow:none !important;text-align:center;}
+.wallet-hero::before{display:none;}
+.wallet-balance-amt{color:#fff;font-weight:200;font-size:44px;}
+.wallet-balance-lbl{color:var(--text2);}
+.wallet-tabs{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.07);border-radius:999px;}
+.wallet-tab-btn{border-radius:999px;color:var(--muted);}
+
+.pfill,.vpfill{background:var(--ac);box-shadow:none;}
+.pbar,.vpbar{background:rgba(255,255,255,0.08);}
+.toggle{background:rgba(255,255,255,0.12);}
+.toggle.on{background:var(--ac);box-shadow:none;}
+.screen{padding-bottom:120px;}
 `;
 
 // ─── Icons ────────────────────────────────────────────────────────
@@ -1263,9 +1372,9 @@ function CashFlowProjection({ contracts }) {
   };
   const p30=project(30),p60=project(60),p90=project(90);
   const tiers=[
-    { days:30,amt:p30,label:"30 يوم",color:"#00ff88",cls:"cashflow-30" },
-    { days:60,amt:p60,label:"60 يوم",color:"#38bdf8",cls:"cashflow-60" },
-    { days:90,amt:p90,label:"90 يوم",color:"#a78bfa",cls:"cashflow-90" },
+    { days:30,amt:p30,label:"30 يوم",color:"#8fd9ae",cls:"cashflow-30" },
+    { days:60,amt:p60,label:"60 يوم",color:"#86bcd6",cls:"cashflow-60" },
+    { days:90,amt:p90,label:"90 يوم",color:"#a99bd6",cls:"cashflow-90" },
   ];
   return (
     <div className="card" style={{ marginBottom:10 }}>
@@ -1456,7 +1565,7 @@ function ContractModal({ contract, clients, onClose, onSave, defaultCurrency }) 
                     <button onClick={e=>{ e.stopPropagation(); setPkgForm(pkg); setPkgFormVal({ name:pkg.name, videoCount:pkg.videoCount }); setPkgDrop(false); }} style={{ width:24,height:24,borderRadius:7,background:"rgba(96,165,250,0.12)",border:"1px solid rgba(96,165,250,0.2)",color:"#60a5fa",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}>
                       <Icon name="edit" size={10} color="#60a5fa"/>
                     </button>
-                    <button onClick={e=>{ e.stopPropagation(); deletePkg(pkg.id); }} style={{ width:24,height:24,borderRadius:7,background:"rgba(255,77,77,0.12)",border:"1px solid rgba(255,77,77,0.2)",color:"var(--danger)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}>
+                    <button onClick={e=>{ e.stopPropagation(); deletePkg(pkg.id); }} style={{ width:24,height:24,borderRadius:7,background:"rgba(217,130,130,0.12)",border:"1px solid rgba(217,130,130,0.2)",color:"var(--danger)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}>
                       <Icon name="trash" size={10} color="var(--danger)"/>
                     </button>
                   </div>
@@ -1533,7 +1642,7 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
 
   const exportPDF=()=>{
     const w=window.open("","_blank");
-    w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"/><title>عقد - ${c.clientName||""}</title><style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Tajawal',sans-serif;direction:rtl;color:#111;background:#fff;padding:32px 44px;font-size:14px;line-height:1.9;}.sec{font-weight:800;font-size:14px;margin:13px 0 5px;border-right:3px solid #111;padding-right:8px;}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:11px 0;}.bx{border:1px solid #ddd;border-radius:7px;padding:10px 12px;}.bl{font-weight:800;font-size:10px;color:#555;margin-bottom:5px;border-right:3px solid #111;padding-right:6px;}hr{border:none;border-top:2px solid #111;margin:12px 0;}hr.t{border-top:1px solid #ddd;margin:16px 0;}.sg{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:22px;}.s{text-align:center;}.sl{margin-top:34px;border-bottom:1.5px dashed #bbb;}</style></head><body>${ref.current.innerHTML}</body></html>`);
+    w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"/><title>عقد - ${c.clientName||""}</title><style>@font-face{font-family:'Thmanyah Sans';src:url('${window.location.origin}/fonts/thmanyah-sans-bold.otf') format('opentype');font-weight:400 800;}*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Thmanyah Sans',sans-serif;direction:rtl;color:#111;background:#fff;padding:32px 44px;font-size:14px;line-height:1.9;}.sec{font-weight:800;font-size:14px;margin:13px 0 5px;border-right:3px solid #111;padding-right:8px;}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:11px 0;}.bx{border:1px solid #ddd;border-radius:7px;padding:10px 12px;}.bl{font-weight:800;font-size:10px;color:#555;margin-bottom:5px;border-right:3px solid #111;padding-right:6px;}hr{border:none;border-top:2px solid #111;margin:12px 0;}hr.t{border-top:1px solid #ddd;margin:16px 0;}.sg{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:22px;}.s{text-align:center;}.sl{margin-top:34px;border-bottom:1.5px dashed #bbb;}</style></head><body>${ref.current.innerHTML}</body></html>`);
     w.document.close(); setTimeout(()=>{ w.focus(); w.print(); },500);
     onPdfExported(c.id);
   };
@@ -1559,18 +1668,18 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
           </div>
                     {c.clientId && onGoIdeas && (
             <button className="idea-go-btn" onClick={()=>onGoIdeas(c.clientId)}>
-              <Icon name="bulb" size={15} color="#fbbf24"/>أفكار وسكربتات العميل<Icon name="chevron_left" size={13} color="#fbbf24"/>
+              <Icon name="bulb" size={15} color="#d9b86c"/>أفكار وسكربتات العميل<Icon name="chevron_left" size={13} color="#d9b86c"/>
             </button>
           )}
           <div className="amt-box payment-amt-shadow"><div className="amt-lbl">الإجمالي</div><div className="amt-val">{fmt(c.totalAmount,c.currency)}</div></div>
           <div className="psec">
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8 }}>
               <span style={{ fontSize:10,color:"var(--muted)",fontWeight:700 }}>الدفع</span>
-              <ProgressRing pct={pct} size={50} stroke={4} color={pct===100?"var(--ac)":"#ffd600"}/>
+              <ProgressRing pct={pct} size={50} stroke={4} color={pct===100?"var(--ac)":"#d9b86c"}/>
             </div>
             <div className="pgrid">
               {[{l:"الأولى 50%",paid:c.deposit50Paid,date:c.deposit50Date},{l:"الثانية 50%",paid:c.final50Paid,date:c.final50Date}].map(p=>(
-                <div key={p.l} className="pitem" style={{ boxShadow:p.paid?"0 2px 12px rgba(0,255,136,0.12)":"var(--shadow-card)" }}>
+                <div key={p.l} className="pitem" style={{ boxShadow:p.paid?"0 2px 12px rgba(143,217,174,0.12)":"var(--shadow-card)" }}>
                   <div><div style={{ fontSize:10,color:"var(--muted)",fontWeight:600 }}>{p.l}</div><div style={{ fontSize:12,fontWeight:700 }}>{fmt(Number(c.totalAmount||0)*0.5,c.currency)}</div>{p.date&&<div style={{ fontSize:9,color:"var(--muted)" }}>{fmtDate(p.date)}</div>}</div>
                   <div style={{ fontSize:11,color:p.paid?"var(--ac)":"var(--muted)",fontWeight:800 }}>{p.paid?"✓":"—"}</div>
                 </div>
@@ -1600,27 +1709,27 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
         </div>
         <div ref={ref} style={{ display:"none" }}>
     <div style={{ textAlign:"center",marginBottom:16 }}>
-  <div style={{ fontWeight:900,fontSize:22,fontFamily:"'Tajawal',sans-serif",letterSpacing:"0.5px" }}>Fareq Productions</div>
-  <div style={{ color:"#555",fontSize:11,fontFamily:"'Tajawal',sans-serif",marginTop:4 }}>{compPhone}</div>
+  <div style={{ fontWeight:800,fontSize:36,fontFamily:"'Thmanyah Sans',sans-serif",letterSpacing:"0" }}>فارق للإنتاج</div>
+  <div style={{ color:"#555",fontSize:11,fontFamily:"'Thmanyah Sans',sans-serif",marginTop:4 }}>{compPhone}</div>
           </div>
           <hr style={{ border:"none",borderTop:"2px solid #111",margin:"12px 0" }}/>
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:11,margin:"11px 0",fontFamily:"'Tajawal',sans-serif" }}>
+          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:11,margin:"11px 0",fontFamily:"'Thmanyah Sans',sans-serif" }}>
             <div style={{ border:"1px solid #ddd",borderRadius:7,padding:"9px 11px" }}><div style={{ fontWeight:800,fontSize:10,color:"#555",marginBottom:5,borderRight:"3px solid #111",paddingRight:6 }}>الطرف الأول</div>{[["الاسم",compName],["الهاتف",compPhone]].map(([l,v])=><div key={l} style={{ display:"flex",gap:4,margin:"2px 0",fontSize:13 }}><span style={{ color:"#666",minWidth:45 }}>{l}:</span><span style={{ fontWeight:600 }}>{v}</span></div>)}</div>
             <div style={{ border:"1px solid #ddd",borderRadius:7,padding:"9px 11px" }}><div style={{ fontWeight:800,fontSize:10,color:"#555",marginBottom:5,borderRight:"3px solid #111",paddingRight:6 }}>الطرف الثاني</div>{[["الاسم",c.clientName],["العنوان",c.clientAddress],["الهاتف",c.clientPhone]].map(([l,v])=><div key={l} style={{ display:"flex",gap:4,margin:"2px 0",fontSize:13 }}><span style={{ color:"#666",minWidth:45 }}>{l}:</span><span style={{ fontWeight:600,borderBottom:"1px solid #ddd",flex:1 }}>{v||""}</span></div>)}</div>
           </div>
-          <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>موضوع العقد</div>
-          <div style={{ fontFamily:"'Tajawal',sans-serif",lineHeight:1.9 }}><div>يلتزم الطرف الأول بتقديم خدمات إنتاج محتوى فيديو تشمل:</div><div>- تصوير وإنتاج عدد ({c.videoCount||"          "}) فيديوهات</div></div>
-         <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>مدة العقد:</div>
-<div style={{ fontFamily:"'Tajawal',sans-serif" }}>
+          <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Thmanyah Sans',sans-serif" }}>موضوع العقد</div>
+          <div style={{ fontFamily:"'Thmanyah Sans',sans-serif",lineHeight:1.9 }}><div>يلتزم الطرف الأول بتقديم خدمات إنتاج محتوى فيديو تشمل:</div><div>- تصوير وإنتاج عدد ({c.videoCount||"          "}) فيديوهات</div></div>
+         <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Thmanyah Sans',sans-serif" }}>مدة العقد:</div>
+<div style={{ fontFamily:"'Thmanyah Sans',sans-serif" }}>
   {c.endDate
     ? `تبدأ من تاريخ ${sd.d}/${sd.m}/${sd.y} وتنتهي في تاريخ ${ed.d}/${ed.m}/${ed.y}`
     : `تبدأ من تاريخ ${sd.d}/${sd.m}/${sd.y}`
   }
 </div>
-          {opts.includePayment&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>القيمة المالية:</div><div style={{ fontFamily:"'Tajawal',sans-serif" }}><div>- قيمة الفيديوهات: {vAmt} {cur}</div><div>- قيمة الوجه الإعلامي: {pAmt} {cur}</div><div style={{ margin:"9px 0 3px",fontWeight:700 }}>{c.paymentMethod==="100"?"طريقة الدفع: 100% عند توقيع العقد":"طريقة الدفع: 50% مقدماً · 50% عند التسليم"}</div></div></>}
+          {opts.includePayment&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Thmanyah Sans',sans-serif" }}>القيمة المالية:</div><div style={{ fontFamily:"'Thmanyah Sans',sans-serif" }}><div>- قيمة الفيديوهات: {vAmt} {cur}</div><div>- قيمة الوجه الإعلامي: {pAmt} {cur}</div><div style={{ margin:"9px 0 3px",fontWeight:700 }}>{c.paymentMethod==="100"?"طريقة الدفع: 100% عند توقيع العقد":"طريقة الدفع: 50% مقدماً · 50% عند التسليم"}</div></div></>}
          {opts.includeTerms&&<>
-  <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>الشروط والأحكام:</div>
-  <div style={{ fontFamily:"'Tajawal',sans-serif",lineHeight:2,fontSize:13 }}>
+  <div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Thmanyah Sans',sans-serif" }}>الشروط والأحكام:</div>
+  <div style={{ fontFamily:"'Thmanyah Sans',sans-serif",lineHeight:2,fontSize:13 }}>
     <div>- يلتزم الطرف الأول بتصوير وإنتاج عدد ({c.videoCount||"__"}) فيديوهات</div>
     <div>- يلتزم الطرف الثاني بتوفير المعلومات / المنتجات اللازمة</div>
     <div>- يحق للطرف الثاني طلب تعديل واحد لكل فيديو</div>    
@@ -1635,9 +1744,9 @@ function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptio
     {c.presenterAmount&&<div>- يلتزم الطرف الثاني بدفع قيمة وقدرها {pAmt} {cur} للوجه الإعلامي</div>}
   </div>
 </>}
-          {c.notes&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Tajawal',sans-serif" }}>ملاحظات:</div><div style={{ fontFamily:"'Tajawal',sans-serif" }}>{c.notes}</div></>}
+          {c.notes&&<><div style={{ fontWeight:800,fontSize:13,margin:"13px 0 5px",borderRight:"3px solid #111",paddingRight:7,fontFamily:"'Thmanyah Sans',sans-serif" }}>ملاحظات:</div><div style={{ fontFamily:"'Thmanyah Sans',sans-serif" }}>{c.notes}</div></>}
           <hr style={{ border:"none",borderTop:"1px solid #ddd",margin:"18px 0 14px" }}/>
-         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:36,fontFamily:"'Tajawal',sans-serif",marginTop:28 }}>
+         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:36,fontFamily:"'Thmanyah Sans',sans-serif",marginTop:28 }}>
   {[
     { title:`الطرف الأول — ${compName}` },
     { title:`الطرف الثاني — ${c.clientName||"___________"}` }
@@ -1679,7 +1788,7 @@ function UrgencyBar({ endDate }) {
   const d = daysDiff(endDate);
   if (d === null || d > 30) return null;
   const pct = Math.max(0, Math.min(100, 100 - (d / 30) * 100));
-  const color = d <= 0 ? "#ff4d4d" : d <= 3 ? "#ff6b35" : d <= 7 ? "#ffd600" : "#00ff88";
+  const color = d <= 0 ? "#d98282" : d <= 3 ? "#ff6b35" : d <= 7 ? "#d9b86c" : "#8fd9ae";
   return (
     <div style={{ marginTop:3 }}>
       <div style={{ fontSize:8, color, fontWeight:700, marginBottom:2 }}>
@@ -1720,7 +1829,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
               <div style={{ position:"absolute",inset:0,borderRadius:16,pointerEvents:"none",zIndex:0,overflow:"hidden" }}>
                 <svg style={{ position:"absolute",inset:0,width:"100%",height:"100%" }} preserveAspectRatio="none">
                   <rect x="1" y="1" width="calc(100%-2)" height="calc(100%-2)" rx="15" ry="15"
-                    fill="none" stroke="#ff4d4d" strokeWidth="2" strokeDasharray="8 4"
+                    fill="none" stroke="#d98282" strokeWidth="2" strokeDasharray="8 4"
                     style={{ animation:"urgent-border 1.5s ease-in-out infinite" }}/>
                 </svg>
               </div>
@@ -1797,12 +1906,12 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
       <div key={p.field}
         onClick={()=>{ haptic("medium"); onToggle(c.id,p.field); }}
         style={{
-          background: p.paid ? "rgba(0,255,136,0.08)" : "var(--surface2)",
-          border: `1.5px solid ${p.paid ? "rgba(0,255,136,0.35)" : "var(--card-border)"}`,
+          background: p.paid ? "rgba(143,217,174,0.08)" : "var(--surface2)",
+          border: `1.5px solid ${p.paid ? "rgba(143,217,174,0.35)" : "var(--card-border)"}`,
           borderRadius:14, padding:"12px 10px",
           display:"flex", flexDirection:"column", alignItems:"center", gap:5,
           cursor:"pointer", transition:"all .2s",
-          boxShadow: p.paid ? "0 2px 14px rgba(0,255,136,0.15)" : "var(--shadow-card)"
+          boxShadow: p.paid ? "0 2px 14px rgba(143,217,174,0.15)" : "var(--shadow-card)"
         }}>
         <div style={{ fontSize:9,color:"var(--muted)",fontWeight:700 }}>{p.label}</div>
         <div style={{ fontSize:14,fontWeight:900,color:p.paid?"var(--ac)":"var(--text)" }}>
@@ -1811,9 +1920,9 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
         {p.date && <div style={{ fontSize:9,color:!p.paid&&p.diff!==null&&p.diff<=7&&p.diff>=0?"var(--warn)":"var(--muted)" }}>{fmtDate(p.date)}</div>}
         <div style={{
           marginTop:4, fontSize:10, fontWeight:800, padding:"4px 12px", borderRadius:20,
-          background: p.paid ? "rgba(0,255,136,0.18)" : "var(--surface3)",
+          background: p.paid ? "rgba(143,217,174,0.18)" : "var(--surface3)",
           color: p.paid ? "var(--ac)" : "var(--muted)",
-          border: `1px solid ${p.paid ? "rgba(0,255,136,0.3)" : "var(--muted2)"}`
+          border: `1px solid ${p.paid ? "rgba(143,217,174,0.3)" : "var(--muted2)"}`
         }}>{p.paid ? "✓ مدفوع" : "اضغط للتأكيد"}</div>
       </div>
     ))}
@@ -1856,7 +1965,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
 function WalletModal({ type, onClose, onSave }) {
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
-  const labels = { income:{title:"إضافة رصيد",color:"var(--ac)",icon:"arrow_up"}, expense:{title:"إضافة مصروف",color:"var(--danger)",icon:"arrow_down"}, savings_add:{title:"إضافة للادخار",color:"#a78bfa",icon:"arrow_up"}, savings_withdraw:{title:"سحب من الادخار",color:"var(--warn)",icon:"arrow_down"} };
+  const labels = { income:{title:"إضافة رصيد",color:"var(--ac)",icon:"arrow_up"}, expense:{title:"إضافة مصروف",color:"var(--danger)",icon:"arrow_down"}, savings_add:{title:"إضافة للادخار",color:"#a99bd6",icon:"arrow_up"}, savings_withdraw:{title:"سحب من الادخار",color:"var(--warn)",icon:"arrow_down"} };
   const lbl=labels[type]||labels.income;
   return (
     <div className="mov" onClick={e=>e.target===e.currentTarget&&onClose()}>
@@ -2006,11 +2115,11 @@ function WalletScreen() {
           <button className={`wallet-tab-btn${walletTab==="savings"?" on":""}`} onClick={()=>setWalletTab("savings")}>🏦 الادخار</button>
         </div>
         <div className="wallet-balance-lbl">{walletTab==="expense"?"رصيد المحفظة":"رصيد الادخار"}</div>
-        <div className="wallet-balance-amt" style={{ color:balance<0?"#ff4d6d":"#fff" }}>{balance.toLocaleString("en-US",{minimumFractionDigits:2})} <span style={{ fontSize:16,fontWeight:500,color:"rgba(255,255,255,0.5)" }}>LYD</span></div>
+        <div className="wallet-balance-amt" style={{ color:balance<0?"#d98289":"#fff" }}>{balance.toLocaleString("en-US",{minimumFractionDigits:2})} <span style={{ fontSize:16,fontWeight:500,color:"rgba(255,255,255,0.5)" }}>LYD</span></div>
         <div className="wallet-actions">
           {walletTab==="expense"
-            ? <><button className="wa-btn income-btn" onClick={()=>setModal("income")}><Icon name="plus" size={14} color="var(--ac)"/>إضافة رصيد</button><button className="wa-btn expense-btn" onClick={()=>setModal("expense")}><Icon name="minus" size={14} color="#ff4d6d"/>إضافة مصروف</button></>
-            : <><button className="wa-btn savings-btn" onClick={()=>setModal("savings_add")}><Icon name="plus" size={14} color="#a78bfa"/>إضافة</button><button className="wa-btn expense-btn" onClick={()=>setModal("savings_withdraw")}><Icon name="minus" size={14} color="#ff4d6d"/>سحب</button></>
+            ? <><button className="wa-btn income-btn" onClick={()=>setModal("income")}><Icon name="plus" size={14} color="var(--ac)"/>إضافة رصيد</button><button className="wa-btn expense-btn" onClick={()=>setModal("expense")}><Icon name="minus" size={14} color="#d98289"/>إضافة مصروف</button></>
+            : <><button className="wa-btn savings-btn" onClick={()=>setModal("savings_add")}><Icon name="plus" size={14} color="#a99bd6"/>إضافة</button><button className="wa-btn expense-btn" onClick={()=>setModal("savings_withdraw")}><Icon name="minus" size={14} color="#d98289"/>سحب</button></>
           }
         </div>
       </div>
@@ -2023,7 +2132,7 @@ function WalletScreen() {
         return (
           <div key={i} className="wallet-tx-card stagger-item" style={{ justifyContent:"space-between",animationDelay:`${i*30}ms` }}>
             <div style={{ display:"flex",alignItems:"center",gap:12 }}>
-              <div className={`wtx-icon ${iconColor}`}><Icon name={isPos?"arrow_up":"arrow_down"} size={18} color={isPos?"var(--ac)":t.type==="savings_withdraw"?"#a78bfa":"var(--danger)"}/></div>
+              <div className={`wtx-icon ${iconColor}`}><Icon name={isPos?"arrow_up":"arrow_down"} size={18} color={isPos?"var(--ac)":t.type==="savings_withdraw"?"#a99bd6":"var(--danger)"}/></div>
               <div><div className="wtx-name">{t.desc}</div><div className="wtx-sub">{new Date(t.date).toLocaleDateString("ar-LY",{year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</div></div>
             </div>
             <div style={{ display:"flex",alignItems:"center",gap:8 }}>
@@ -2099,19 +2208,19 @@ const lastMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth(
       </div>
 
       {upcoming&&(
-<div className="countdown-box" style={{ background:"rgba(56,189,248,0.08)", borderColor:"rgba(56,189,248,0.2)", boxShadow:"0 4px 16px rgba(56,189,248,0.1)" }}>
+<div className="countdown-box" style={{ background:"rgba(134,188,214,0.08)", borderColor:"rgba(134,188,214,0.2)", boxShadow:"0 4px 16px rgba(134,188,214,0.1)" }}>
     <div style={{ display:"flex",alignItems:"center",gap:12 }}>
-      <div style={{ width:40,height:40,borderRadius:12,background:"rgba(56,189,248,0.12)",border:"1px solid rgba(56,189,248,0.25)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 4px 12px rgba(56,189,248,0.15)" }}>
-        <Icon name="clock" size={18} color="#38bdf8"/>
+      <div style={{ width:40,height:40,borderRadius:12,background:"rgba(134,188,214,0.12)",border:"1px solid rgba(134,188,214,0.25)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 4px 12px rgba(134,188,214,0.15)" }}>
+        <Icon name="clock" size={18} color="#86bcd6"/>
       </div>
       <div>
-        <div style={{ fontSize:10,color:"#38bdf8",fontWeight:600,marginBottom:2,letterSpacing:"0.3px" }}>أقرب دفعة قادمة</div>
+        <div style={{ fontSize:10,color:"#86bcd6",fontWeight:600,marginBottom:2,letterSpacing:"0.3px" }}>أقرب دفعة قادمة</div>
 <div style={{ fontSize:13,fontWeight:700,color:"var(--text)",letterSpacing:"-0.2px" }}>{upcoming.name} — {upcoming.label}</div>
-<div style={{ fontSize:11,color:"#38bdf8",fontWeight:600,marginTop:2 }}>{fmtDate(upcoming.date)} · {daysDiff(upcoming.date)===0?"اليوم!":`خلال ${daysDiff(upcoming.date)} يوم`}</div>
+<div style={{ fontSize:11,color:"#86bcd6",fontWeight:600,marginTop:2 }}>{fmtDate(upcoming.date)} · {daysDiff(upcoming.date)===0?"اليوم!":`خلال ${daysDiff(upcoming.date)} يوم`}</div>
       </div>
     </div>
     <div style={{ textAlign:"left" }}>
-     <div style={{ fontSize:14,fontWeight:700,color:"#38bdf8",fontVariantNumeric:"tabular-nums" }}>{fmt(upcoming.amt,upcoming.currency)}</div>
+     <div style={{ fontSize:14,fontWeight:700,color:"#86bcd6",fontVariantNumeric:"tabular-nums" }}>{fmt(upcoming.amt,upcoming.currency)}</div>
     </div>
   </div>
 )}
@@ -2127,14 +2236,14 @@ const lastMonth=contracts.filter(c=>c.startDate&&new Date(c.startDate).getMonth(
 
       <div className="stat-grid">
         {[
-          {l:"نشطة",v:contracts.filter(c=>c.status==="active").length,icon:"check",ac:true,color:"#00ff88"},
+          {l:"نشطة",v:contracts.filter(c=>c.status==="active").length,icon:"check",ac:true,color:"##8fd9ae"},
           {l:"معلقة",v:contracts.filter(c=>c.status==="pending").length,icon:"clock",color:"var(--muted)"},
           {l:"مكتملة",v:contracts.filter(c=>c.status==="completed").length,icon:"history",color:"var(--muted)"},
           {l:"العملاء",v:clients.length,icon:"clients",color:"var(--muted)"},
         ].map((s,i)=>(
           <div key={s.l} className="stat-card stagger-item" style={{ animationDelay:`${i*60}ms`, boxShadow:`0 4px 20px rgba(0,0,0,0.08),0 2px 8px rgba(0,0,0,0.06)`, border:`1px solid var(--card-border)` }}>
             <div className="stat-lbl" style={{ color:s.color }}><Icon name={s.icon} size={12} color={s.color}/>{s.l}</div>
-            <div className={`stat-val${s.ac?" ac":""}`} style={{ color:s.ac?"#00ff88":"var(--text)" }}>{s.v}</div>
+            <div className={`stat-val${s.ac?" ac":""}`} style={{ color:s.ac?"#8fd9ae":"var(--text)" }}>{s.v}</div>
           </div>
         ))}
       </div>
@@ -2207,7 +2316,7 @@ const [filter, setFilter] = useState("all");
         <div className="selection-banner">
           <span>{selected.size} محدد</span>
           <div style={{ display:"flex",gap:8 }}>
-            {selected.size>0&&<><button className="btn" style={{ padding:"5px 12px",fontSize:11,background:"rgba(255,77,77,0.2)",color:"var(--danger)",border:"1px solid rgba(255,77,77,0.3)" }} onClick={bulkDelete}>حذف</button><button className="btn" style={{ padding:"5px 12px",fontSize:11,background:"rgba(255,214,0,0.2)",color:"#ffd600",border:"1px solid rgba(255,214,0,0.3)" }} onClick={bulkCancel}>إلغاء</button></>}
+            {selected.size>0&&<><button className="btn" style={{ padding:"5px 12px",fontSize:11,background:"rgba(217,130,130,0.2)",color:"var(--danger)",border:"1px solid rgba(217,130,130,0.3)" }} onClick={bulkDelete}>حذف</button><button className="btn" style={{ padding:"5px 12px",fontSize:11,background:"#rgba(217,184,108,0.2)",color:"#d9b86c",border:"1px solid #rgba(217,184,108,0.3)" }} onClick={bulkCancel}>إلغاء</button></>}
             <button className="btn bgh" style={{ padding:"5px 12px",fontSize:11 }} onClick={exitSel}>خروج</button>
           </div>
         </div>
@@ -2237,8 +2346,8 @@ function ClientsScreen({ clients, contracts, onAdd, onEdit, onDelete, initialSel
       if (c.statusHistory) c.statusHistory.forEach(h => {
         events.push({ date: h.date, label: SL[h.status] || h.status, color: SC[h.status] || "var(--muted)", icon: "contracts" });
       });
-      if (c.deposit50Paid) events.push({ date: c.deposit50Date || c.startDate, label: "استلام الدفعة الأولى", color: "#00ff88", icon: "income" });
-      if (c.final50Paid) events.push({ date: c.final50Date || c.endDate, label: "استلام الدفعة الثانية", color: "#00ff88", icon: "income" });
+      if (c.deposit50Paid) events.push({ date: c.deposit50Date || c.startDate, label: "استلام الدفعة الأولى", color: "#8fd9ae", icon: "income" });
+      if (c.final50Paid) events.push({ date: c.final50Date || c.endDate, label: "استلام الدفعة الثانية", color: "#8fd9ae", icon: "income" });
     });
     return events.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8);
   };
@@ -2421,7 +2530,7 @@ const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
  const stats=[
     {l:"آخر 30 يوم",v:fmt(last30),icon:"clock",color:"var(--muted)"},
     {l:String(NOW.getFullYear()),v:fmt(yearT),icon:"income",color:"var(--muted)"},
-    {l:"محصّل",v:fmt(allCollected),icon:"check",ac:true,color:"#00ff88"},
+    {l:"محصّل",v:fmt(allCollected),icon:"check",ac:true,color:"#8fd9ae"},
     {l:"متوقع",v:fmt(pend),icon:"calendar",color:"var(--muted)"},
     {l:"إجمالي العقود",v:fmt(totalC),icon:"contracts",color:"var(--muted)"},
     {l:"العقود النشطة",v:fmt(activeT),icon:"check",color:"var(--muted)"},
@@ -2430,7 +2539,7 @@ const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
   const exportReport=()=>{
     const w=window.open("","_blank");
     const rows=contracts.map(c=>`<tr><td>${c.clientName}</td><td>${fmt(videoOnly(c),c.currency)}</td><td>${fmt(videoOnly(c)*((c.deposit50Paid?.5:0)+(c.final50Paid?.5:0)),c.currency)}</td><td>${SL[c.status]}</td><td>${fmtDate(c.startDate)}</td></tr>`).join("");
-    w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"/><title>تقرير مالي — فارق</title><style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');body{font-family:'Tajawal',sans-serif;direction:rtl;color:#111;padding:32px;}table{width:100%;border-collapse:collapse;margin-top:20px;}th,td{border:1px solid #ddd;padding:8px 12px;text-align:right;}th{background:#f5f5f5;font-weight:700;}h2{margin-bottom:4px;}p{color:#666;font-size:13px;}</style></head><body><h2>تقرير مالي — شركة فارق للإنتاج</h2><p>تاريخ التصدير: ${new Date().toLocaleDateString("ar-LY")}</p><p>إجمالي المحصّل: ${fmt(allCollected)} | غير محصّل: ${fmt(pend)}</p><table><thead><tr><th>العميل</th><th>إجمالي العقد</th><th>المحصّل</th><th>الحالة</th><th>تاريخ البدء</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
+    w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"/><title>تقرير مالي — فارق</title><style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');body{font-family:'Thmanyah Sans',sans-serif;direction:rtl;color:#111;padding:32px;}table{width:100%;border-collapse:collapse;margin-top:20px;}th,td{border:1px solid #ddd;padding:8px 12px;text-align:right;}th{background:#f5f5f5;font-weight:700;}h2{margin-bottom:4px;}p{color:#666;font-size:13px;}</style></head><body><h2>تقرير مالي — شركة فارق للإنتاج</h2><p>تاريخ التصدير: ${new Date().toLocaleDateString("ar-LY")}</p><p>إجمالي المحصّل: ${fmt(allCollected)} | غير محصّل: ${fmt(pend)}</p><table><thead><tr><th>العميل</th><th>إجمالي العقد</th><th>المحصّل</th><th>الحالة</th><th>تاريخ البدء</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
     w.document.close(); setTimeout(()=>{ w.focus(); w.print(); },500);
   };
 
@@ -2473,7 +2582,7 @@ const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
            {stats.map((s,i)=>(
               <div key={s.l} className="stat-card stagger-item" style={{ animationDelay:`${i*50}ms`,boxShadow:"0 4px 20px rgba(0,0,0,0.08)",border:"1px solid var(--card-border)" }}>
                 <div className="stat-lbl" style={{ color:s.color }}><Icon name={s.icon} size={12} color={s.color}/>{s.l}</div>
-                <div className={`stat-val sm${s.ac?" ac":""}`} style={{ color:s.ac?"#00ff88":"var(--text)" }}>{s.v}</div>
+                <div className={`stat-val sm${s.ac?" ac":""}`} style={{ color:s.ac?"#8fd9ae":"var(--text)" }}>{s.v}</div>
               </div>
             ))}
           </div>
@@ -2481,8 +2590,8 @@ const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
           {contracts.filter(c=>c.deposit50Paid||c.final50Paid).length===0
             ? <EmptyState type="income"/>
             : contracts.filter(c=>c.deposit50Paid||c.final50Paid).slice(0,6).map((c,i)=>(
-              <div key={c.id} className="tx-card stagger-item" style={{ animationDelay:`${i*40}ms`,boxShadow:"0 4px 16px rgba(0,255,136,0.12)" }}>
-                <div className="tx-icon" style={{ boxShadow:"0 2px 10px rgba(0,255,136,0.2)" }}><Icon name="income" size={16} color="var(--ac)"/></div>
+              <div key={c.id} className="tx-card stagger-item" style={{ animationDelay:`${i*40}ms`,boxShadow:"0 4px 16px rgba(143,217,174,0.12)" }}>
+                <div className="tx-icon" style={{ boxShadow:"0 2px 10px rgba(143,217,174,0.2)" }}><Icon name="income" size={16} color="var(--ac)"/></div>
                 <div style={{ flex:1,minWidth:0 }}><div className="tx-name">{c.clientName}</div><div className="tx-sub">{c.deposit50Paid&&c.final50Paid?"مدفوع بالكامل":c.deposit50Paid?"الدفعة الأولى":"الدفعة الثانية"}</div></div>
                 <div className="tx-amt pos">{fmt(videoOnly(c)*((c.deposit50Paid?0.5:0)+(c.final50Paid?0.5:0)),c.currency)}</div>
               </div>
@@ -2549,7 +2658,7 @@ function IdeaCard({ idea, index, canCount, busy, onChange, onToggleDone, onDelet
   const [title, setTitle] = useState(idea.title || "");
   const [script, setScript] = useState(idea.script || "");
   const [saved, setSaved] = useState(false);
-  const color = idea.done ? "#00ff88" : "#fbbf24";
+  const color = idea.done ? "#8fd9ae" : "#d9b86c";
   const dirty = title !== (idea.title || "") || script !== (idea.script || "");
 
   // حفظ تلقائي في Supabase بعد ما تتوقف عن الكتابة
@@ -2701,8 +2810,8 @@ function IdeasScreen({ clients, contracts, ideas, onAddIdea, onUpdateIdea, onDel
 
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, marginTop:12 }}>
             <div className="idea-stat"><div className="idea-stat-v" style={{ color:"var(--text)" }}>{clIdeas.length}</div><div className="idea-stat-l">الأفكار</div></div>
-            <div className="idea-stat"><div className="idea-stat-v" style={{ color:"#00ff88", textShadow:"0 0 10px rgba(0,255,136,0.5)" }}>{doneN}</div><div className="idea-stat-l">منفذة</div></div>
-            <div className="idea-stat"><div className="idea-stat-v" style={{ color:"#fbbf24" }}>{clIdeas.length-doneN}</div><div className="idea-stat-l">متبقية</div></div>
+            <div className="idea-stat"><div className="idea-stat-v" style={{ color:"#8fd9ae", textShadow:"0 0 10px rgba(143,217,174,0.5)" }}>{doneN}</div><div className="idea-stat-l">منفذة</div></div>
+            <div className="idea-stat"><div className="idea-stat-v" style={{ color:"#d9b86c" }}>{clIdeas.length-doneN}</div><div className="idea-stat-l">متبقية</div></div>
           </div>
         </div>
 
@@ -2719,8 +2828,8 @@ function IdeasScreen({ clients, contracts, ideas, onAddIdea, onUpdateIdea, onDel
 
         {shown.length === 0 ? (
           <div style={{ textAlign:"center", padding:"36px 16px" }}>
-            <div style={{ width:64, height:64, borderRadius:20, margin:"0 auto 14px", background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.3)", boxShadow:"0 0 24px rgba(251,191,36,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <Icon name="bulb" size={28} color="#fbbf24"/>
+            <div style={{ width:64, height:64, borderRadius:20, margin:"0 auto 14px", background:"rgba(217,184,108,0.1)", border:"1px solid rgba(217,184,108,0.3)", boxShadow:"0 0 24px rgba(217,184,108,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <Icon name="bulb" size={28} color="#d9b86c"/>
             </div>
             <div style={{ fontWeight:700, color:"var(--text)", fontSize:15, marginBottom:6 }}>لا توجد أفكار هنا</div>
             <div style={{ color:"var(--muted)", fontSize:12 }}>أضف أول فكرة لهذا العميل من الأعلى</div>
@@ -2766,7 +2875,7 @@ function IdeasScreen({ clients, contracts, ideas, onAddIdea, onUpdateIdea, onDel
                   <div className="clic-name">{c.name}</div>
                   <div className="clic-sub">{clIdeas.length} فكرة · {doneN} منفذة</div>
                 </div>
-                {ct && vc > 0 && <span className="badge" style={{ color:"#00ff88", background:"rgba(0,255,136,0.1)", borderColor:"rgba(0,255,136,0.3)", boxShadow:"0 0 10px rgba(0,255,136,0.15)" }}>{vd}/{vc} فيديو</span>}
+                {ct && vc > 0 && <span className="badge" style={{ color:"#8fd9ae", background:"rgba(143,217,174,0.1)", borderColor:"rgba(143,217,174,0.3)", boxShadow:"0 0 10px rgba(143,217,174,0.15)" }}>{vd}/{vc} فيديو</span>}
                 <Icon name="chevron_left" size={14} color="var(--muted)"/>
               </div>
               {clIdeas.length > 0 && <div className="pbar" style={{ margin:0 }}><div className="pfill" style={{ width:`${(doneN/clIdeas.length)*100}%` }}/></div>}
@@ -2967,7 +3076,7 @@ const togglePay=async(id,field)=>{
     <>
       {cssEl}
       <div style={{ display:"flex",alignItems:"center",justifyContent:"center",height:"100dvh",background:"var(--bg)",padding:24 }}>
-        <div style={{ background:"var(--glass-bg)",backdropFilter:"blur(20px)",border:"1px solid var(--card-border)",borderRadius:24,padding:32,width:"100%",maxWidth:360,boxShadow:"0 20px 60px rgba(0,255,136,0.1),var(--shadow-float)" }}>
+        <div style={{ background:"var(--glass-bg)",backdropFilter:"blur(20px)",border:"1px solid var(--card-border)",borderRadius:24,padding:32,width:"100%",maxWidth:360,boxShadow:"0 20px 60px rgba(143,217,174,0.1),var(--shadow-float)" }}>
           <div style={{ textAlign:"center",marginBottom:28 }}>
             <div className="lmark" style={{ width:52,height:52,borderRadius:16,fontSize:22,margin:"0 auto 12px" }}>F</div>
             <div style={{ fontSize:20,fontWeight:900,color:"var(--text)" }}>فارق للإنتاج</div>
@@ -3008,10 +3117,10 @@ const togglePay=async(id,field)=>{
       <div className="app">
        <div className="topbar" style={{ position:"relative" }}>
           <div style={{ position:"absolute",left:"50%",transform:"translateX(-50%)",display:"flex",alignItems:"center",gap:10 }}>
-  <div style={{ width:36, height:36, borderRadius:11, background:"linear-gradient(135deg,#00ff88,#00c96e)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 0 14px rgba(0,255,136,0.4)", border:"1px solid rgba(0,255,136,0.3)" }}>
+  <div style={{ width:36, height:36, borderRadius:11, background:"linear-gradient(135deg,#8fd9ae,#6fbf93)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 0 14px rgba(143,217,174,0.4)", border:"1px solid rgba(143,217,174,0.3)" }}>
     <span style={{ fontSize:16, fontWeight:700, color:"#000", letterSpacing:"-0.5px", fontFamily:"var(--font)" }}>F</span>
   </div>
-  <div style={{ fontSize:15, fontWeight:800, color:"var(--text)", letterSpacing:"0.2px" }}>Fareq Productions</div>
+  <div style={{ fontWeight:800,fontSize:36,fontFamily:"'Thmanyah Sans',sans-serif",letterSpacing:"0" }}>فارق للإنتاج</div>
 </div>
           <div style={{ display:"flex",gap:8,alignItems:"center",marginRight:"-6px" }}>
   
