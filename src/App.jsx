@@ -2941,7 +2941,7 @@ const togglePay=async(id,field)=>{
 
         {cm!==null&&<ContractModal contract={cm==="new"?null:cm} clients={clients} onClose={()=>setCm(null)} onSave={saveContract} defaultCurrency={settings.defaultCurrency}/>}
         {clm!==null&&<ClientModal client={clm==="new"?null:clm} onClose={()=>setClm(null)} onSave={saveClient}/>}
-        {        {vm&&<ContractViewModal c={vm} onClose={()=>setVm(null)} onPdfExported={handlePdfExported} companyProfile={companyProfile} pdfOptions={pdfOptions} onGoIdeas={goToIdeas}/>}
+        {vm&&<ContractViewModal c={vm} onClose={()=>setVm(null)} onPdfExported={handlePdfExported} companyProfile={companyProfile} pdfOptions={pdfOptions} onGoIdeas={goToIdeas}/>}
         {showSearch&&<GlobalSearch contracts={contracts} clients={clients} onClose={()=>setShowSearch(false)} onViewContract={c=>{ setVm(c); setShowSearch(false); }} goToClient={id=>{ goToClient(id); setShowSearch(false); }}/>}
         {showNotifs&&<NotificationCenter notifications={notifsWithRead} onClose={()=>setShowNotifs(false)} onMarkAllRead={handleMarkAllRead} onDismiss={handleDismissNotif}/>}
         {confirm&&<ConfirmDialog msg={confirm.msg} onConfirm={confirm.onConfirm} onCancel={()=>setConfirm(null)} confirmLabel={confirm.confirmLabel} confirmColor={confirm.confirmColor} icon={confirm.icon} iconColor={confirm.iconColor}/>}
