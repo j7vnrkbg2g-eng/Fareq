@@ -84,9 +84,10 @@ function usePullToRefresh(onRefresh) {
   const [progress, setProgress] = useState(0);
   const startY = useRef(null);
   const threshold = 70;
-  const onTouchStart = useCallback(e => { if (window.scrollY===0) startY.current = e.touches[0].clientY; }, []);
+  const onTouchStart = useCallback(e => { startY.current = e.currentTarget.scrollTop <= 0 ? e.touches[0].clientY : null; }, []);
   const onTouchMove  = useCallback(e => {
-    if (startY.current===null) return;
+        if (startY.current===null) return;
+    if (e.currentTarget.scrollTop > 0) { startY.current = null; setPulling(false); setProgress(0); return; }
     const dy = e.touches[0].clientY - startY.current;
     if (dy>0) { setProgress(Math.min(dy/threshold,1)); setPulling(dy>10); }
   }, [threshold]);
@@ -840,6 +841,41 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);directi
 .idea-stat{background:var(--surface2);border:1px solid var(--card-border);border-radius:12px;padding:9px 6px;text-align:center;}
 .idea-stat-v{font-size:17px;font-weight:900;font-variant-numeric:tabular-nums;}
 .idea-stat-l{font-size:9px;color:var(--muted);font-weight:700;margin-top:2px;}
+/* ── Fixes + Responsive layout ── */
+html,body{overscroll-behavior-y:none;-webkit-text-size-adjust:100%;}
+body{display:block !important;place-items:unset !important;margin:0 !important;min-width:0 !important;}
+#root{width:100% !important;max-width:none !important;margin:0 !important;padding:0 !important;text-align:initial !important;}
+.app{width:100%;}
+*{touch-action:manipulation;}
+.screen{scroll-snap-type:none !important;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;}
+.ptr-indicator{position:fixed;top:72px;left:0;right:0;z-index:60;pointer-events:none;width:fit-content;margin:0 auto;padding:6px 14px;background:var(--glass-bg);border:1px solid var(--card-border);border-radius:20px;}
+
+/* منع الزوم التلقائي عند الكتابة في التلفون */
+@media (max-width:900px), (pointer:coarse){
+  .finp,.fsel,.fta,.sb,.gsearch-inp{font-size:16px !important;}
+}
+
+/* تابلت */
+@media (min-width:600px) and (max-width:1023px){
+  .screen{padding-left:max(14px,calc((100% - 720px)/2));padding-right:max(14px,calc((100% - 720px)/2));}
+}
+
+/* كمبيوتر: قائمة جانبية + محتوى واسع */
+@media (min-width:1024px){
+  .app{padding-right:230px;}
+  .topbar{margin:0;}
+  .screen{padding-bottom:40px;padding-left:max(40px,calc((100% - 1100px)/2));padding-right:max(40px,calc((100% - 1100px)/2));}
+  .bnav{top:0;bottom:0;left:auto;right:0;width:230px;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:6px;padding:90px 14px 20px;border-top:none;border-left:1px solid var(--card-border);box-shadow:-8px 0 32px rgba(0,0,0,0.12);}
+  .bni{flex:none;flex-direction:row;justify-content:flex-start;gap:12px;padding:12px 14px;border-radius:14px;}
+  .bni.on{background:var(--ac-faint);box-shadow:inset 0 0 0 1px var(--ac-border);}
+  .bni-lbl{font-size:13px;}
+  .bni-fab{width:36px;height:36px;border-radius:11px;margin-bottom:0;}
+  .stat-grid{grid-template-columns:repeat(4,1fr);}
+  .mov{align-items:center;padding:20px;}
+  .mod{border-radius:28px;max-height:88vh;padding-top:24px;}
+  .mod::before{display:none;}
+  .gsearch-wrap{padding:40px max(14px,calc((100% - 640px)/2));}
+}
 /* ── Responsive ── */
 @media(max-width:500px){.fgrid{grid-template-columns:1fr}.ffl{grid-column:1}.pgrid{grid-template-columns:1fr}}
 `;
