@@ -1134,8 +1134,12 @@ html,body{background:#050505;}
 .dur-btn.on,.tab.on,.wallet-tab-btn.on,.bni.on{background:rgba(255,255,255,0.14) !important;border-color:rgba(255,255,255,0.45) !important;color:#fff !important;box-shadow:0 0 14px rgba(255,255,255,0.28),inset 0 0 8px rgba(255,255,255,0.08) !important;}
 
 /* باونس خفيف لأي شي يجي عليه الماوس */
-@keyframes bnc{0%{transform:scale(1)}40%{transform:scale(1.06)}70%{transform:scale(.98)}100%{transform:scale(1.03)}}
-.btn:hover,.tab:hover,.dur-btn:hover,.bni:hover,.tb-btn:hover,.ico-btn:hover,.qa-btn:hover,.card:hover,.stat-card:hover,.tx-card:hover,.clic:hover,.cc:hover,.idea-card:hover,.pitem:hover,.wallet-tx-card:hover,.gresult:hover,.settings-row:hover,.today-task:hover,.unpaid-row:hover,.mclose:hover,.toggle:hover{animation:bnc .45s cubic-bezier(.34,1.56,.64,1) forwards;}
+.btn,.tab,.dur-btn,.bni,.tb-btn,.ico-btn,.qa-btn,.card,.stat-card,.tx-card,.clic,.cc,.idea-card,.pitem,.wallet-tx-card,.gresult,.settings-row,.mclose,.toggle{transition:transform .35s cubic-bezier(.22,1,.36,1),background .35s,border-color .35s,box-shadow .35s !important;}
+.btn:hover,.tab:hover,.dur-btn:hover,.tb-btn:hover,.ico-btn:hover,.qa-btn:hover,.mclose:hover{transform:scale(1.045);}
+.card:hover,.stat-card:hover,.tx-card:hover,.clic:hover,.cc:hover,.idea-card:hover,.wallet-tx-card:hover,.gresult:hover{transform:translateY(-2px) scale(1.008);}
+.bni:hover{transform:scale(1.06);}
+.bni svg,.tb-btn svg,.ico-btn svg,.qa-btn svg,.btn svg{transition:transform .35s cubic-bezier(.22,1,.36,1),filter .35s;}
+.bni:hover svg,.tb-btn:hover svg,.ico-btn:hover svg,.qa-btn:hover svg,.btn:hover svg{transform:scale(1.15);filter:drop-shadow(0 0 7px rgba(255,255,255,0.6));}
 
 /* التنبيهات: صغيرة وكومباكت */
 .alr{padding:6px 12px !important;font-size:10.5px !important;border-radius:999px !important;margin-bottom:5px !important;background:rgba(255,255,255,0.04) !important;border:1px solid rgba(255,255,255,0.08) !important;box-shadow:none !important;gap:7px;}
@@ -1147,6 +1151,14 @@ html,body{background:#050505;}
 
 /* لوقو */
 .logo-img{height:44px;width:auto;background:#fff;border-radius:12px;padding:4px 10px;display:block;object-fit:contain;box-shadow:0 0 18px rgba(255,255,255,0.18);}
+.bnav{background:rgba(30,30,32,0.6) !important;}
+.mod,.conf-box{background:linear-gradient(180deg,#232325,#101011) !important;}
+.fsel option{background:#1c1c1e !important;}
+.gsearch-wrap{background:rgba(5,5,5,0.92) !important;}
+.mov{background:rgba(0,0,0,0.65) !important;}
+.finp,.fsel,.fta,.sb,.gsearch-inp{background:rgba(255,255,255,0.05) !important;}
+.amt-val,.cc-compact-amt,.tx-amt,.tx-amt.pos,.wtx-amt.pos,.stat-val,.stat-val.ac,.stat-val.sm{color:#fff !important;}
+.cc-compact-amt,.amt-val{text-shadow:0 0 8px rgba(255,255,255,0.25);}
 /* ═══════ Soft Gradient Cards (Transfer Wise style) ═══════ */
 
 /* أحمر: تنبيهات متأخرة / غير مدفوع */
@@ -1968,7 +1980,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
 
               <div className="cc-compact-right">
                 <span className="badge" style={{ color:statusColor,background:statusColor+"18",borderColor:statusColor+"44",boxShadow:`0 2px 8px ${statusColor}22` }}>{SL[c.status]}</span>
-                <div className="cc-compact-amt" style={{ color:statusColor }}>{fmt(c.videoAmount||c.totalAmount,c.currency)}</div>
+                <div className="cc-compact-amt" style={{ color:"#fff" }}>{fmt(c.videoAmount||c.totalAmount,c.currency)}</div>
               </div>
 
               <button className={`cc-expand-btn${expanded?" open":""}`} onClick={e=>{ e.stopPropagation(); setExpanded(p=>!p); }}>
@@ -1989,7 +2001,7 @@ function ContractCard({ c, onEdit, onDelete, onToggle, onView, onVideoUpdate, on
                 </div>
                 <div className="amt-box" style={{ boxShadow:`0 4px 14px ${statusColor}22` }}>
                   <div className="amt-lbl">الإجمالي</div>
-                  <div className="amt-val" style={{ color:statusColor }}>{fmt(c.totalAmount,c.currency)}</div>
+                  <div className="amt-val" style={{ color:"#fff" }}>{fmt(c.totalAmount,c.currency)}</div>
                 </div>
                 <div style={{ marginTop:8 }}>
   <div style={{ fontSize:10,color:"var(--muted)",fontWeight:700,marginBottom:8 }}>الدفع</div>
@@ -3211,7 +3223,7 @@ const togglePay=async(id,field)=>{
   <button className="tb-btn" onClick={()=>setShowSearch(true)}><Icon name="search" size={16} color="var(--text2)"/></button>
   <button className="tb-btn" onClick={()=>handleThemeChange(theme==="dark"?"light":"dark")}><Icon name={theme==="dark"?"sun":"moon"} size={16} color="var(--text2)"/></button>
 </div>
-        </div>
+
 
       {tab==="dashboard"&&<Dashboard contracts={contracts} clients={clients} goTo={goTo} onViewContract={setVm} onRefresh={handleRefresh} refreshing={refreshing}/>}
 {tab==="contracts"&&<ContractsScreen contracts={contracts} clients={clients} onAdd={()=>setCm("new")} onEdit={setCm} onDelete={delContract} onToggle={togglePay} onView={setVm} onVideoUpdate={updateVideoDone} onCancel={cancelContract} defaultCurrency={settings.defaultCurrency} onRefresh={handleRefresh}/>}
