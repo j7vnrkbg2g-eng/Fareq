@@ -1135,7 +1135,6 @@ html,body{background:#050505;}
 
 /* باونس خفيف لأي شي يجي عليه الماوس */
 .btn,.tab,.dur-btn,.bni,.tb-btn,.ico-btn,.qa-btn,.card,.stat-card,.tx-card,.clic,.cc,.idea-card,.pitem,.wallet-tx-card,.gresult,.settings-row,.mclose,.toggle{transition:transform .35s cubic-bezier(.22,1,.36,1),background .35s,border-color .35s,box-shadow .35s !important;}
-.btn:hover,.tab:hover,.dur-btn:hover,.tb-btn:hover,.ico-btn:hover,.qa-btn:hover,.mclose:hover{transform:scale(1.045);}
 .card:hover,.stat-card:hover,.tx-card:hover,.clic:hover,.cc:hover,.idea-card:hover,.wallet-tx-card:hover,.gresult:hover{transform:translateY(-2px) scale(1.008);}
 .bni:hover{transform:scale(1.06);}
 .bni svg,.tb-btn svg,.ico-btn svg,.qa-btn svg,.btn svg{transition:transform .35s cubic-bezier(.22,1,.36,1),filter .35s;}
@@ -1151,6 +1150,11 @@ html,body{background:#050505;}
 
 /* لوقو */
 .logo-img{height:44px;width:auto;background:#fff;border-radius:12px;padding:4px 10px;display:block;object-fit:contain;box-shadow:0 0 18px rgba(255,255,255,0.18);}
+.btn,.tab,.dur-btn,.bni,.tb-btn,.ico-btn,.qa-btn,.card,.stat-card,.tx-card,.clic,.cc,.idea-card,.pitem,.wallet-tx-card,.gresult,.mclose,.toggle{animation:none !important;transition:transform .3s ease,background .3s ease,border-color .3s ease !important;}
+.btn:hover,.tab:hover,.dur-btn:hover,.bni:hover,.tb-btn:hover,.ico-btn:hover,.qa-btn:hover,.mclose:hover{animation:none !important;transform:scale(1.025);}
+.card:hover,.stat-card:hover,.tx-card:hover,.clic:hover,.cc:hover,.idea-card:hover,.pitem:hover,.wallet-tx-card:hover,.gresult:hover{animation:none !important;transform:scale(1.008);}
+.bni svg,.tb-btn svg,.ico-btn svg,.qa-btn svg,.btn svg{transition:transform .3s ease !important;}
+.bni:hover svg,.tb-btn:hover svg,.ico-btn:hover svg,.qa-btn:hover svg,.btn:hover svg{transform:scale(1.06);filter:none;}
 .bnav{background:rgba(30,30,32,0.6) !important;}
 .mod,.conf-box{background:linear-gradient(180deg,#232325,#101011) !important;}
 .fsel option{background:#1c1c1e !important;}
