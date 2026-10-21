@@ -3205,13 +3205,8 @@ const togglePay=async(id,field)=>{
       {cssEl}
       <div className="app">
        <div className="topbar" style={{ position:"relative" }}>
-          <div style={{ position:"absolute",left:"50%",transform:"translateX(-50%)" }}><img src="/logo.png" alt="فارق للإنتاج" className="logo-img"/></div>
-  <div style={{ width:36, height:36, borderRadius:11, background:"linear-gradient(135deg,#ffffff,##ffffff)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 0 14px rgba(143,217,174,0.4)", border:"1px solid rgba(143,217,174,0.3)" }}>
-    <span style={{ fontSize:16, fontWeight:700, color:"#000", letterSpacing:"-0.5px", fontFamily:"var(--font)" }}>F</span>
-  </div>
-  <img src={window.location.origin+"/logo.png"} style={{ height:90 }} alt=""/>
-</div>
-          <div style={{ display:"flex",gap:8,alignItems:"center",marginRight:"-6px" }}>
+  <div style={{ position:"absolute",left:"50%",transform:"translateX(-50%)" }}><img src="/logo.png" alt="فارق للإنتاج" className="logo-img"/></div>
+  <div style={{ display:"flex",gap:8,alignItems:"center",marginRight:"-6px" }}>
   
   <button className="tb-btn" onClick={()=>setShowSearch(true)}><Icon name="search" size={16} color="var(--text2)"/></button>
   <button className="tb-btn" onClick={()=>handleThemeChange(theme==="dark"?"light":"dark")}><Icon name={theme==="dark"?"sun":"moon"} size={16} color="var(--text2)"/></button>
