@@ -879,6 +879,106 @@ body{display:block !important;place-items:unset !important;margin:0 !important;m
 .idea-go-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;margin-bottom:10px;border-radius:12px;border:1px solid rgba(251,191,36,0.45);background:linear-gradient(135deg,rgba(251,191,36,0.16),rgba(251,191,36,0.06));color:#fbbf24;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 0 16px rgba(251,191,36,0.18);}
 .idea-go-btn:hover{transform:translateY(-1px);box-shadow:0 0 24px rgba(251,191,36,0.32);}
 .idea-go-btn:active{transform:scale(.97);}
+/* ── Premium polish ── */
+:root{
+  --bg:#f3f4f8;--surface:#ffffff;--surface2:#f0f2f6;--surface3:#e6e9f0;
+  --text:#0f1722;--text2:#566074;--muted:#8a93a6;--muted2:#e6e9f0;
+  --line:rgba(15,23,34,0.08);--card-border:rgba(15,23,34,0.07);
+  --ac:#0fbf7a;--ac2:#0aa56a;--ac-glow:rgba(15,191,122,0.22);--ac-faint:rgba(15,191,122,0.09);--ac-border:rgba(15,191,122,0.32);
+  --glass-bg:rgba(255,255,255,0.88);--nav-bg:rgba(255,255,255,0.88);
+  --shadow-card:0 1px 2px rgba(15,23,34,0.04),0 4px 14px rgba(15,23,34,0.05);
+  --shadow-float:0 10px 30px rgba(15,23,34,0.10),0 2px 6px rgba(15,23,34,0.05);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+[data-theme="dark"]{
+  --bg:#0b0d12;--surface:#12151c;--surface2:#171b24;--surface3:#1e232e;
+  --text:#eef0f6;--text2:#a3abbd;--muted:#6f788c;--muted2:#232835;
+  --line:rgba(255,255,255,0.07);--card-border:rgba(255,255,255,0.07);
+  --ac:#3be8a5;--ac2:#22cf8c;--ac-glow:rgba(59,232,165,0.22);--ac-faint:rgba(59,232,165,0.08);--ac-border:rgba(59,232,165,0.30);
+  --glass-bg:rgba(18,21,28,0.92);--nav-bg:rgba(14,16,22,0.88);
+  --shadow-card:0 1px 0 rgba(255,255,255,0.03) inset,0 6px 18px rgba(0,0,0,0.28);
+  --shadow-float:0 16px 40px rgba(0,0,0,0.5);
+}
+
+/* خلفية فيها عمق خفيف */
+.app{background:radial-gradient(900px 420px at 85% -8%,var(--ac-faint),transparent 65%),var(--bg);}
+
+/* بطاقات نظيفة بدون توهج ملوّن */
+.card,.stat-card,.tx-card,.clic,.wallet-tx-card,.today-task,.unpaid-row,.cc{
+  background:var(--surface) !important;
+  border-top-color:var(--line) !important;border-bottom-color:var(--line) !important;border-left-color:var(--line) !important;
+  box-shadow:var(--shadow-card) !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+}
+.clic{border-right-color:var(--line) !important;}
+.cc{border-right-color:var(--line) !important;}
+.cc>div[style*="width: 3px"],.idea-card>div[style*="width: 3px"]{box-shadow:none !important;opacity:.9;}
+.idea-card{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;border-color:var(--line);}
+.idea-card.done{border-color:var(--ac-border);box-shadow:var(--shadow-card);}
+.idea-card.open{border-color:var(--ac-border);}
+.gresult,.tab,.sb{backdrop-filter:none;-webkit-backdrop-filter:none;}
+.sb{background:var(--surface);box-shadow:none;}
+
+/* الرفع عند المرور بالماوس فقط */
+@media (hover:hover){
+  .tx-card:hover,.clic:hover,.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-float) !important;}
+}
+@media (hover:none){
+  .btn:hover,.tx-card:hover,.clic:hover,.stat-card:hover,.qa-btn:hover,.idea-done-btn:hover,.idea-go-btn:hover{transform:none;}
+}
+
+/* الهيرو: هادي وفخم */
+.hero-card{background:linear-gradient(160deg,#151b28 0%,#0d111a 100%);border:1px solid rgba(255,255,255,0.07);}
+.hero-card-shadow{box-shadow:0 18px 44px rgba(0,0,0,0.35);}
+.hero-card::before{animation:none;background:radial-gradient(600px 220px at 85% 0%,rgba(59,232,165,0.16),transparent 70%);background-size:auto;}
+.hero-card::after{display:none;}
+.hero-dots{opacity:.05;}
+.hero-amount{background:none;-webkit-text-fill-color:#fff;color:#fff;animation:none;font-weight:700;letter-spacing:-1px;}
+.qa-btn{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.09);}
+
+/* الخطوط */
+.screen-title-glow{display:none;}
+.clic-name,.tx-name,.cc-compact-name{font-weight:600;}
+.tx-sub,.clic-sub,.cc-compact-sub,.ps{font-size:11px;}
+.stat-lbl{font-size:11px;font-weight:500;}
+.stat-val{font-weight:700;}
+.sec-title{font-size:15px;font-weight:600;}
+
+/* الأزرار والتبويبات */
+.btn{font-weight:600;transition:transform .2s var(--ease),box-shadow .2s var(--ease),background .2s,border-color .2s,color .2s;}
+.bngf{background:linear-gradient(180deg,var(--ac),var(--ac2));color:#04140d;font-weight:700;box-shadow:0 1px 0 rgba(255,255,255,0.28) inset,0 8px 20px var(--ac-glow);}
+.bngf:hover{box-shadow:0 1px 0 rgba(255,255,255,0.28) inset,0 10px 26px var(--ac-glow);}
+.btn:active,.bni:active,.tx-card:active,.clic:active,.qa-btn:active{transform:scale(.97);}
+.tab{font-weight:600;box-shadow:none;}
+.tab.on{color:#04140d;box-shadow:0 6px 16px var(--ac-glow);}
+
+/* الخانات */
+.finp,.fsel,.fta{background:var(--surface2);border-color:var(--line);}
+.finp:focus,.fsel:focus,.fta:focus,.sb:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--ac-faint);}
+
+/* النوافذ */
+.mov{background:rgba(5,7,11,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+.mod,.conf-box{background:var(--surface);border-color:var(--line);box-shadow:var(--shadow-float);backdrop-filter:none;-webkit-backdrop-filter:none;}
+
+/* الشريط السفلي */
+.bni-lbl{font-size:10px;font-weight:600;}
+.bni.on{background:var(--ac-faint);}
+.bni.on .bni-lbl{animation:none;text-shadow:none;}
+.bni-fab{box-shadow:0 6px 18px var(--ac-glow);}
+.bni-fab:hover{box-shadow:0 8px 22px var(--ac-glow);}
+@media (max-width:1023px){
+  .bnav{left:12px;right:12px;bottom:max(10px,env(safe-area-inset-bottom));border:1px solid var(--line);border-radius:24px;padding:6px 8px;box-shadow:var(--shadow-float);}
+  .screen{padding-bottom:120px;}
+}
+
+/* أنيميشن أنعم وأسرع */
+@keyframes stagger-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes slide-up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.stagger-item{animation-duration:.5s;animation-timing-function:var(--ease);}
+.mod{animation-duration:.4s;animation-timing-function:var(--ease);}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+}
 /* ── Responsive ── */
 @media(max-width:500px){.fgrid{grid-template-columns:1fr}.ffl{grid-column:1}.pgrid{grid-template-columns:1fr}}
 `;
