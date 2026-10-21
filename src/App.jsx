@@ -1412,7 +1412,7 @@ function ContractModal({ contract, clients, onClose, onSave, defaultCurrency }) 
 }
 
 // ─── Contract View Modal ──────────────────────────────────────────
-function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptions, onGoIdeas }) {{ c, onClose, onPdfExported, companyProfile, pdfOptions }) {
+function ContractViewModal({ c, onClose, onPdfExported, companyProfile, pdfOptions, onGoIdeas }) {
   const ref = useRef();
   const opts = pdfOptions || { includeTerms:true, includePayment:true, includeSignature:true, includeLogo:true };
 
@@ -2505,13 +2505,14 @@ function IdeaCard({ idea, index, canCount, busy, onChange, onToggleDone, onDelet
   );
 }
 
-function IdeasScreen({ clients, contracts, ideas, onAddIdea, onUpdateIdea, onDeleteIdea, onVideoUpdate, onRefresh }) {
-  const [sel, setSel] = useState(null);
+function IdeasScreen({ clients, contracts, ideas, onAddIdea, onUpdateIdea, onDeleteIdea, onVideoUpdate, onRefresh, initialSel }) {
+    const [sel, setSel] = useState(initialSel || null);
   const [search, setSearch] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [filter, setFilter] = useState("all");
   const [confirmDel, setConfirmDel] = useState(null);
   const [busy, setBusy] = useState(false);
+    useEffect(() => { if (initialSel) setSel(initialSel); }, [initialSel]);
   const { pulling, progress, handlers } = usePullToRefresh(onRefresh || (()=>{}));
 
   const addIdea = async clientId => {
@@ -2699,6 +2700,7 @@ export default function App() {
   const [settings, setSettings] = useState(initSettings);
   const [confirm, setConfirm] = useState(null);
   const [selClient, setSelClient] = useState(null);
+    const [ideasClient, setIdeasClient] = useState(null);
   const [auth, setAuth] = useState(()=>sessionStorage.getItem("auth")==="ok");
   const [loginF, setLoginF] = useState({ u:"", p:"", err:"" });
 
@@ -2827,6 +2829,7 @@ const togglePay=async(id,field)=>{
     setIdeas(p=>p.filter(i=>i.id!==id));
   };
   const goToClient=id=>{ setSelClient(id); setTab("clients"); };
+    const goToIdeas=id=>{ setIdeasClient(id); setVm(null); setTab("ideas"); };
   const goTo=t=>{ if(t==="contracts_new"){setTab("contracts");setTimeout(()=>setCm("new"),100);} else if(t==="clients_new"){setTab("clients");setTimeout(()=>setClm("new"),100);} else setTab(t); };
 
   // Notifications
@@ -2922,11 +2925,11 @@ const togglePay=async(id,field)=>{
 {tab==="clients"&&<ClientsScreen clients={clients} contracts={contracts} onAdd={()=>setClm("new")} onEdit={c=>setClm(c)} onDelete={delClient} initialSel={selClient} onRefresh={handleRefresh}/>}
 {tab==="income"&&<IncomeScreen contracts={contracts} clients={clients} onRefresh={handleRefresh}/>}
 {tab==="settings"&&<SettingsScreen settings={settings} onSave={handleSettingsSave} theme={theme} onThemeChange={handleThemeChange} onRefresh={handleRefresh}/>}
-{tab==="ideas"&&<IdeasScreen clients={clients} contracts={contracts} ideas={ideas} onAddIdea={addIdea} onUpdateIdea={updateIdea} onDeleteIdea={delIdea} onVideoUpdate={updateVideoDone} onRefresh={handleRefresh}/>}
+{tab==="ideas"&&<IdeasScreen clients={clients} contracts={contracts} ideas={ideas} onAddIdea={addIdea} onUpdateIdea={updateIdea} onDeleteIdea={delIdea} onVideoUpdate={updateVideoDone} onRefresh={handleRefresh} initialSel={ideasClient}/>}
         <nav className="bnav">
           {nav.map(n=>(
             <div key={n.key} className={`bni${tab===n.key?" on":""}`}
-              onClick={()=>{ setTab(n.key); if(n.key!=="clients") setSelClient(null); }}>
+                            onClick={()=>{ setTab(n.key); if(n.key!=="clients") setSelClient(null); if(n.key!=="ideas") setIdeasClient(null); }}>
               {n.key==="contracts"
                 ? <div className="bni-fab"><Icon name={n.icon} size={20} color="#000"/></div>
                 : <Icon name={n.icon} size={20} color={tab===n.key?"var(--ac)":"var(--muted)"}/>
@@ -2938,7 +2941,7 @@ const togglePay=async(id,field)=>{
 
         {cm!==null&&<ContractModal contract={cm==="new"?null:cm} clients={clients} onClose={()=>setCm(null)} onSave={saveContract} defaultCurrency={settings.defaultCurrency}/>}
         {clm!==null&&<ClientModal client={clm==="new"?null:clm} onClose={()=>setClm(null)} onSave={saveClient}/>}
-        {vm&&<ContractViewModal c={vm} onClose={()=>setVm(null)} onPdfExported={handlePdfExported} companyProfile={companyProfile} pdfOptions={pdfOptions}/>}
+        {        {vm&&<ContractViewModal c={vm} onClose={()=>setVm(null)} onPdfExported={handlePdfExported} companyProfile={companyProfile} pdfOptions={pdfOptions} onGoIdeas={goToIdeas}/>}
         {showSearch&&<GlobalSearch contracts={contracts} clients={clients} onClose={()=>setShowSearch(false)} onViewContract={c=>{ setVm(c); setShowSearch(false); }} goToClient={id=>{ goToClient(id); setShowSearch(false); }}/>}
         {showNotifs&&<NotificationCenter notifications={notifsWithRead} onClose={()=>setShowNotifs(false)} onMarkAllRead={handleMarkAllRead} onDismiss={handleDismissNotif}/>}
         {confirm&&<ConfirmDialog msg={confirm.msg} onConfirm={confirm.onConfirm} onCancel={()=>setConfirm(null)} confirmLabel={confirm.confirmLabel} confirmColor={confirm.confirmColor} icon={confirm.icon} iconColor={confirm.iconColor}/>}
