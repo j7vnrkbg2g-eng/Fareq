@@ -2682,8 +2682,8 @@ export default function App() {
     });
     setContracts(autoFixed);
     setClients((cl||[]).map(toAppCl));
+        setIdeas((ig||[]).map(toAppIdea));
   };
-    setIdeas((ig||[]).map(toAppIdea));
   useEffect(()=>{ if(!auth) return; loadData().then(()=>setLoading(false)); },[auth]);
   const handleRefresh = async () => { setRefreshing(true); await loadData(); setRefreshing(false); };
 
